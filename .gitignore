@@ -1,0 +1,12 @@
+*~
+*.pyc
+*.pyo
+*.log
+*.egg-info
+.DS_Store
+.vagrant
+venv
+dist
+*.cfg
+*.enc
+_build

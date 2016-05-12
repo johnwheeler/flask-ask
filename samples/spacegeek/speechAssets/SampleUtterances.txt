@@ -1,0 +1,14 @@
+GetNewFactIntent a fact
+GetNewFactIntent a space fact
+GetNewFactIntent tell me a fact
+GetNewFactIntent tell me a space fact
+GetNewFactIntent give me a fact
+GetNewFactIntent give me a space fact
+GetNewFactIntent tell me trivia
+GetNewFactIntent tell me a space trivia
+GetNewFactIntent give me trivia
+GetNewFactIntent give me a space trivia
+GetNewFactIntent give me some information
+GetNewFactIntent give me some space information
+GetNewFactIntent tell me something
+GetNewFactIntent give me something

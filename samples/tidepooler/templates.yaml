@@ -1,0 +1,41 @@
+welcome: |
+    <speak>
+        Welcome to Tide Pooler.
+        <audio src='https://s3.amazonaws.com/ask-storage/tidePooler/OceanWaves.mp3'/>
+        Which city would you like tide information for?
+    </speak>
+
+tide_info: |
+    {{ date | humanize_date }} in {{ city }}, the first high tide will be around
+    {{ tideinfo.first_high_tide_time | humanize_time }}, and will peak at about
+    {{ tideinfo.first_high_tide_height | humanize_height }}, followed by a low tide around
+    {{ tideinfo.low_tide_time | humanize_time }}, that will be about
+    {{ tideinfo.low_tide_height | humanize_height }}.
+
+    The second high tide will be around {{ tideinfo.second_high_tide_time | humanize_time }},
+    and will peak at about {{ tideinfo.second_high_tide_height | humanize_height }}
+
+help: |
+    I can lead you through providing a city and day of the week to get tide information, or you can simply open
+    Tide Pooler and ask a question like, get tide information for Seattle on Saturday. For a list of supported
+    cities, ask what cities are supported. Which city would you like tide information for?
+
+list_cities: |
+    Currently, I know tide information for these coastal cities: {{ cities }}
+    Which city would you like tide information for?
+
+list_cities_reprompt: Which city would you like tide information for?
+
+city_dialog: For which city would you like tide information for {{ date | humanize_date }}
+
+city_dialog_reprompt: For which city?
+
+date_dialog: For which date would you like tide information for {{ city }}?
+
+date_dialog_reprompt: For which date?
+
+date_dialog2: Please try again saying a day of the week, for example, Saturday
+
+noaa_problem: Sorry, the National Oceanic tide service is experiencing a problem. Please try again later.
+
+bye: Goodbye

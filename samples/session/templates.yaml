@@ -1,0 +1,21 @@
+welcome: |
+    Welcome to the Alexa Skills Kit sample. Please tell me your favorite color by
+    saying, my favorite color is red
+
+welcome_reprompt: Please tell me your favorite color by saying, my favorite color is red
+
+known_color: |
+    I now know that your favorite color is {{ color }}. You can ask me your favorite color
+    by saying, what's my favorite color?
+
+known_color_reprompt: You can ask me your favorite color by saying, what's my favorite color?
+
+known_color_bye: Your favorite color is {{ color }}. Goodbye
+
+unknown_color: I'm not sure what your favorite color is, please try again
+
+unknown_color_reprompt: |
+    I'm not sure what your favorite color is. You can tell me your favorite color by saying,
+    my favorite color is red
+
+card_title: Session

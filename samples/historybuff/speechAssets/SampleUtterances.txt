@@ -1,0 +1,15 @@
+GetFirstEventIntent get events for {day}
+GetFirstEventIntent give me events for {day}
+GetFirstEventIntent what happened on {day}
+GetFirstEventIntent what happened
+GetFirstEventIntent {day}
+
+GetNextEventIntent yes
+GetNextEventIntent yup
+GetNextEventIntent sure
+GetNextEventIntent yes please
+
+AMAZON.StopIntent no
+AMAZON.StopIntent nope
+AMAZON.StopIntent no thanks
+AMAZON.StopIntent no thank you
