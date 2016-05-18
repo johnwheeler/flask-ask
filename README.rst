@@ -5,7 +5,7 @@ Flask-Ask: Rapid Alexa Skill Development for Python
     :target: https://pypi.python.org/pypi/flask-ask
 
 The Amazon Echo is awesome! Flask-Ask is a Flask extension that makes it easy to write Alexa Skills hosted
-on a server. Use it with `Ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster!
+on a server. Use it with `Ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
 
 A Flask-Ask application looks like this:
 
