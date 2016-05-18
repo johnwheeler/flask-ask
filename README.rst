@@ -1,5 +1,5 @@
-Flask-Ask: Rapid Alexa Skill Development for Python
-===================================================
+Flask-Ask: Rapid Alexa Skills Kit Development for Python
+========================================================
 
 .. image:: https://img.shields.io/pypi/v/flask-ask.svg
     :target: https://pypi.python.org/pypi/flask-ask
