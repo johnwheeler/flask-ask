@@ -69,7 +69,7 @@ Installation
 To install Flask-Ask::
 
   pip install flask-ask
-  :ok_hand: 
+  👌 
 
 Documentation
 -------------
