@@ -1,5 +1,5 @@
-Flask-Ask: write Amazon Echo apps with Flask and the Alexa Skills Kit
-=====================================================================
+Flask-Ask: Rapid Alexa Skill Development in Python
+==================================================
 
 5-Minute Tutorial
 -----------------
