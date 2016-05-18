@@ -6,7 +6,7 @@ Flask-Ask: Rapid Alexa Skills Kit Development for Python
 
 **Flask-Ask makes it a joy to write Amazon Echo apps hosted on a server.**
 
-Use it with `Ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
+Use with `Ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
 
 🔦 The Basics
 -------------
