@@ -8,7 +8,7 @@ Flask-Ask: Rapid Alexa Skills Kit Development for Python
 
 Use it with `Ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
 
-⚪The Basics
+☤ The Basics
 ------------
 A Flask-Ask application looks like this:
 
@@ -48,7 +48,7 @@ above.Templates are stored in a file called `templates.yaml` located in the appl
 
 There are more code and template examples in the samples directory.
 
-⚪Features
+☤ Features
 --------
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
 
@@ -57,14 +57,14 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 * Helps construct ask and tell responses, reprompts and cards
 * Allows for the separation of code and speech through Jinja templates
 
-⚪Installation
+☤ Installation
 --------------
 To install Flask-Ask::
 
   pip install flask-ask
   ✨👌✨
 
-⚪5-Minute Tutorial
+☤ 5-Minute Tutorial
 -------------------
 See how fast and easy it is to develop Alexa Skills with Flask-Ask and Ngrok
 
@@ -72,16 +72,16 @@ See how fast and easy it is to develop Alexa Skills with Flask-Ask and Ngrok
  :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
  :alt: 5-minute Flask-Ask and ngrok tutorial.
 
-⚪Documentation
+☤ Documentation
 ---------------
 http://flask-ask.readthedocs.org
 
-⚪Todo
+☤ Todo
 ------
 * docstrings
 * tests
 
-⚪Thank You
+☤ Thank You
 -----------
 Thanks for checking this library out! I hope you find it useful.
 
