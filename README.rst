@@ -46,14 +46,6 @@ above.Templates are stored in a file called `templates.yaml` located in the appl
 
 There are more code and template examples in the samples directory.
 
-5-Minute Tutorial
------------------
-
-See how fast and easy it is to develop Alexa Skills with Flask-Ask and Ngrok
-
-.. image:: http://i.imgur.com/Tajkmdi.png
-   :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
-
 Features
 --------
 
@@ -69,8 +61,16 @@ Installation
 To install Flask-Ask::
 
   pip install flask-ask
-  👌 
+  👌
 
+5-Minute Tutorial
+-----------------
+
+See how fast and easy it is to develop Alexa Skills with Flask-Ask and Ngrok
+
+.. image:: http://i.imgur.com/Tajkmdi.png
+ :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
+  
 Documentation
 -------------
 http://flask-ask.readthedocs.org
