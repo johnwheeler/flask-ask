@@ -1,8 +1,9 @@
-Flask-Ask: Rapid Alexa Skill Development in Python
-==================================================
+Flask-Ask: Rapid Alexa Skills Kit Development for Python
+========================================================
 
 5-Minute Tutorial
 -----------------
+
 Watch this video to see how to develop Alexa skills **fast** with Flask-Ask and ngrok.
 
 .. image:: http://i.imgur.com/Tajkmdi.png
@@ -10,16 +11,18 @@ Watch this video to see how to develop Alexa skills **fast** with Flask-Ask and 
 
 Features
 --------
+
 * Verifies Alexa request signatures
 * Provides decorators that map ASK requests to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Allows for the separation of code and speech through Jinja templates
 
-
 Installation
-============
+------------
 To install Flask-Ask::
 
   pip install flask-ask
 
+Documentation
+-------------
 http://flask-ask.readthedocs.org
