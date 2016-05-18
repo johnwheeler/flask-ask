@@ -46,7 +46,7 @@ above.Templates are stored in a file called `templates.yaml` located in the appl
 
   hello: Hello, {{ firstname }}
 
-There are more code and template examples in the samples directory.
+More code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
 
 🎁 Features
 -----------
