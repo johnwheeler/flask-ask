@@ -57,7 +57,7 @@ See how fast and easy it is to develop Alexa Skills with Flask-Ask and Ngrok
 Features
 --------
 
-Flask-Ask:
+Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
 
 * Verifies Alexa request signatures
 * Provides decorators that map ASK requests to view functions
@@ -69,6 +69,7 @@ Installation
 To install Flask-Ask::
 
   pip install flask-ask
+  :ok_hand: 
 
 Documentation
 -------------
