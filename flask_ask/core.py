@@ -18,7 +18,7 @@ from .convert import to_date, to_time, to_timedelta
 ASK_ROUTE = '/_ask'
 ASK_APPLICATION_ID = None
 ASK_APPLICATION_IDS = []
-ASK_VERIFY_TIMESTAMP = False
+ASK_VERIFY_TIMESTAMP_DEBUG = False
 
 request = LocalProxy(lambda: current_app.ask._request)
 session = LocalProxy(lambda: current_app.ask._session)
@@ -45,13 +45,10 @@ class Ask(object):
         self.ask_route = app.config.get('ASK_ROUTE', ASK_ROUTE)
         self.ask_application_id = app.config.get('ASK_APPLICATION_ID', ASK_APPLICATION_ID)
         self.ask_application_ids = app.config.get('ASK_APPLICATION_IDS', ASK_APPLICATION_IDS)
-        self.ask_verify_timestamp = app.config.get('ASK_VERIFY_TIMESTAMP', ASK_VERIFY_TIMESTAMP)
+        self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', ASK_VERIFY_TIMESTAMP_DEBUG)
         if self.ask_application_id is None and not self.ask_application_ids:
-            logger.warning("Neither the ASK_APPLICATION_ID or ASK_APPLICATION_IDS configuration parameters have been " +
-                "set. Application ID will not be verified.")
-        if not self.ask_verify_timestamp:
-            logger.warning("Timestamp verification disabled. Set ASK_VERIFY_TIMESTAMP = True to enable." \
-                .format(self.ask_verify_timestamp))
+            logger.warning("Neither the ASK_APPLICATION_ID or ASK_APPLICATION_IDS " +
+                "configuration parameters have been set. Application ID will not be verified.")
         app.add_url_rule(self.ask_route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
@@ -136,21 +133,19 @@ class Ask(object):
         raw_body = flask_request.data
         cert_url = flask_request.headers['Signaturecertchainurl']
         signature = flask_request.headers['Signature']
-        if not verifier.verify_certificate_url(cert_url):
-            raise Exception("Couldn't verify certificate url {}".format(cert_url))
+
         cert = verifier.load_certificate(cert_url)
-        if not verifier.verify_certificate(cert):
-            raise Exception("Couldn't verify certificate")
-        if not verifier.verify_signature(cert, signature, raw_body):
-            raise Exception("Signature verification failed")
+        verifier.verify_signature(cert, signature, raw_body)
+
         ask_payload = json.loads(raw_body)
         timestamp = aniso8601.parse_datetime(ask_payload['request']['timestamp'])
-        if self.ask_verify_timestamp and not verifier.verify_timestamp(timestamp):
-            raise Exception("Timestamp verification failed")
+        if not current_app.debug or self.ask_verify_timestamp_debug:
+            verifier.verify_timestamp(timestamp)
+
         application_id = ask_payload['session']['application']['applicationId']
         if self.ask_application_id is not None or self.ask_application_ids:
-            if application_id != self.ask_application_id and application_id not in self.ask_application_ids:
-                raise Exception("Application ID verification failed")
+            verifier.verify_application_id(application_id, self.ask_application_id, self.ask_application_ids)
+
         return ask_payload
 
     @property
