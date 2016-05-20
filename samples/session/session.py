@@ -20,7 +20,7 @@ def launch():
     return question(question_text).reprompt(reprompt_text).simple_card(card_title, question_text)
 
 
-@ask.intent('MyColorIsIntent')
+@ask.intent('MyColorIsIntent', mapping={'color': 'Color'})
 def my_color_is(color):
     card_title = render_template('card_title')
     if color is not None:
