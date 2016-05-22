@@ -219,6 +219,11 @@ class _Response(object):
         self._response['card'] = card
         return self
 
+    def link_account_card(self):
+        card = { 'type': 'LinkAccount' }
+        self._response['card'] = card
+        return self
+
     def render_response(self):
         response_wrapper = {
             'version': '1.0',
