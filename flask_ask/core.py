@@ -312,4 +312,4 @@ def _parse_request(obj):
 
 def _dbgdump(obj, indent=2, default=None, cls=None):
     msg = json.dumps(obj, indent=indent, default=default, cls=cls)
-    logger.warn(msg)
+    logger.debug(msg)
