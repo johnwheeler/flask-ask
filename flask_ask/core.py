@@ -238,7 +238,7 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': session.attributes if hasattr(session, 'attributes') else {}
+            'sessionAttributes': session.attributes
         }
         kw = {}
         if hasattr(session, 'json_encoder'):
