@@ -241,8 +241,8 @@ class _Response(object):
             'sessionAttributes': session.attributes
         }
         kw = {}
-        if hasattr(session, 'json_encoder'):
-            json_encoder = session.json_encoder
+        if hasattr(session, 'attributes_encoder'):
+            json_encoder = session.attributes_encoder
             kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
             kw[kwargname] = json_encoder
         _dbgdump(response_wrapper, **kw)

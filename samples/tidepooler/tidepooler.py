@@ -209,9 +209,9 @@ def _dialog_date(city):
     return question(date_dialog_text).reprompt(date_dialog_reprompt_text)
 
 
-def _dialog_city(date):
+def _dialog_city(date):    
     session.attributes[SESSION_DATE] = date
-    session.json_encoder = _json_date_handler
+    session.attributes_encoder = _json_date_handler
     city_dialog_text = render_template('city_dialog', date=date)
     city_dialog_reprompt_text = render_template('city_dialog_reprompt')
     return question(city_dialog_text).reprompt(city_dialog_reprompt_text)
