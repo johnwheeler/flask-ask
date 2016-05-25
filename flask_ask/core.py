@@ -22,6 +22,7 @@ ASK_VERIFY_TIMESTAMP_DEBUG = False
 
 request = LocalProxy(lambda: current_app.ask._request)
 session = LocalProxy(lambda: current_app.ask._session)
+version = LocalProxy(lambda: current_app.ask._version)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -75,26 +76,46 @@ class Ask(object):
             return f
         return decorator
 
+    def _verified_request(self):
+        raw_body = flask_request.data
+        cert_url = flask_request.headers['Signaturecertchainurl']
+        signature = flask_request.headers['Signature']
+        # load certificate - this verifies a the certificate url and format under the hood
+        cert = verifier.load_certificate(cert_url)
+        # verify signature
+        verifier.verify_signature(cert, signature, raw_body)
+        # verify timestamp
+        ask_payload = json.loads(raw_body)
+        timestamp = aniso8601.parse_datetime(ask_payload['request']['timestamp'])
+        if not current_app.debug or self.ask_verify_timestamp_debug:
+            verifier.verify_timestamp(timestamp)
+        # verify application id
+        application_id = ask_payload['session']['application']['applicationId']
+        if self.ask_application_id is not None or self.ask_application_ids:
+            verifier.verify_application_id(application_id, self.ask_application_id, self.ask_application_ids)
+        return ask_payload
+
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._verified_request()
         _dbgdump(ask_payload)
-        self._request = _parse_request(ask_payload['request'])
-        self._session = _parse_session(ask_payload['session'])
-        if self._session is not None and self._session.new and self._on_session_started_callback is not None:
+        request_body = _parse_request_body(ask_payload)
+        self._request = request_body.request
+        self._session = request_body.session
+        self._version = request_body.version
+        if self._session.new and self._on_session_started_callback is not None:
             self._on_session_started_callback()
-        if self._request is not None:
-            result = None
-            request_type = self._request.type
-            if request_type == 'LaunchRequest' and self._launch_view_func:
-                result = self._launch_view_func()
-            elif request_type == 'SessionEndedRequest' and self._session_ended_view_func:
-                result = self._session_ended_view_func()
-            elif request_type == 'IntentRequest' and self._intent_view_funcs:
-                result = self._map_intent_to_view_func(self._request.intent)()
-            if result is not None:
-                if isinstance(result, _Response):
-                    return result.render_response()
-                return result
+        result = None
+        request_type = self._request.type
+        if request_type == 'LaunchRequest' and self._launch_view_func:
+            result = self._launch_view_func()
+        elif request_type == 'SessionEndedRequest' and self._session_ended_view_func:
+            result = self._session_ended_view_func()
+        elif request_type == 'IntentRequest' and self._intent_view_funcs:
+            result = self._map_intent_to_view_func(self._request.intent)()
+        if result is not None:
+            if isinstance(result, _Response):
+                return result.render_response()
+            return result
         return "", 400
 
     def _map_intent_to_view_func(self, intent):
@@ -129,25 +150,6 @@ class Ask(object):
                 arg_values.append(arg_value)
         return partial(view_func, *arg_values)
 
-    def _verified_request(self):
-        raw_body = flask_request.data
-        cert_url = flask_request.headers['Signaturecertchainurl']
-        signature = flask_request.headers['Signature']
-
-        cert = verifier.load_certificate(cert_url)
-        verifier.verify_signature(cert, signature, raw_body)
-
-        ask_payload = json.loads(raw_body)
-        timestamp = aniso8601.parse_datetime(ask_payload['request']['timestamp'])
-        if not current_app.debug or self.ask_verify_timestamp_debug:
-            verifier.verify_timestamp(timestamp)
-
-        application_id = ask_payload['session']['application']['applicationId']
-        if self.ask_application_id is not None or self.ask_application_ids:
-            verifier.verify_application_id(application_id, self.ask_application_id, self.ask_application_ids)
-
-        return ask_payload
-
     @property
     def _request(self):
         return getattr(_app_ctx_stack.top, '_ask_request', None)
@@ -163,6 +165,14 @@ class Ask(object):
     @_session.setter
     def _session(self, value):
         _app_ctx_stack.top._ask_session = value
+
+    @property
+    def _version(self):
+        return getattr(_app_ctx_stack.top, '_ask_version', None)
+
+    @_version.setter
+    def _version(self, value):
+        _app_ctx_stack.top._ask_version = value
 
 
 class YamlLoader(BaseLoader):
@@ -228,7 +238,7 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': session.attributes
+            'sessionAttributes': session.attributes if hasattr(session, 'attributes') else {}
         }
         kw = {}
         if hasattr(session, 'json_encoder'):
@@ -258,14 +268,6 @@ class question(_Response):
         return self
 
 
-class _Application(object): pass
-class _User(object): pass
-class _Session(object): pass
-class _Request(object): pass
-class _Intent(object): pass
-class _Slot(object): pass
-
-
 def _output_speech(speech):
     try:
         xmldoc = ElementTree.fromstring(speech)
@@ -276,38 +278,75 @@ def _output_speech(speech):
     return { 'type': 'PlainText', 'text': speech }
 
 
-def _parse_session(obj):
-    session = _Session()
-    session.new = obj['new']
-    session.sessionId = obj['sessionId']
-    session.application = _Application()
-    session.application.applicationId = obj['application']['applicationId']
-    session.attributes = obj.get('attributes', {})
-    session.user = _User()
-    session.user.userId = obj['user']['userId']
-    if 'accessToken' in obj['user']:
-        session.user.accessToken = obj['user']['accessToken']
-    return session
+class _Application(object): pass
+class _Intent(object): pass
+class _Request(object): pass
+class _RequestBody(object): pass
+class _Session(object): pass
+class _Slot(object): pass
+class _User(object): pass
 
 
-def _parse_request(obj):
+def _copyattr(src, dest, attr, convert=None):
+    if attr in src:
+        value = src[attr]
+        if convert is not None:
+            value = convert(value)
+        setattr(dest, attr, value)
+
+
+def _parse_request_body(request_body_json):
+    request_body = _RequestBody()
+    request = _parse_request(request_body_json['request'])
+    setattr(request_body, 'request', request)
+    session = _parse_session(request_body_json['session'])
+    setattr(request_body, 'session', session)
+    setattr(request_body, 'version', request_body_json['version'])
+    return request_body
+
+
+def _parse_request(request_json):
     request = _Request()
-    request.requestId = obj['requestId']
-    request.timestamp = aniso8601.parse_datetime(obj['timestamp'])
-    request.type = obj['type']
-    if 'intent' in obj:
-        intent_obj = obj['intent']
+    _copyattr(request_json, request, 'requestId')
+    _copyattr(request_json, request, 'type')
+    _copyattr(request_json, request, 'reason')
+    _copyattr(request_json, request, 'timestamp', aniso8601.parse_datetime)
+    if 'intent' in request_json:
+        intent_json = request_json['intent']
         intent = _Intent()
-        intent.name = intent_obj['name']
-        intent.slots = []
-        request.intent = intent
-        if 'slots' in intent_obj:
-            for slot_obj in intent_obj['slots'].values():
-                slot = _Slot()
-                slot.name = slot_obj['name']
-                slot.value = slot_obj.get('value')
-                intent.slots.append(slot)
+        _copyattr(intent_json, intent, 'name')
+        setattr(request, 'intent', intent)
+        if 'slots' in intent_json:
+            slots = []
+            slots_json = intent_json['slots']
+            if hasattr(slots_json, 'values') and callable(slots_json.values):
+                slot_jsons = slots_json.values()
+                for slot_json in slot_jsons:
+                    slot = _Slot()
+                    _copyattr(slot_json, slot, 'name')
+                    _copyattr(slot_json, slot, 'value')
+                    slots.append(slot)
+            setattr(intent, 'slots', slots)
     return request
+
+
+def _parse_session(session_json):
+    session = _Session()
+    _copyattr(session_json, session, 'sessionId')
+    _copyattr(session_json, session, 'new')
+    setattr(session, 'attributes', session_json.get('attributes', {}))
+    if 'application' in session_json:
+        application_json = session_json['application']
+        application = _Application()
+        _copyattr(application_json, application, 'applicationId')
+        setattr(session, 'application', application)
+    if 'user' in session_json:
+        user_json = session_json['user']
+        user = _User()
+        _copyattr(user_json, user, 'userId')
+        _copyattr(user_json, user, 'accessToken')
+        setattr(session, 'user', user)
+    return session
 
 
 def _dbgdump(obj, indent=2, default=None, cls=None):

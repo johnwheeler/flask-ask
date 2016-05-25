@@ -8,7 +8,7 @@ from urllib import urlencode
 
 import aniso8601
 from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement
+from flask_ask import Ask, request, session, question, statement, version
 
 
 ENDPOINT = "http://tidesandcurrents.noaa.gov/api/datagetter"
@@ -54,7 +54,6 @@ STATIONS["galveston"] =  STATION_CODE_GALVESTON
 
 app = Flask(__name__)
 ask = Ask(app)
-log = logging.getLogger()
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 

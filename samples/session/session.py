@@ -45,6 +45,11 @@ def whats_my_color():
         return question(question_text).reprompt(question_text).simple_card(card_title, question_text)
 
 
+@ask.intent("AMAZON.StopIntent")
+def stop():
+    return statement("Goodbye")
+
+
 @ask.session_ended
 def session_ended():
     return "", 200
