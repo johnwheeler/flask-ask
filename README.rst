@@ -1,3 +1,5 @@
+.. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
+
 Flask-Ask: Rapid Amazon Echo Development for Python
 ========================================================
 
