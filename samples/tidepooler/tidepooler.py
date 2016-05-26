@@ -8,7 +8,7 @@ from urllib import urlencode
 
 import aniso8601
 from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement, version
+from flask_ask import Ask, request, session, question, statement
 
 
 ENDPOINT = "http://tidesandcurrents.noaa.gov/api/datagetter"
@@ -209,7 +209,7 @@ def _dialog_date(city):
     return question(date_dialog_text).reprompt(date_dialog_reprompt_text)
 
 
-def _dialog_city(date):    
+def _dialog_city(date):
     session.attributes[SESSION_DATE] = date
     session.attributes_encoder = _json_date_handler
     city_dialog_text = render_template('city_dialog', date=date)
