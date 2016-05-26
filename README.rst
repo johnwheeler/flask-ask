@@ -1,6 +1,6 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-**Flask-Ask makes it a joy to write Amazon Echo apps with the Alexa Skills Kit and Python.**
+**Rapidly develop Alexa Skills for Amazon Echo devices with Python**
 
 Use with `ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
 
