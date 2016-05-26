@@ -276,9 +276,14 @@ The ``session`` context local has an ``attributes`` dictionary for persisting in
 
     session.attributes['city'] = "San Francisco"
 
-When the response is rendered, the session attributes are automatically copied into its ``sessionAttributes``.
-The renderer looks for an ``attribute_encoder`` attribute on the session. The ``attribute_encoder`` can either be
-and instance of ``json.JSONEncoder`` or a function. Here's an example of a function::
+When the response is rendered, the session attributes are automatically copied over into
+the response's ``sessionAttributes`` structure.
+
+The renderer looks for an ``attribute_encoder`` on the session. If the renderer finds one, it will pass it to
+``json.dumps`` as either that function's ``cls`` or ``default`` keyword parameters depending on whether
+a ``json.JSONEncoder`` or a function is used, respectively.
+
+Here's an example that uses a function::
 
     def _json_date_handler(obj):
         if isinstance(obj, datetime.date):
@@ -288,8 +293,7 @@ and instance of ``json.JSONEncoder`` or a function. Here's an example of a funct
     session.attributes_encoder = _json_date_handler
 
 See the `json.dump documentation <https://docs.python.org/2/library/json.html#json.dump>`_ for for details about
-that method's ``cls`` and ``default`` parameters. Flask-Ask's response render determines which one to set when it
-calls ``json.dumps`` automatically.
+that method's ``cls`` and ``default`` parameters.
 
 
 Automatic handling of Plaintext and SSML
