@@ -276,7 +276,7 @@ The ``session`` context local has an ``attributes`` dictionary for persisting in
 
     session.attributes['city'] = "San Francisco"
 
-When the response is rendered, the session attributes are automatically copied its ``sessionAttributes``.
+When the response is rendered, the session attributes are automatically copied into its ``sessionAttributes``.
 The renderer looks for an ``attribute_encoder`` attribute on the session. The ``attribute_encoder`` can either be
 and instance of ``json.JSONEncoder`` or a function. Here's an example of a function::
 
