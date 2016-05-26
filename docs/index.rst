@@ -9,6 +9,7 @@ Flask-Ask:
 * Verifies Alexa request signatures
 * Provides decorators that map ASK requests to view functions
 * Helps construct ask and tell responses, reprompts and cards
+* Makes session management easy
 * Allows for the separation of code and speech through Jinja templates
 
 .. contents::
@@ -191,10 +192,10 @@ An Alexa
 has three top-level elements: ``request``, ``session``, and ``version``. Like Flask, Flask-Ask provides `context
 locals <http://werkzeug.pocoo.org/docs/0.11/local/>`_ that spare you from having to add these as extra parameters to
 your functions. However, the ``request`` and ``session`` objects are distinct from Flask's ``request`` and ``session``.
-Flask-Ask's ``request`` and ``session`` correspond to the Alexa request payload components while Flasks' correspond
-to HTTP.
+Flask-Ask's ``request`` and ``session`` correspond to the Alexa request payload components while Flask's correspond
+to lower-level HTTP constructs.
 
-To use Flask-Ask's context locals, just import::
+To use Flask-Ask's context locals, just import them::
 
     from flask import App
     from flask.ext.ask import Ask, request, session, version
@@ -203,8 +204,8 @@ To use Flask-Ask's context locals, just import::
     ask = Ask(app)
     log = logging.getLogger()
 
-    @ask.intent('HelloIntent')
-    def hello(firstname):
+    @ask.intent('ExampleIntent')
+    def example():
         log.info("Request ID: {}".format(request.requestId))
         log.info("Request Type: {}".format(request.type))
         log.info("Request Timestamp: {}".format(request.timestamp))
@@ -268,9 +269,27 @@ If the user doesn't respond, encourage them by rephrasing the question with ``re
         .reprompt("I didn't get that. When would you like to be seen?")
 
 
-Persist information across requests with ``session.attributes``
----------------------------------------------------------------
-Placeholder
+Session management
+------------------
+
+The ``session`` context local has an ``attributes`` dictionary for persisting information across requests::
+
+    session.attributes['city'] = "San Francisco"
+
+When the response is rendered, the session attributes are automatically copied its ``sessionAttributes``.
+The renderer looks for an ``attribute_encoder`` attribute on the session. The ``attribute_encoder`` can either be
+and instance of ``json.JSONEncoder`` or a function. Here's an example of a function::
+
+    def _json_date_handler(obj):
+        if isinstance(obj, datetime.date):
+            return obj.isoformat()
+
+    session.attributes[SESSION_DATE] = date
+    session.attributes_encoder = _json_date_handler
+
+See the `json.dump documentation <https://docs.python.org/2/library/json.html#json.dump>`_ for for details about
+that method's ``cls`` and ``default`` parameters. Flask-Ask's response render determines which one to set when it
+calls ``json.dumps`` automatically.
 
 
 Automatic handling of Plaintext and SSML
