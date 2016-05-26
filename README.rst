@@ -4,7 +4,9 @@ Flask-Ask: Rapid Amazon Echo Development for Python
 .. image:: https://img.shields.io/pypi/v/flask-ask.svg
     :target: https://pypi.python.org/pypi/flask-ask
 
-.. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png    
+
+.. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
+
 
 **Flask-Ask makes it a joy to write Amazon Echo apps with the Alexa Skills Kit and Python.**
 
