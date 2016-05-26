@@ -284,7 +284,7 @@ and instance of ``json.JSONEncoder`` or a function. Here's an example of a funct
         if isinstance(obj, datetime.date):
             return obj.isoformat()
 
-    session.attributes[SESSION_DATE] = date
+    session.attributes['date'] = date
     session.attributes_encoder = _json_date_handler
 
 See the `json.dump documentation <https://docs.python.org/2/library/json.html#json.dump>`_ for for details about
