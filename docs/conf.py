@@ -91,7 +91,7 @@ html_theme = 'flask'
 # documentation.
 html_theme_options = {
     'touch_icon':   'touch-icon.png',
-    'github_fork': 'https://github.com/johnwheeler/flask-ask'
+    'github_fork': 'johnwheeler/flask-ask'
 }
 
 html_sidebars = {
