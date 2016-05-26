@@ -185,7 +185,7 @@ will convert a ``date`` string such as ``'2015-11-24'``, ``'2015-W48-WE'``, or `
 Python ``datetime.date``.
 
 
-``request``, ``session``, and ``version`` context locals
+``request``, ``session``, and ``version`` Context Locals
 --------------------------------------------------------
 An Alexa
 `request payload <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#Request%20Format>`_
@@ -269,7 +269,7 @@ If the user doesn't respond, encourage them by rephrasing the question with ``re
         .reprompt("I didn't get that. When would you like to be seen?")
 
 
-Session management
+Session Management
 ------------------
 
 The ``session`` context local has an ``attributes`` dictionary for persisting information across requests::
@@ -296,7 +296,7 @@ See the `json.dump documentation <https://docs.python.org/2/library/json.html#js
 that method's ``cls`` and ``default`` parameters.
 
 
-Automatic handling of Plaintext and SSML
+Automatic Handling of Plaintext and SSML
 ----------------------------------------
 The Alexa Skills Kit supports plain text or
 `SSML <https://en.wikipedia.org/wiki/Speech_Synthesis_Markup_Language>`_ outputs. Flask-Ask automatically
