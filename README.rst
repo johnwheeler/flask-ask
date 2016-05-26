@@ -63,7 +63,7 @@ To install Flask-Ask::
 
 ☤ 5-Minute Tutorial
 --------------------
-See how fast and easy it is to develop Alexa Skills with Flask-Ask and Ngrok
+See how fast and easy it is to develop Alexa Skills with Flask-Ask and ngrok
 
 .. image:: http://i.imgur.com/Tajkmdi.png
  :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
