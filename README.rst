@@ -1,6 +1,6 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-**Rapidly develop Alexa Skills for Amazon Echo devices with Python**
+**Rapidly develop Alexa Skills for Amazon Echo devices using Python**
 
 Use with `ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
 
