@@ -71,7 +71,7 @@ See how fast and easy it is to develop Alexa Skills with Flask-Ask and ngrok
 
 ☤ Documentation
 ----------------
-http://flask-ask.readthedocs.org
+https://johnwheeler.org/flask-ask
 
 ☤ Todo
 -------
