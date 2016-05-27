@@ -33,8 +33,6 @@ In the code above:
 #. Jinja templates are supported. Internally, templates are loaded from a YAML file (discussed further below).
 #. Lastly, a builder constructs a spoken response and displays a contextual card in the Alexa smartphone/tablet app.
 
-For more information about how the Alexa Skills Kit works, see `Understanding Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/overviews/understanding-custom-skills>`_ in the Alexa Skills Kit documentation.
-
 Since Alexa responses are usually short phrases, it's convenient to put them in the same file.
 Flask-Ask has a `Jinja template loader <http://jinja.pocoo.org/docs/dev/api/#loaders>`_ that loads
 multiple templates from a single YAML file. For example, here's a template that supports the minimal voice interface
@@ -43,8 +41,10 @@ above.Templates are stored in a file called `templates.yaml` located in the appl
 .. code-block:: yaml
 
     hello: Hello, {{ firstname }}
+    
+For more information about how the Alexa Skills Kit works, see `Understanding Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/overviews/understanding-custom-skills>`_ in the Alexa Skills Kit documentation.
 
-More code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
+Additionally, more code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
 
 ☤ Features
 -----------
