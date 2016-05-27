@@ -30,8 +30,8 @@ A Flask-Ask application looks like this:
 
 In the code above:
 
-#. The ``Ask`` object is created by passing in the Flask ``Application`` instance along with a route to forward Alexa requests to.
-#. The ``intent`` decorator maps an `intent request <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/handling-requests-sent-by-alexa#Types of Requests Sent by Alexa>`_ named ``HelloIntent`` to a view function ``hello``.
+#. The ``Ask`` object is created by passing in the Flask application and a route to forward Alexa requests to.
+#. The ``intent`` decorator maps ``HelloIntent`` to a view function ``hello``.
 #. The intent's ``firstname`` slot is implicitly mapped to ``hello``'s ``firstname`` parameter.
 #. Jinja templates are supported. Internally, templates are loaded from a YAML file (discussed further below).
 #. Lastly, a builder constructs a spoken response and displays a contextual card in the Alexa smartphone/tablet app.
@@ -45,5 +45,6 @@ above.Templates are stored in a file called `templates.yaml` located in the appl
 
     hello: Hello, {{ firstname }}
 
-There are more code and template examples in the `samples directory <https://github.com/johnwheeler/flask-ask>`_ on
-Github.
+For more information about how the Alexa Skills Kit works, see `Understanding Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/overviews/understanding-custom-skills>`_ in the Alexa Skills Kit documentation.
+
+Additionally, more code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
