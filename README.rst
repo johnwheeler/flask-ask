@@ -83,3 +83,5 @@ Thanks for checking this library out! I hope you find it useful.
 
 Of course, there's always room for improvement.
 Feel free to `open an issue <https://github.com/johnwheeler/flask-ask/issues>`_ so we can make Flask-Ask better.
+
+Special thanks to `@kennethreitz <https://github.com/kennethreitz>`_ for letting me cramp his style, and of course, `@mitsuhiko <https://github.com/mitsuhiko>`_
