@@ -6,13 +6,6 @@
 Welcome to Flask-Ask
 ====================
 
-.. raw:: html
-
-   <iframe src="https://ghbtns.com/github-btn.html?user=johnwheeler&repo=flask-ask&type=star&count=true&size=large"
-       frameborder="0" scrolling="0" width="160px" height="30px">
-   </iframe>
-
-
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
 Use Flask-Ask with `ngrok <https://ngrok.com/>`_ to eliminate the deploy-to-test step and get work done faster.
 

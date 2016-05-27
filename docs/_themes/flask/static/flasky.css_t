@@ -91,7 +91,7 @@ div.sphinxsidebarwrapper {
 }
 
 div.sphinxsidebarwrapper p.logo {
-    padding: 0 0 20px 0;
+    padding: 0 0 6px 0;
     margin: 0;
 }
 
@@ -240,6 +240,7 @@ div.seealso {
 
 div.topic {
     background-color: #eee;
+    padding: 0 7px 7px 7px;
 }
 
 p.admonition-title {
@@ -342,8 +343,8 @@ ul, ol {
 
 pre {
     background: #eee;
-    padding: 7px 30px;
-    margin: 15px -30px;
+    margin: 12px 0px;
+    padding: 11px 14px;
     line-height: 1.3em;
 }
 
@@ -390,6 +391,10 @@ a.footnote-reference:hover {
 
 a:hover tt {
     background: #EEE;
+}
+
+small {
+    font-size: 0.9em;
 }
 
 
