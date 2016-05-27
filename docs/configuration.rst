@@ -3,11 +3,6 @@ Configuration
 Flask-Ask exposes the following configuration variables:
 
 ============================ ============================================================================================
-`ASK_ROUTE`                  The Flask route the Alexa service will send requests to. This corresponds to the path
-                             portion of the HTTPS endpoint specified in the Amazon Developer portal under the skill's
-                             "Configuration" section. This route is created implicitly by Flask-Ask and is not exposed
-                             to the developer. You really only need to change this setting if the default value
-                             collides with an existing route. **Default:**  ``/_ask``
 `ASK_APPLICATION_ID`         Turn on application ID verification by setting this variable to the application ID Amazon
                              assigned your application. By default, application ID verification is disabled and a
                              warning is logged. This variable or the one below should be set in production to ensure

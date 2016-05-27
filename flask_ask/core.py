@@ -15,7 +15,6 @@ from .convert import to_date, to_time, to_timedelta
 
 
 # config defaults
-ASK_ROUTE = '/_ask'
 ASK_APPLICATION_ID = None
 ASK_APPLICATION_IDS = []
 ASK_VERIFY_TIMESTAMP_DEBUG = False
@@ -29,8 +28,9 @@ _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 class Ask(object):
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, route=None):
         self.app = app
+        self._route = route
         self._intent_view_funcs = {}
         self._intent_converts = {}
         self._intent_defaults = {}
@@ -42,15 +42,16 @@ class Ask(object):
             self.init_app(app)
 
     def init_app(self, app):
+        if self._route is None:
+            raise TypeError("route is a required argument")
         app.ask = self
-        self.ask_route = app.config.get('ASK_ROUTE', ASK_ROUTE)
         self.ask_application_id = app.config.get('ASK_APPLICATION_ID', ASK_APPLICATION_ID)
         self.ask_application_ids = app.config.get('ASK_APPLICATION_IDS', ASK_APPLICATION_IDS)
         self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', ASK_VERIFY_TIMESTAMP_DEBUG)
         if self.ask_application_id is None and not self.ask_application_ids:
             logger.warning("Neither the ASK_APPLICATION_ID or ASK_APPLICATION_IDS " +
                 "configuration parameters have been set. Application ID will not be verified.")
-        app.add_url_rule(self.ask_route, view_func=self._flask_view_func, methods=['POST'])
+        app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
     def on_session_started(self, f):

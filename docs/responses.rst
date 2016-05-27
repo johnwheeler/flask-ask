@@ -124,5 +124,9 @@ You can also use Jinja templates. Define them in a YAML file named `templates.ya
       all_your_base_msg: All your base are belong to {{ who }}
 
       multiple_line_example: |
-        I am a multi-line template. My content spans more than one line,
-        so there's a pipe and a newline that separates my name and value.
+        <speak>
+            I am a multi-line SSML template. My content spans more than one line,
+            so there's a pipe and a newline that separates my name and value.
+            Enjoy the sounds of the ocean.
+            <audio src='https://s3.amazonaws.com/ask-storage/tidePooler/OceanWaves.mp3'/>
+        </speak>

@@ -5,7 +5,7 @@ from flask_ask import Ask, request, session, question, statement
 
 
 app = Flask(__name__)
-ask = Ask(app)
+ask = Ask(app, "/")
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
@@ -43,11 +43,6 @@ def whats_my_color():
     else:
         question_text = render_template('unknown_color_reprompt')
         return question(question_text).reprompt(question_text).simple_card(card_title, question_text)
-
-
-@ask.intent("AMAZON.StopIntent")
-def stop():
-    return statement("Goodbye")
 
 
 @ask.session_ended

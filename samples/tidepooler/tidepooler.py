@@ -53,7 +53,7 @@ STATIONS["galveston"] =  STATION_CODE_GALVESTON
 
 
 app = Flask(__name__)
-ask = Ask(app)
+ask = Ask(app, "/")
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
