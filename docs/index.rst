@@ -13,9 +13,8 @@ Welcome to Flask-Ask
    </iframe>
 
 
-Welcome to the Flask-Ask documentation. Flask-Ask makes it easy to write Amazon Echo apps with
-`Flask <http://flask.pocoo.org>`_ and the
-`Alexa Skills Kit <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit>`_.
+Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
+Use Flask-Ask with `ngrok <https://ngrok.com/>`_ to eliminate the deploy-to-test step and get work done faster.
 
 Flask-Ask:
 
