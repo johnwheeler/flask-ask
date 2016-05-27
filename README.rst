@@ -41,7 +41,7 @@ above.Templates are stored in a file called `templates.yaml` located in the appl
 .. code-block:: yaml
 
     hello: Hello, {{ firstname }}
-    
+
 For more information about how the Alexa Skills Kit works, see `Understanding Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/overviews/understanding-custom-skills>`_ in the Alexa Skills Kit documentation.
 
 Additionally, more code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
@@ -51,7 +51,7 @@ Additionally, more code and template examples are in the `samples <https://githu
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
 
 * Verifies Alexa request signatures
-* Provides decorators that map ASK requests to view functions
+* Has decorators to map Alexa requests and intent slots to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Makes session management easy
 * Allows for the separation of code and speech through Jinja templates

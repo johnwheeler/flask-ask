@@ -40,7 +40,7 @@ This section shows how to process Alexa requests with Flask-Ask. It contains the
 
 Mapping Alexa Requests to View Functions
 ----------------------------------------
-Flask-Ask ships with decorators to map Alexa requests to view functions.
+Flask-Ask has decorators to map Alexa requests to view functions.
 
 The ``launch`` decorator handles launch requests::
 

@@ -12,7 +12,7 @@ Use Flask-Ask with `ngrok <https://ngrok.com/>`_ to eliminate the deploy-to-test
 Flask-Ask:
 
 * Verifies Alexa request signatures
-* Provides decorators that map ASK requests to view functions
+* Has decorators to map Alexa requests and intent slots to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Makes session management easy
 * Allows for the separation of code and speech through Jinja templates
