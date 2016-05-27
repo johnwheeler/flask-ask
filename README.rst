@@ -64,7 +64,7 @@ To install Flask-Ask::
 
 ☤ Documentation
 ----------------
-Use the links below to get up and running quickly:
+These resources will get you up and running quickly:
 
 * `Develop your first skill in 5 minutes <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
 * `Full online documentation <https://johnwheeler.org/flask-ask>`_
