@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Ask',
-    version='0.3',
+    version='0.4',
     url='https://github.com/johnwheeler/flask-ask',
     license='MIT',
     author='John Wheeler',
