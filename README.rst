@@ -62,15 +62,12 @@ To install Flask-Ask::
   pip install flask-ask
   ✨👌✨
 
-☤ 5-Minute Tutorial
---------------------
-See how fast and easy it is to develop Alexa Skills with Flask-Ask and ngrok
-
-`View quickstart on YouTube <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
-
 ☤ Documentation
 ----------------
-https://johnwheeler.org/flask-ask
+These resources will get you up and running quickly:
+
+* `Develop your first skill in 5 minutes <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
+* `Full online documentation <https://johnwheeler.org/flask-ask>`_
 
 ☤ Todo
 -------
