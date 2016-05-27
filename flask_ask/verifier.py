@@ -34,8 +34,8 @@ def verify_timestamp(timestamp):
         raise VerificationError("Timestamp verification failed")
 
 
-def verify_application_id(test_id, application_id, application_ids):
-    if test_id != application_id and test_id not in application_ids:
+def verify_application_id(candidate, records):
+    if candidate not in records:
         raise VerificationError("Application ID verification failed")
 
 

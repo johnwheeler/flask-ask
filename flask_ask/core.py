@@ -16,7 +16,6 @@ from .convert import to_date, to_time, to_timedelta
 
 # config defaults
 ASK_APPLICATION_ID = None
-ASK_APPLICATION_IDS = []
 ASK_VERIFY_TIMESTAMP_DEBUG = False
 
 request = LocalProxy(lambda: current_app.ask._request)
@@ -45,12 +44,10 @@ class Ask(object):
         if self._route is None:
             raise TypeError("route is a required argument")
         app.ask = self
-        self.ask_application_id = app.config.get('ASK_APPLICATION_ID', ASK_APPLICATION_ID)
-        self.ask_application_ids = app.config.get('ASK_APPLICATION_IDS', ASK_APPLICATION_IDS)
         self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', ASK_VERIFY_TIMESTAMP_DEBUG)
-        if self.ask_application_id is None and not self.ask_application_ids:
-            logger.warning("Neither the ASK_APPLICATION_ID or ASK_APPLICATION_IDS " +
-                "configuration parameters have been set. Application ID will not be verified.")
+        self.ask_application_id = app.config.get('ASK_APPLICATION_ID', ASK_APPLICATION_ID)        
+        if self.ask_application_id is None:
+            logger.warning("The ASK_APPLICATION_ID has not been set. Application ID verification disabled.")
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
@@ -92,8 +89,8 @@ class Ask(object):
             verifier.verify_timestamp(timestamp)
         # verify application id
         application_id = ask_payload['session']['application']['applicationId']
-        if self.ask_application_id is not None or self.ask_application_ids:
-            verifier.verify_application_id(application_id, self.ask_application_id, self.ask_application_ids)
+        if self.ask_application_id is not None:
+            verifier.verify_application_id(application_id, self.ask_application_id)
         return ask_payload
 
     def _flask_view_func(self, *args, **kwargs):
