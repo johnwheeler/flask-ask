@@ -1,7 +1,7 @@
 :orphan:
 
 .. image:: _static/logo-full.png
-   :alt: Flask-Ask: Rapid Alexa Skills Kit Development for Amazon Echo Devices
+   :alt: Flask-Ask: Alexa Skills Kit Development for Amazon Echo Devices with Python
 
 Welcome to Flask-Ask
 ====================
