@@ -1,6 +1,6 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-**Rapid Alexa Skills Kit Development in Python**
+**Rapid Alexa Skills Kit Development with Python**
 
 Use with `ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
 
