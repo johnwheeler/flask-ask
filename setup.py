@@ -9,12 +9,12 @@ from setuptools import setup
 
 setup(
     name='Flask-Ask',
-    version='0.2',
+    version='0.3',
     url='https://github.com/johnwheeler/flask-ask',
-    license='BSD',
+    license='MIT',
     author='John Wheeler',
-    author_email='john@bookkeeper.io',
-    description='Easy Alexa Skills Kit integration for Flask',
+    author_email='john@johnwheeler.org',
+    description='Rapid Alexa Skills Kit Development for Amazon Echo Devices in Python',
     long_description=__doc__,
     packages=['flask_ask'],
     zip_safe=False,
@@ -27,11 +27,12 @@ setup(
         'aniso8601'
     ],
     classifiers=[
+        'License :: OSI Approved :: MIT License',
+        'Framework :: Flask',
+        'Programming Language :: Python',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
