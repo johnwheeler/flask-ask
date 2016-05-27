@@ -33,7 +33,7 @@ In the code above:
 #. Jinja templates are supported. Internally, templates are loaded from a YAML file (discussed further below).
 #. Lastly, a builder constructs a spoken response and displays a contextual card in the Alexa smartphone/tablet app.
 
-For more information about how Alexa Skills Kit Programming works, refer to `Understanding Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/overviews/understanding-custom-skills>`_ in Amazon's Developer documentation.
+For more information about how the Alexa Skills Kit works, see `Understanding Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/overviews/understanding-custom-skills>`_ in the Alexa Skills Kit documentation.
 
 Since Alexa responses are usually short phrases, it's convenient to put them in the same file.
 Flask-Ask has a `Jinja template loader <http://jinja.pocoo.org/docs/dev/api/#loaders>`_ that loads
