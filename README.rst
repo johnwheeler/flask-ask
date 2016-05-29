@@ -12,7 +12,7 @@ A Flask-Ask application looks like this:
 .. code-block:: python
 
   from flask import Flask, render_template
-  from flask.ext.ask import Ask, statement
+  from flask_ask import Ask, statement
 
   app = Flask(__name__)
   ask = Ask(app, '/')

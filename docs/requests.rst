@@ -136,7 +136,7 @@ to lower-level HTTP constructs.
 To use Flask-Ask's context locals, just import them::
 
     from flask import App
-    from flask.ext.ask import Ask, request, session, version
+    from flask_ask import Ask, request, session, version
 
     app = Flask(__name__)
     ask = Ask(app)
@@ -155,7 +155,7 @@ To use Flask-Ask's context locals, just import them::
 If you want to use both Flask and Flask-Ask context locals in the same module, use ``import as``::
 
     from flask import App, request, session
-    from flask.ext.ask import (
+    from flask_ask import (
         Ask,
         request as ask_request,
         session as ask_session,
