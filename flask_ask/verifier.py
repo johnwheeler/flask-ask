@@ -1,6 +1,7 @@
 import os
 import urllib2
 import base64
+import posixpath
 from urlparse import urlparse
 from datetime import datetime
 
@@ -43,7 +44,7 @@ def _valid_certificate_url(cert_url):
     parsed_url = urlparse(cert_url)
     if parsed_url.scheme == 'https':
         if parsed_url.hostname == "s3.amazonaws.com":
-            if os.path.normpath(parsed_url.path).startswith("/echo.api/"):
+            if posixpath.normpath(parsed_url.path).startswith("/echo.api/"):
                 return True
     return False
 
