@@ -25,7 +25,7 @@ def to_date(amazon_date):
         return None
     # make so 'next decade' matches work against 'next year' regex
     amazon_date = re.sub('X$', '0', amazon_date)
-    for re_pattern, format_pattern in _DATE_PATTERNS.items():
+    for re_pattern, format_pattern in list(_DATE_PATTERNS.items()):
         if re.match(re_pattern, amazon_date):
             if '%U' in format_pattern:
                 # http://stackoverflow.com/a/17087427/1163855
@@ -43,7 +43,7 @@ def to_time(amazon_time):
         return time(hour=12)
     try:
         return aniso8601.parse_time(amazon_time)
-    except ValueError, e:
+    except ValueError as e:
         logger.warn("ValueError for amazon_time '{}'.".format(amazon_time))
         logger.warn("ValueError message: {}".format(e.message))
         return None

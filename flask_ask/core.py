@@ -9,9 +9,10 @@ from werkzeug.local import LocalProxy
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
 
-import verifier
+from . import verifier
 from . import logger
 from .convert import to_date, to_time, to_timedelta
+import collections
 
 
 # config defaults
@@ -134,7 +135,7 @@ class Ask(object):
                 if arg_value is None or arg_value == "":
                     if arg_name in default:
                         default_value = default[arg_name]
-                        if callable(default_value):
+                        if isinstance(default_value, collections.Callable):
                             default_value = default_value()
                         arg_value = default_value
                 elif arg_name in convert:
@@ -271,7 +272,7 @@ def _output_speech(speech):
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
             return { 'type': 'SSML', 'ssml': speech }
-    except ElementTree.ParseError, e:
+    except ElementTree.ParseError as e:
         pass
     return { 'type': 'PlainText', 'text': speech }
 
@@ -317,8 +318,8 @@ def _parse_request(request_json):
         if 'slots' in intent_json:
             slots = []
             slots_json = intent_json['slots']
-            if hasattr(slots_json, 'values') and callable(slots_json.values):
-                slot_jsons = slots_json.values()
+            if hasattr(slots_json, 'values') and isinstance(slots_json.values, collections.Callable):
+                slot_jsons = list(slots_json.values())
                 for slot_json in slot_jsons:
                     slot = _Slot()
                     _copyattr(slot_json, slot, 'name')

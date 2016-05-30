@@ -1,11 +1,16 @@
+from future.standard_library import install_aliases
+install_aliases()
+
 import os
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import base64
 import posixpath
-from urlparse import urlparse
+from urllib.parse import urlparse
 from datetime import datetime
 
 from OpenSSL import crypto
+
+from . import logger
 
 
 class VerificationError(Exception): pass
@@ -14,7 +19,7 @@ class VerificationError(Exception): pass
 def load_certificate(cert_url):
     if not _valid_certificate_url(cert_url):
         raise VerificationError("Certificate URL verification failed")
-    cert_data = urllib2.urlopen(cert_url).read()
+    cert_data = urllib.request.urlopen(cert_url).read()
     cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert_data)
     if not _valid_certificate(cert):
         raise VerificationError("Certificate verification failed")
@@ -25,7 +30,7 @@ def verify_signature(cert, signature, signed_data):
     try:
         signature = base64.b64decode(signature)
         crypto.verify(cert, signature, signed_data, 'sha1')
-    except crypto.Error, e:
+    except crypto.Error as e:
         raise VerificationError(e)
 
 
@@ -50,13 +55,14 @@ def _valid_certificate_url(cert_url):
 
 
 def _valid_certificate(cert):
-    not_after = datetime.strptime(cert.get_notAfter(), '%Y%m%d%H%M%SZ')
+    not_after = cert.get_notAfter().decode('utf-8')
+    not_after = datetime.strptime(not_after, '%Y%m%d%H%M%SZ')
     if datetime.utcnow() >= not_after:
         return False
     found = False
     for i in range(0, cert.get_extension_count()):
         extension = cert.get_extension(i)
-        short_name = extension.get_short_name()
+        short_name = extension.get_short_name().decode('utf-8')
         value = str(extension)
         if 'subjectAltName' == short_name and 'DNS:echo-api.amazon.com' == value:
                 found = True

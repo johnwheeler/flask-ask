@@ -9,9 +9,9 @@ from setuptools import setup
 
 setup(
     name='Flask-Ask',
-    version='0.5',
+    version='0.6',
     url='https://github.com/johnwheeler/flask-ask',
-    license='MIT',
+    license='Apache 2.0',
     author='John Wheeler',
     author_email='john@johnwheeler.org',
     description='Rapid Alexa Skills Kit Development for Amazon Echo Devices in Python',
@@ -24,10 +24,11 @@ setup(
         'Flask',
         'pyOpenSSL',
         'PyYAML',
-        'aniso8601'
+        'aniso8601',
+        'future',
     ],
     classifiers=[
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache Software License',
         'Framework :: Flask',
         'Programming Language :: Python',
         'Environment :: Web Environment',

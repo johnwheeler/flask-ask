@@ -1,5 +1,8 @@
+from future.standard_library import install_aliases
+install_aliases()
+
 import logging
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 
 
@@ -104,7 +107,7 @@ def session_ended():
 
 def _get_json_events_from_wikipedia(month, date):
     url = "{}{}_{}".format(URL_PREFIX, month, date)
-    data = urllib2.urlopen(url).read()
+    data = urllib.request.urlopen(url).read()
     return _parse_json(data)
 
 
@@ -125,7 +128,7 @@ def _parse_json(text):
             event_text = text[start_index:]
             done = True
         # replace dashes returned in text from Wikipedia's API
-        event_text = event_text.replace('\u2013', '')
+        event_text = event_text.replace('\\u2013', '')
         # add comma after year so Alexa pauses before continuing with the sentence
         event_text = re.sub('^\d+', r'\g<0>,', event_text)
         events.append(event_text)

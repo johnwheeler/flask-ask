@@ -9,4 +9,6 @@ venv
 dist
 *.cfg
 *.enc
+*.bak
 _build
+__pycache__
