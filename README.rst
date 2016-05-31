@@ -61,7 +61,6 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 To install Flask-Ask::
 
   pip install flask-ask
-  ✨👌✨
 
 ☤ Documentation
 ----------------
