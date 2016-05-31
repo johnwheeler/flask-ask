@@ -94,8 +94,8 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    'index': ['sidebar.html', 'globaltoc.html', 'links.html', 'searchbox.html'],
-    '**':    ['sidebarlogo.html', 'sidebar.html', 'globaltoc.html', 'links.html', 'searchbox.html']
+    'index': ['globaltoc.html', 'links.html', 'stayinformed.html'],
+    '**':    ['sidebarlogo.html', 'globaltoc.html', 'links.html', 'stayinformed.html']
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

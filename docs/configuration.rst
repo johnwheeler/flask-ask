@@ -1,9 +1,13 @@
 Configuration
+=============
+
+Configuration
 -------------
+
 Flask-Ask exposes the following configuration variables:
 
 ============================ ============================================================================================
-`ASK_APPLICATION_ID`         Turn on application ID verification by setting this variable to an application ID or a 
+`ASK_APPLICATION_ID`         Turn on application ID verification by setting this variable to an application ID or a
                              list of allowed application IDs. By default, application ID verification is disabled and a
                              warning is logged. This variable should be set in production to ensure
                              requests are being sent by the applications you specify. **Default:** ``None``
@@ -13,3 +17,12 @@ Flask-Ask exposes the following configuration variables:
                              relies on the system clock being synchronized with an NTP server. This setting should not
                              be enabled in production. **Default:** ``False``
 ============================ ============================================================================================
+
+Logging
+-------
+
+To see the JSON request / response structures pretty printed in the logs, turn on ``DEBUG``-level logging::
+
+    import logging
+
+    logging.getLogger('flask_ask').setLevel(logging.DEBUG)

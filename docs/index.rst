@@ -3,6 +3,14 @@
 .. image:: _static/logo-full.png
    :alt: Flask-Ask: Alexa Skills Kit Development for Amazon Echo Devices with Python
 
+.. raw:: html
+
+    <p>
+    <iframe src="https://ghbtns.com/github-btn.html?user=johnwheeler&repo=flask-ask&type=star&count=true&size=large"
+       frameborder="0" scrolling="0" width="160px" height="30px">
+    </iframe>
+    </p>
+
 Welcome to Flask-Ask
 ====================
 
