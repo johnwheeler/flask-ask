@@ -15,13 +15,10 @@ from .convert import to_date, to_time, to_timedelta
 import collections
 
 
-# config defaults
-ASK_APPLICATION_ID = None
-ASK_VERIFY_TIMESTAMP_DEBUG = False
-
-request = LocalProxy(lambda: current_app.ask._request)
-session = LocalProxy(lambda: current_app.ask._session)
-version = LocalProxy(lambda: current_app.ask._version)
+request = LocalProxy(lambda: current_app.ask.request)
+session = LocalProxy(lambda: current_app.ask.session)
+version = LocalProxy(lambda: current_app.ask.version)
+convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -43,10 +40,10 @@ class Ask(object):
 
     def init_app(self, app):
         if self._route is None:
-            raise TypeError("route is a required argument")
+            raise TypeError("route is a required argument when app is not None")
         app.ask = self
-        self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', ASK_VERIFY_TIMESTAMP_DEBUG)
-        self.ask_application_id = app.config.get('ASK_APPLICATION_ID', ASK_APPLICATION_ID)        
+        self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
+        self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
         if self.ask_application_id is None:
             logger.warning("The ASK_APPLICATION_ID has not been set. Application ID verification disabled.")
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
@@ -57,12 +54,16 @@ class Ask(object):
 
     def launch(self, f):
         self._launch_view_func = f
-        wraps(f, self._flask_view_func)
+        @wraps(f)
+        def wrapper(*args, **kw):
+            self._flask_view_func(*args, **kw)
         return f
 
     def session_ended(self, f):
         self._session_ended_view_func = f
-        wraps(f, self._flask_view_func)
+        @wraps(f)
+        def wrapper(*args, **kw):
+            self._flask_view_func(*args, **kw)
         return f
 
     def intent(self, intent_name, mapping={}, convert={}, default={}):
@@ -71,7 +72,9 @@ class Ask(object):
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
-            wraps(f, self._flask_view_func)
+            @wraps(f)
+            def wrapper(*args, **kw):
+                self._flask_view_func(*args, **kw)
             return f
         return decorator
 
@@ -98,19 +101,19 @@ class Ask(object):
         ask_payload = self._verified_request()
         _dbgdump(ask_payload)
         request_body = _parse_request_body(ask_payload)
-        self._request = request_body.request
-        self._session = request_body.session
-        self._version = request_body.version
-        if self._session.new and self._on_session_started_callback is not None:
+        self.request = request_body.request
+        self.session = request_body.session
+        self.version = request_body.version
+        if self.session.new and self._on_session_started_callback is not None:
             self._on_session_started_callback()
         result = None
-        request_type = self._request.type
+        request_type = self.request.type
         if request_type == 'LaunchRequest' and self._launch_view_func:
             result = self._launch_view_func()
         elif request_type == 'SessionEndedRequest' and self._session_ended_view_func:
             result = self._session_ended_view_func()
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
-            result = self._map_intent_to_view_func(self._request.intent)()
+            result = self._map_intent_to_view_func(self.request.intent)()
         if result is not None:
             if isinstance(result, _Response):
                 return result.render_response()
@@ -129,6 +132,7 @@ class Ask(object):
             mapping = self._intent_mappings[intent.name]
             argspec = inspect.getargspec(view_func)
             arg_names = argspec.args
+            convert_errors = {}
             for arg_name in arg_names:
                 slot_key = mapping.get(arg_name, arg_name)
                 arg_value = slot_data.get(slot_key)
@@ -145,33 +149,45 @@ class Ask(object):
                         convert_func = _converters[shorthand]
                     else:
                         convert_func = shorthand_or_function
-                    arg_value = convert_func(arg_value)
+                    try:
+                        arg_value = convert_func(arg_value)
+                    except Exception as e:
+                        convert_errors[arg_name] = e
                 arg_values.append(arg_value)
+            self.convert_errors = convert_errors
         return partial(view_func, *arg_values)
 
     @property
-    def _request(self):
+    def request(self):
         return getattr(_app_ctx_stack.top, '_ask_request', None)
 
-    @_request.setter
-    def _request(self, value):
+    @request.setter
+    def request(self, value):
         _app_ctx_stack.top._ask_request = value
 
     @property
-    def _session(self):
+    def session(self):
         return getattr(_app_ctx_stack.top, '_ask_session', None)
 
-    @_session.setter
-    def _session(self, value):
+    @session.setter
+    def session(self, value):
         _app_ctx_stack.top._ask_session = value
 
     @property
-    def _version(self):
+    def version(self):
         return getattr(_app_ctx_stack.top, '_ask_version', None)
 
-    @_version.setter
-    def _version(self, value):
+    @version.setter
+    def version(self, value):
         _app_ctx_stack.top._ask_version = value
+
+    @property
+    def convert_errors(self):
+        return getattr(_app_ctx_stack.top, '_ask_convert_errors', None)
+
+    @convert_errors.setter
+    def convert_errors(self, value):
+        _app_ctx_stack.top._ask_convert_errors = value
 
 
 class YamlLoader(BaseLoader):

@@ -21,8 +21,6 @@ _DATE_PATTERNS = {
 
 
 def to_date(amazon_date):
-    if amazon_date == "":
-        return None
     # make so 'next decade' matches work against 'next year' regex
     amazon_date = re.sub('X$', '0', amazon_date)
     for re_pattern, format_pattern in list(_DATE_PATTERNS.items()):
@@ -35,8 +33,6 @@ def to_date(amazon_date):
 
 
 def to_time(amazon_time):
-    if amazon_time == "":
-        return None
     if amazon_time == "AM":
         return time(hour=0)
     if amazon_time == "PM":
@@ -50,6 +46,4 @@ def to_time(amazon_time):
 
 
 def to_timedelta(amazon_duration):
-    if amazon_duration == "":
-        return None
     return aniso8601.parse_duration(amazon_duration)
