@@ -50,25 +50,27 @@ Additionally, more code and template examples are in the `samples <https://githu
 -----------
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
 
-* Verifies Alexa request signatures
 * Has decorators to map Alexa requests and intent slots to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Makes session management easy
 * Allows for the separation of code and speech through Jinja templates
+* Verifies Alexa request signatures
 
 ☤ Installation
 ---------------
 To install Flask-Ask::
 
   pip install flask-ask
-  ✨👌✨
 
 ☤ Documentation
 ----------------
 These resources will get you up and running quickly:
 
-* `Develop your first skill in 5 minutes <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
-* `Full online documentation <https://johnwheeler.org/flask-ask>`_
+`Full online documentation <https://johnwheeler.org/flask-ask>`_
+
+.. image:: http://i.imgur.com/Tajkmdi.png
+  :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
+  :alt: 5-minute Flask-Ask and ngrok tutorial.
 
 ☤ Todo
 -------
