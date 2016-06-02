@@ -83,10 +83,6 @@ These resources will get you up and running quickly:
   :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
   :alt: 5-minute Flask-Ask and ngrok tutorial.
 
-☤ Todo
--------
-* docstrings
-* tests
 
 ☤ Thank You
 ------------
