@@ -1,13 +1,19 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-**Alexa Skills Kit Development for Python**
 
-.. image:: https://badge.fury.io/py/flask-ask.svg
-    :target: https://badge.fury.io/py/flask-ask
+.. image:: https://img.shields.io/pypi/v/flask-ask.svg
+    :target: https://pypi.python.org/pypi/flask-ask
+
+.. image:: https://img.shields.io/pypi/l/flask-ask.svg
+        :target: http://www.apache.org/licenses/LICENSE-2.0
+
+
+    
+**Alexa Skills Kit Development for Python**
     
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
 Use Flask-Ask with `ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
-
+    
 ☤ The Basics
 -------------
 A Flask-Ask application looks like this:
