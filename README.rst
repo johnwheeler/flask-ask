@@ -10,7 +10,8 @@
         :target: https://pypi.python.org/pypi/flask-ask
 
 
-**Alexa Skills Kit Development for Python**
+Alexa Skills Kit Development for Python
+=======================================
     
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
 Use Flask-Ask with `ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
