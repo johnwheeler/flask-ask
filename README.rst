@@ -50,11 +50,11 @@ Additionally, more code and template examples are in the `samples <https://githu
 -----------
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
 
-* Verifies Alexa request signatures
 * Has decorators to map Alexa requests and intent slots to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Makes session management easy
 * Allows for the separation of code and speech through Jinja templates
+* Verifies Alexa request signatures
 
 ☤ Installation
 ---------------
