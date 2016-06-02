@@ -3,13 +3,12 @@
 
 |
 
-.. image:: https://img.shields.io/pypi/v/flask-ask.svg
-    :target: https://pypi.python.org/pypi/flask-ask
-
 .. image:: https://img.shields.io/pypi/l/flask-ask.svg
         :target: http://www.apache.org/licenses/LICENSE-2.0
 
-|
+.. image:: https://img.shields.io/pypi/v/flask-ask.svg
+        :target: https://pypi.python.org/pypi/flask-ask
+
 
 **Alexa Skills Kit Development for Python**
     
