@@ -1,5 +1,7 @@
+
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
+----
 
 .. image:: https://img.shields.io/pypi/v/flask-ask.svg
     :target: https://pypi.python.org/pypi/flask-ask
