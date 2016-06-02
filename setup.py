@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Ask',
-    version='0.7.3',
+    version='0.7.4',
     url='https://github.com/johnwheeler/flask-ask',
     license='Apache 2.0',
     author='John Wheeler',
@@ -25,7 +25,7 @@ setup(
         'pyOpenSSL',
         'PyYAML',
         'aniso8601',
-        'future',
+        'six',
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License',

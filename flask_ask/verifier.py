@@ -1,12 +1,9 @@
-from future.standard_library import install_aliases
-install_aliases()
-
 import os
-import urllib.request, urllib.error, urllib.parse
 import base64
 import posixpath
-from urllib.parse import urlparse
 from datetime import datetime
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.request import urlopen
 
 from OpenSSL import crypto
 
@@ -19,7 +16,7 @@ class VerificationError(Exception): pass
 def load_certificate(cert_url):
     if not _valid_certificate_url(cert_url):
         raise VerificationError("Certificate URL verification failed")
-    cert_data = urllib.request.urlopen(cert_url).read()
+    cert_data = urlopen(cert_url).read()
     cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert_data)
     if not _valid_certificate(cert):
         raise VerificationError("Certificate verification failed")

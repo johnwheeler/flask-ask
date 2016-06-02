@@ -1,13 +1,10 @@
-from future.standard_library import install_aliases
-install_aliases()
-
 import os
 import logging
 import datetime
-import urllib.request, urllib.error, urllib.parse
 import math
 import re
-from urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
+from six.moves.urllib.parse import urlencode
 
 import aniso8601
 from flask import Flask, json, render_template
@@ -241,7 +238,7 @@ def _make_tide_request(city, date):
         noaa_api_params['begin_date'] = date.strftime('%Y%m%d')
         noaa_api_params['range'] = 24
     url = ENDPOINT + "?" + urlencode(noaa_api_params)
-    resp_body = urllib.request.urlopen(url).read()
+    resp_body = urlopen(url).read()
     if len(resp_body) == 0:
         statement_text = render_template('noaa_problem')
     else:

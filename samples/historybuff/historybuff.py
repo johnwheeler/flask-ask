@@ -1,9 +1,6 @@
-from future.standard_library import install_aliases
-install_aliases()
-
 import logging
-import urllib.request, urllib.error, urllib.parse
 import re
+from six.moves.urllib.request import urlopen
 
 
 from flask import Flask
@@ -107,14 +104,16 @@ def session_ended():
 
 def _get_json_events_from_wikipedia(month, date):
     url = "{}{}_{}".format(URL_PREFIX, month, date)
-    data = urllib.request.urlopen(url).read()
+    data = urlopen(url).read().decode('utf-8')
     return _parse_json(data)
 
 
 def _parse_json(text):
     events = []
     try:
-        text = text[text.index("\\nEvents\\n") + SIZE_OF_EVENTS: text.index("\\n\\n\\nBirths")];
+        slice_start = text.index("\\nEvents\\n") + SIZE_OF_EVENTS
+        slice_end = text.index("\\n\\n\\nBirths")
+        text = text[slice_start:slice_end];
     except ValueError:
         return events
     start_index = end_index = 0
