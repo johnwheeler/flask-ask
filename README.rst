@@ -9,7 +9,8 @@
 .. image:: https://img.shields.io/pypi/l/flask-ask.svg
         :target: http://www.apache.org/licenses/LICENSE-2.0
 
-    
+|
+
 **Alexa Skills Kit Development for Python**
     
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
