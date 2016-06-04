@@ -3,10 +3,10 @@
 
 |
 
-.. image:: https://img.shields.io/pypi/l/flask-ask.svg
+.. image:: https://img.shields.io/pypi/l/flask-ask.svg?style=flat-square
         :target: http://www.apache.org/licenses/LICENSE-2.0
 
-.. image:: https://img.shields.io/pypi/v/flask-ask.svg
+.. image:: https://img.shields.io/pypi/v/flask-ask.svg?style=flat-square
         :target: https://pypi.python.org/pypi/flask-ask
 
 
