@@ -70,6 +70,7 @@ To install Flask-Ask::
 These resources will get you up and running quickly:
 
 `5-minute quickstart <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
+
 `Full online documentation <https://johnwheeler.org/flask-ask>`_
 
 ☤ Thank You
