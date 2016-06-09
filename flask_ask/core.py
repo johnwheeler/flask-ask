@@ -78,6 +78,38 @@ class Ask(object):
             return f
         return decorator
 
+    @property
+    def request(self):
+        return getattr(_app_ctx_stack.top, '_ask_request', None)
+
+    @request.setter
+    def request(self, value):
+        _app_ctx_stack.top._ask_request = value
+
+    @property
+    def session(self):
+        return getattr(_app_ctx_stack.top, '_ask_session', None)
+
+    @session.setter
+    def session(self, value):
+        _app_ctx_stack.top._ask_session = value
+
+    @property
+    def version(self):
+        return getattr(_app_ctx_stack.top, '_ask_version', None)
+
+    @version.setter
+    def version(self, value):
+        _app_ctx_stack.top._ask_version = value
+
+    @property
+    def convert_errors(self):
+        return getattr(_app_ctx_stack.top, '_ask_convert_errors', None)
+
+    @convert_errors.setter
+    def convert_errors(self, value):
+        _app_ctx_stack.top._ask_convert_errors = value
+        
     def _verified_request(self):
         raw_body = flask_request.data
         cert_url = flask_request.headers['Signaturecertchainurl']
@@ -156,38 +188,6 @@ class Ask(object):
                 arg_values.append(arg_value)
             self.convert_errors = convert_errors
         return partial(view_func, *arg_values)
-
-    @property
-    def request(self):
-        return getattr(_app_ctx_stack.top, '_ask_request', None)
-
-    @request.setter
-    def request(self, value):
-        _app_ctx_stack.top._ask_request = value
-
-    @property
-    def session(self):
-        return getattr(_app_ctx_stack.top, '_ask_session', None)
-
-    @session.setter
-    def session(self, value):
-        _app_ctx_stack.top._ask_session = value
-
-    @property
-    def version(self):
-        return getattr(_app_ctx_stack.top, '_ask_version', None)
-
-    @version.setter
-    def version(self, value):
-        _app_ctx_stack.top._ask_version = value
-
-    @property
-    def convert_errors(self):
-        return getattr(_app_ctx_stack.top, '_ask_convert_errors', None)
-
-    @convert_errors.setter
-    def convert_errors(self, value):
-        _app_ctx_stack.top._ask_convert_errors = value
 
 
 class YamlLoader(BaseLoader):
