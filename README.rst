@@ -69,12 +69,8 @@ To install Flask-Ask::
 ----------------
 These resources will get you up and running quickly:
 
+`5-minute quickstart <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
 `Full online documentation <https://johnwheeler.org/flask-ask>`_
-
-.. image:: http://i.imgur.com/Tajkmdi.png
-  :target: https://www.youtube.com/watch?v=eC2zi4WIFX0
-  :alt: 5-minute Flask-Ask and ngrok tutorial.
-
 
 ☤ Thank You
 ------------
