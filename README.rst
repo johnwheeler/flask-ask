@@ -1,16 +1,13 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
+`Please Join Flask-Ask on Slack <https://goo.gl/J1GbqL>`_  (Invites automatically accepted)
 
 Alexa Skills Kit Development for Python
 =======================================
     
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
 Use Flask-Ask with `ngrok <https://ngrok.com>`_ to eliminate the deploy-to-test step and get work done faster.
-
-Please Join Flask-Ask on Slack https://fathomless-citadel-83294.herokuapp.com/
-
-All invites are automatically accepted.
     
 ☤ The Basics
 -------------
