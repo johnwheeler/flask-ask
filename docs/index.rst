@@ -23,4 +23,9 @@ Flask-Ask:
 * Makes session management easy
 * Allows for the separation of code and speech through Jinja templates
 
+.. raw:: html
+
+    <br>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/eC2zi4WIFX0" frameborder="0" allowfullscreen></iframe>
+
 .. include:: contents.rst.inc

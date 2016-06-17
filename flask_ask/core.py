@@ -109,7 +109,7 @@ class Ask(object):
     @convert_errors.setter
     def convert_errors(self, value):
         _app_ctx_stack.top._ask_convert_errors = value
-        
+
     def _verified_request(self):
         raw_body = flask_request.data
         cert_url = flask_request.headers['Signaturecertchainurl']
@@ -237,10 +237,10 @@ class _Response(object):
             'title': title,
             'text': text
         }
-        if card_small_image_url is not None:
-            card['smallImageUrl'] = card_small_image_url
-        if card_large_image_url is not None:
-            card['largeImageUrl'] = card_large_image_url
+        if small_image_url is not None:
+            card['smallImageUrl'] = small_image_url
+        if large_image_url is not None:
+            card['largeImageUrl'] = large_image_url
         self._response['card'] = card
         return self
 
