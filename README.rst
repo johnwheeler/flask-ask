@@ -27,7 +27,7 @@ A Flask-Ask application looks like this:
       return statement(text).simple_card('Hello', text)
 
   if __name__ == '__main__':
-      app.run(debug=True)
+      app.run()
 
 In the code above:
 
@@ -72,7 +72,7 @@ These resources will get you up and running quickly:
 
 `5-minute quickstart <https://www.youtube.com/watch?v=eC2zi4WIFX0>`_
 
-`Full online documentation <https://johnwheeler.org/flask-ask>`_
+`Full online documentation <https://alexatutorial.com/flask-ask/>`_
 
 ☤ Thank You
 ------------
