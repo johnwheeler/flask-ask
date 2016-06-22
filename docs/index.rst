@@ -17,15 +17,18 @@ Use Flask-Ask with `ngrok <https://ngrok.com/>`_ to eliminate the deploy-to-test
 
 Flask-Ask:
 
-* Verifies Alexa request signatures
 * Has decorators to map Alexa requests and intent slots to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Makes session management easy
 * Allows for the separation of code and speech through Jinja templates
+* Verifies Alexa request signatures
 
 .. raw:: html
 
     <br>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/eC2zi4WIFX0" frameborder="0" allowfullscreen></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/cXL8FDUag-s" frameborder="0" allowfullscreen></iframe>
+
+You can follow along with this quickstart on the `Amazon Developer Blog
+<https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_
 
 .. include:: contents.rst.inc
