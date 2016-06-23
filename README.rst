@@ -1,7 +1,7 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-😎 `Lighten your cognitive load. Level up with $15 video training <https://alexatutorial.com/>`_
+😎 `Lighten your cognitive load. Level up with $15 Flask-Ask video training <https://alexatutorial.com/>`_
 
 Alexa Skills Kit Development for Python
 =======================================
