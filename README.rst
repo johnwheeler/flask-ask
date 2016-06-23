@@ -1,7 +1,7 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-`Please Join Flask-Ask on Slack <https://goo.gl/J1GbqL>`_  (Invites automatically accepted)
+`$15 Alexa Skills Kit Tutorial with Flask-Ask <https://alexatutorial.com/>`_
 
 Alexa Skills Kit Development for Python
 =======================================
