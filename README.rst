@@ -1,7 +1,7 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-`$15 Alexa Skills Kit Tutorial with Flask-Ask <https://alexatutorial.com/>`_
+😎 `Skip the cognitive load and level up with $15 video training <https://alexatutorial.com/>`_
 
 Alexa Skills Kit Development for Python
 =======================================
