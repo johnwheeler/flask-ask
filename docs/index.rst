@@ -9,6 +9,10 @@
         <a class="github-button" href="https://github.com/johnwheeler/flask-ask" data-icon="octicon-star" data-style="mega" data-count-href="/johnwheeler/flask-ask/stargazers" data-count-api="/repos/johnwheeler/flask-ask#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star johnwheeler/flask-ask on GitHub">Star</a>
     </p>
 
+
+😎 `Lighten your cognitive load. Level up with the $15 Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_.
+
+
 Welcome to Flask-Ask
 ====================
 
