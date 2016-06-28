@@ -4,7 +4,7 @@
    :alt: Flask-Ask: Alexa Skills Kit Development for Amazon Echo Devices with Python
 
 
-😎 `Lighten your cognitive load. Level up with the $15 Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_.
+😎 `Lighten your cognitive load. Level up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_.
 
 
 .. raw:: html
