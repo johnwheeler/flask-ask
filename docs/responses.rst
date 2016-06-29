@@ -1,6 +1,9 @@
 Building Responses
 ==================
 
+📼 A `Building Responses with Flask-Ask video <https://alexatutorial.com/2>`_ is available on
+`AlexaTutorial.com <https://alexatutorial.com>`_.
+
 The two primary constructs in Flask-Ask for creating responses are ``statement`` and ``question``.
 
 Statements terminate Echo sessions. The user is free to start another session, but Alexa will have no memory of it

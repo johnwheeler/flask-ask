@@ -40,6 +40,10 @@ This section shows how to process Alexa requests with Flask-Ask. It contains the
 
 Mapping Alexa Requests to View Functions
 ----------------------------------------
+
+📼 A `Handling Requests with Flask-Ask video <https://alexatutorial.com/1>`_ is available on
+`AlexaTutorial.com <https://alexatutorial.com>`_.
+
 Flask-Ask has decorators to map Alexa requests to view functions.
 
 The ``launch`` decorator handles launch requests::
@@ -69,6 +73,10 @@ Launch and intent requests can both start sessions. Avoid duplicate code with th
 
 Mapping Intent Slots to View Function Parameters
 ------------------------------------------------
+
+📼 An `Intent Slots with Flask-Ask video <https://alexatutorial.com/3>`_ is available on
+`AlexaTutorial.com <https://alexatutorial.com>`_.
+
 
 When Parameter and Slot Names Differ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -102,6 +110,9 @@ literal or a callable that resolves to a value. The next example shows the liter
 Converting Slots Values to Python Data Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+📼 A `Slot Conversions with Flask-Ask video <https://alexatutorial.com/4>`_ is available on
+`AlexaTutorial.com <https://alexatutorial.com>`_.
+
 When slot values are available, they're always assigned to parameters as strings. Convert to other Python
 data types with ``convert``. ``convert`` is a ``dict`` that maps parameter names to callables::
 
@@ -118,6 +129,9 @@ types exist since those are harder to build callables against. Instead of trying
 inputs like those in Amazon's
 `documentation <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interaction-model-reference#Slot%20Types>`_,
 just pass the strings in the second column below:
+
+📼 A `Slot Conversion Helpers with Flask-Ask video <https://alexatutorial.com/5>`_ is available on
+`AlexaTutorial.com <https://alexatutorial.com>`_.
 
 =================== =============== ======================
 Amazon Data Type    String          Python Data Type
