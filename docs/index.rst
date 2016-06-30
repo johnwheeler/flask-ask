@@ -37,3 +37,9 @@ Follow along with this quickstart on the `Amazon Developer Blog
 <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
 .. include:: contents.rst.inc
+
+.. raw:: html
+
+  <br>
+  <blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">If you have an Alexa, Flask-Ask looks fantastic! <a href="https://t.co/vpoFsVNqI5">https://t.co/vpoFsVNqI5</a></p>&mdash; Kenneth Reitz (@kennethreitz) <a href="https://twitter.com/kennethreitz/status/736234634292297729">May 27, 2016</a></blockquote>
+  <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
