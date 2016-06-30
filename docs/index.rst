@@ -33,7 +33,7 @@ Flask-Ask:
     <br>
     <iframe width="560" height="315" src="https://www.youtube.com/embed/cXL8FDUag-s" frameborder="0" allowfullscreen></iframe>
 
-Follow along with this quickstart on the `Amazon Developer Blog
+Follow along with this quickstart on `Amazon
 <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
 .. include:: contents.rst.inc
