@@ -1,7 +1,7 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-😎 `Lighten your cognitive load. Level up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_.
+😎 `Level up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_.
 
 👊 `Schedule a remote presentation for your group! <https://gist.github.com/johnwheeler/e5b44f1fec1380a24dc615f4803584e6>`_
 
