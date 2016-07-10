@@ -1,9 +1,14 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-😎 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_.
+
+Quick Links
+===========
+
+😎 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 
 👊 `Schedule a Remote Presentation for your Group <https://gist.github.com/johnwheeler/e5b44f1fec1380a24dc615f4803584e6>`_
+
 
 Alexa Skills Kit Development for Python
 =======================================
