@@ -5,7 +5,7 @@
 Alexa Skills Kit Development for Python
 =======================================
     
-Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun. Get started with the Flask-Ask quickstart available on the `Amazon Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_. Also, don't forget to:
+Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun. Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_. Also, don't forget to:
 
 😎 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 
