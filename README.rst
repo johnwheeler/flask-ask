@@ -2,20 +2,16 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
 
-Quick Links
-===========
-
-😎 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
-
-👊 `Schedule a Remote Presentation for your Group <https://gist.github.com/johnwheeler/e5b44f1fec1380a24dc615f4803584e6>`_
-
-
 Alexa Skills Kit Development for Python
 =======================================
     
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun.
 
 A Flask-Ask quickstart is available on the `Amazon Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
+
+😎 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
+
+👊 `Schedule a Remote Presentation for your Group <https://gist.github.com/johnwheeler/e5b44f1fec1380a24dc615f4803584e6>`_
 
     
 ☤ The Basics
