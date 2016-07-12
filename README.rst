@@ -11,8 +11,7 @@ Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://d
 
 👊 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 
-👊 `Schedule a Remote Presentation for your Group <https://gist.github.com/johnwheeler/e5b44f1fec1380a24dc615f4803584e6>`_
-    
+
 ☤ The Basics
 -------------
 A Flask-Ask application looks like this:
