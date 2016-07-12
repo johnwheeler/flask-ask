@@ -2,6 +2,11 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
 
+.. image:: https://badges.gitter.im/johnwheeler/flask-ask.svg
+    :alt: Join the chat at https://gitter.im/johnwheeler/flask-ask
+    :target: https://gitter.im/johnwheeler/flask-ask?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
+
 Alexa Skills Kit Development for Python
 =======================================
     
