@@ -80,6 +80,10 @@ To install Flask-Ask::
 ----------------
 These resources will get you up and running quickly:
 
+.. image:: http://i.imgur.com/rGD2hSx.png
+   :target: https://www.youtube.com/watch?v=cXL8FDUag-s
+   :alt: 5-minute Flask-Ask tutorial.
+   
 `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
 
 `Full online documentation <https://alexatutorial.com/flask-ask/>`_
