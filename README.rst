@@ -9,8 +9,8 @@
     :target: https://gitter.im/johnwheeler/flask-ask?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 
-Alexa Skills Kit Development for Python
-=======================================
+Rapid Alexa Skills Kit Development for Python
+=============================================
     
 Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun. 
 
