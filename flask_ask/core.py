@@ -18,6 +18,7 @@ import collections
 request = LocalProxy(lambda: current_app.ask.request)
 session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
+state = LocalProxy(lambda: current_app.ask.state)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
@@ -54,6 +55,7 @@ class Ask(object):
 
     def launch(self, f):
         self._launch_view_func = f
+
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
@@ -61,17 +63,23 @@ class Ask(object):
 
     def session_ended(self, f):
         self._session_ended_view_func = f
+
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
         return f
 
-    def intent(self, intent_name, mapping={}, convert={}, default={}):
+    def intent(self, intent_name, state=None, mapping={}, convert={}, default={}):
         def decorator(f):
-            self._intent_view_funcs[intent_name] = f
-            self._intent_mappings[intent_name] = mapping
-            self._intent_converts[intent_name] = convert
-            self._intent_defaults[intent_name] = default
+            intent_id = intent_name
+            if state is not None:
+                intent_id = intent_id + '_' + state
+
+            self._intent_view_funcs[intent_id] = f
+            self._intent_mappings[intent_id] = mapping
+            self._intent_converts[intent_id] = convert
+            self._intent_defaults[intent_id] = default
+
             @wraps(f)
             def wrapper(*args, **kw):
                 self._flask_view_func(*args, **kw)
@@ -110,6 +118,14 @@ class Ask(object):
     def convert_errors(self, value):
         _app_ctx_stack.top._ask_convert_errors = value
 
+    @property
+    def state(self):
+        return getattr(_app_ctx_stack.top, '_ask_state', None)
+
+    @state.setter
+    def state(self, value):
+        _app_ctx_stack.top._ask_state = value
+
     def _verified_request(self):
         raw_body = flask_request.data
         cert_url = flask_request.headers['Signaturecertchainurl']
@@ -136,6 +152,7 @@ class Ask(object):
         self.request = request_body.request
         self.session = request_body.session
         self.version = request_body.version
+        self.state = State(self.session)
         if self.session.new and self._on_session_started_callback is not None:
             self._on_session_started_callback()
         result = None
@@ -153,15 +170,19 @@ class Ask(object):
         return "", 400
 
     def _map_intent_to_view_func(self, intent):
-        view_func = self._intent_view_funcs[intent.name]
+        intent_id = intent.name
+        current_state = self.state.current
+        if current_state is not None:
+            intent_id = intent_id + '_' + current_state        
+        view_func = self._intent_view_funcs[intent_id]
         arg_values = []
         if hasattr(intent, 'slots'):
             slot_data = {}
             for slot in intent.slots:
                 slot_data[slot.name] = getattr(slot, 'value', None)
-            convert = self._intent_converts[intent.name]
-            default = self._intent_defaults[intent.name]
-            mapping = self._intent_mappings[intent.name]
+            convert = self._intent_converts[intent_id]
+            default = self._intent_defaults[intent_id]
+            mapping = self._intent_mappings[intent_id]
             argspec = inspect.getargspec(view_func)
             arg_names = argspec.args
             convert_errors = {}
@@ -188,6 +209,18 @@ class Ask(object):
                 arg_values.append(arg_value)
             self.convert_errors = convert_errors
         return partial(view_func, *arg_values)
+
+
+class State(object):
+    SESSION_KEY = '_ask_state_id'
+
+    def __init__(self, session):
+        self._session = session
+        self.current = session.attributes.get(State.SESSION_KEY)
+
+    def transition(self, state_id):
+        self.current = state_id
+        self._session.attributes[State.SESSION_KEY] = self.current
 
 
 class YamlLoader(BaseLoader):
@@ -245,7 +278,7 @@ class _Response(object):
         return self
 
     def link_account_card(self):
-        card = { 'type': 'LinkAccount' }
+        card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
 
@@ -278,7 +311,7 @@ class question(_Response):
         self._response['shouldEndSession'] = False
 
     def reprompt(self, reprompt):
-        reprompt = { 'outputSpeech': _output_speech(reprompt) }
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
         self._response['reprompt'] = reprompt
         return self
 
@@ -287,19 +320,38 @@ def _output_speech(speech):
     try:
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
-            return { 'type': 'SSML', 'ssml': speech }
+            return {'type': 'SSML', 'ssml': speech}
     except ElementTree.ParseError as e:
         pass
-    return { 'type': 'PlainText', 'text': speech }
+    return {'type': 'PlainText', 'text': speech}
 
 
-class _Application(object): pass
-class _Intent(object): pass
-class _Request(object): pass
-class _RequestBody(object): pass
-class _Session(object): pass
-class _Slot(object): pass
-class _User(object): pass
+class _Application(object):
+    pass
+
+
+class _Intent(object):
+    pass
+
+
+class _Request(object):
+    pass
+
+
+class _RequestBody(object):
+    pass
+
+
+class _Session(object):
+    pass
+
+
+class _Slot(object):
+    pass
+
+
+class _User(object):
+    pass
 
 
 def _copyattr(src, dest, attr, convert=None):

@@ -12,5 +12,6 @@ from .core import (
     request,
     session,
     version,
+    state,
     convert_errors
 )

@@ -1,0 +1,28 @@
+{
+    "intents": [
+    {
+        "intent": "CityIntent",
+        "slots": [
+        {
+            "name": "city",
+            "type": "AMAZON.US_CITY"
+        }]
+    },
+    {
+        "intent": "DateIntent",
+        "slots": [
+        {
+            "name": "date",
+            "type": "AMAZON.DATE"
+        }]
+    },
+    {
+        "intent": "AMAZON.YesIntent"
+    },
+    {
+        "intent": "AMAZON.NoIntent"
+    },
+    {
+        "intent": "AMAZON.StopIntent"
+    }]
+}
