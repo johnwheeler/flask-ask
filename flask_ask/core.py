@@ -174,41 +174,50 @@ class Ask(object):
         current_state = self.state.current
         if current_state is not None:
             intent_id = intent_id + '_' + current_state
+
         view_func = self._intent_view_funcs[intent_id]
-        arg_values = []
+        view_params = []
         if hasattr(intent, 'slots'):
-            slot_data = {}
-            for slot in intent.slots:
-                slot_data[slot.name] = getattr(slot, 'value', None)
-            convert = self._intent_converts[intent_id]
-            default = self._intent_defaults[intent_id]
-            mapping = self._intent_mappings[intent_id]
-            argspec = inspect.getargspec(view_func)
-            arg_names = argspec.args
-            convert_errors = {}
-            for arg_name in arg_names:
-                slot_key = mapping.get(arg_name, arg_name)
-                arg_value = slot_data.get(slot_key)
-                if arg_value is None or arg_value == "":
-                    if arg_name in default:
-                        default_value = default[arg_name]
-                        if isinstance(default_value, collections.Callable):
-                            default_value = default_value()
-                        arg_value = default_value
-                elif arg_name in convert:
-                    shorthand_or_function = convert[arg_name]
-                    if shorthand_or_function in _converters:
-                        shorthand = shorthand_or_function
-                        convert_func = _converters[shorthand]
-                    else:
-                        convert_func = shorthand_or_function
-                    try:
-                        arg_value = convert_func(arg_value)
-                    except Exception as e:
-                        convert_errors[arg_name] = e
-                arg_values.append(arg_value)
-            self.convert_errors = convert_errors
-        return partial(view_func, *arg_values)
+            view_params = self._map_slots_to_view_params(intent_id, intent.slots, view_func)
+
+        return partial(view_func, *view_params)
+
+    def _map_slots_to_view_params(self, intent_id, slots, view_func):
+        convert = self._intent_converts[intent_id]
+        default = self._intent_defaults[intent_id]
+        mapping = self._intent_mappings[intent_id]
+        argspec = inspect.getargspec(view_func)
+        arg_names = argspec.args
+        
+        slot_data = {}
+        for slot in slots:
+            slot_data[slot.name] = getattr(slot, 'value', None)
+
+        view_params = []
+        convert_errors = {}
+        for arg_name in arg_names:
+            slot_key = mapping.get(arg_name, arg_name)
+            arg_value = slot_data.get(slot_key)
+            if arg_value is None or arg_value == "":
+                if arg_name in default:
+                    default_value = default[arg_name]
+                    if isinstance(default_value, collections.Callable):
+                        default_value = default_value()
+                    arg_value = default_value
+            elif arg_name in convert:
+                shorthand_or_function = convert[arg_name]
+                if shorthand_or_function in _converters:
+                    shorthand = shorthand_or_function
+                    convert_func = _converters[shorthand]
+                else:
+                    convert_func = shorthand_or_function
+                try:
+                    arg_value = convert_func(arg_value)
+                except Exception as e:
+                    convert_errors[arg_name] = e
+            view_params.append(arg_value)
+        self.convert_errors = convert_errors
+        return view_params
 
 
 class State(object):
