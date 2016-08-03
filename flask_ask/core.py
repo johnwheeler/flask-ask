@@ -71,10 +71,7 @@ class Ask(object):
 
     def intent(self, intent_name, state=None, mapping={}, convert={}, default={}):
         def decorator(f):
-            intent_id = intent_name
-            if state is not None:
-                intent_id = intent_id + '_' + state
-
+            intent_id = intent_name, state
             self._intent_view_funcs[intent_id] = f
             self._intent_mappings[intent_id] = mapping
             self._intent_converts[intent_id] = convert
@@ -170,11 +167,7 @@ class Ask(object):
         return "", 400
 
     def _map_intent_to_view_func(self, intent):
-        intent_id = intent.name
-        current_state = self.state.current
-        if current_state is not None:
-            intent_id = intent_id + '_' + current_state
-
+        intent_id = intent.name, self.state.current
         view_func = self._intent_view_funcs[intent_id]
         view_params = []
         if hasattr(intent, 'slots'):
