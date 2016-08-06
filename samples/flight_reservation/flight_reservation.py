@@ -43,12 +43,12 @@ def one_way_yes():
 def one_way_no():
     state.transition('to_date')
     return question("What date do you want to return?")
-    
+
 
 @ask.intent("DateIntent", state='to_date')
 def to_date(date):
     state.transition('confirm')
-    return question("Do you want to confirm this trip?")    
+    return question("Do you want to confirm this trip?")
 
 
 @ask.intent("AMAZON.YesIntent", state='confirm')
