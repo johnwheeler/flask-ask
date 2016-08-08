@@ -16,7 +16,7 @@ Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that make
 
 Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
-👊 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
+👊 `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 
 
 ☤ The Basics
