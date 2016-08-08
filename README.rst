@@ -60,6 +60,18 @@ For more information about how the Alexa Skills Kit works, see `Understanding Cu
 
 Additionally, more code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
 
+☤ Documentation
+----------------
+These resources will get you up and running quickly:
+
+.. image:: http://i.imgur.com/rGD2hSx.png
+   :target: https://www.youtube.com/watch?v=cXL8FDUag-s
+   :alt: 5-minute Flask-Ask tutorial.
+   
+`5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
+
+`Full online documentation <https://alexatutorial.com/flask-ask/>`_
+
 ☤ Features
 -----------
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
@@ -75,18 +87,7 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 To install Flask-Ask::
 
   pip install flask-ask
-
-☤ Documentation
-----------------
-These resources will get you up and running quickly:
-
-.. image:: http://i.imgur.com/rGD2hSx.png
-   :target: https://www.youtube.com/watch?v=cXL8FDUag-s
-   :alt: 5-minute Flask-Ask tutorial.
-   
-`5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
-
-`Full online documentation <https://alexatutorial.com/flask-ask/>`_
+  
 
 ☤ Thank You
 ------------
