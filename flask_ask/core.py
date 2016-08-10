@@ -42,6 +42,7 @@ class Ask(object):
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
         app.ask = self
+        self.ask_verify_enable = app.config.get('ASK_VERIFY_ENABLE', True)
         self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
         self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
         if self.ask_application_id is None:
@@ -112,21 +113,22 @@ class Ask(object):
 
     def _verified_request(self):
         raw_body = flask_request.data
-        cert_url = flask_request.headers['Signaturecertchainurl']
-        signature = flask_request.headers['Signature']
-        # load certificate - this verifies a the certificate url and format under the hood
-        cert = verifier.load_certificate(cert_url)
-        # verify signature
-        verifier.verify_signature(cert, signature, raw_body)
-        # verify timestamp
         ask_payload = json.loads(raw_body)
-        timestamp = aniso8601.parse_datetime(ask_payload['request']['timestamp'])
-        if not current_app.debug or self.ask_verify_timestamp_debug:
-            verifier.verify_timestamp(timestamp)
-        # verify application id
-        application_id = ask_payload['session']['application']['applicationId']
-        if self.ask_application_id is not None:
-            verifier.verify_application_id(application_id, self.ask_application_id)
+        if  self.ask_verify_enable:
+            cert_url = flask_request.headers['Signaturecertchainurl']
+            signature = flask_request.headers['Signature']
+            # load certificate - this verifies a the certificate url and format under the hood
+            cert = verifier.load_certificate(cert_url)
+            # verify signature
+            verifier.verify_signature(cert, signature, raw_body)
+            # verify timestamp
+            timestamp = aniso8601.parse_datetime(ask_payload['request']['timestamp'])
+            if not current_app.debug or self.ask_verify_timestamp_debug:
+                verifier.verify_timestamp(timestamp)
+            # verify application id
+            application_id = ask_payload['session']['application']['applicationId']
+            if self.ask_application_id is not None:
+                verifier.verify_application_id(application_id, self.ask_application_id)
         return ask_payload
 
     def _flask_view_func(self, *args, **kwargs):
