@@ -42,11 +42,16 @@ class Ask(object):
     def init_app(self, app):
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
+
         app.ask = self
+
+        self.ask_verify_requests = app.config.get('ASK_VERIFY_REQUESTS', True)
         self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
         self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
-        if self.ask_application_id is None:
+
+        if self.ask_verify_requests and self.ask_application_id is None:
             logger.warning("The ASK_APPLICATION_ID has not been set. Application ID verification disabled.")
+
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
@@ -123,35 +128,41 @@ class Ask(object):
     def state(self, value):
         _app_ctx_stack.top._ask_state = value
 
-    def _verified_request(self):
+    def _alexa_request(self, verify=True):
         raw_body = flask_request.data
+        alexa_request_payload = json.loads(raw_body)
         cert_url = flask_request.headers['Signaturecertchainurl']
         signature = flask_request.headers['Signature']
-        # load certificate - this verifies a the certificate url and format under the hood
-        cert = verifier.load_certificate(cert_url)
-        # verify signature
-        verifier.verify_signature(cert, signature, raw_body)
-        # verify timestamp
-        ask_payload = json.loads(raw_body)
-        timestamp = aniso8601.parse_datetime(ask_payload['request']['timestamp'])
-        if not current_app.debug or self.ask_verify_timestamp_debug:
-            verifier.verify_timestamp(timestamp)
-        # verify application id
-        application_id = ask_payload['session']['application']['applicationId']
-        if self.ask_application_id is not None:
-            verifier.verify_application_id(application_id, self.ask_application_id)
-        return ask_payload
+
+        if verify:
+            # load certificate - this verifies a the certificate url and format under the hood
+            cert = verifier.load_certificate(cert_url)
+            # verify signature
+            verifier.verify_signature(cert, signature, raw_body)
+            # verify timestamp
+            timestamp = aniso8601.parse_datetime(alexa_request_payload['request']['timestamp'])
+            if not current_app.debug or self.ask_verify_timestamp_debug:
+                verifier.verify_timestamp(timestamp)
+            # verify application id
+            application_id = alexa_request_payload['session']['application']['applicationId']
+            if self.ask_application_id is not None:
+                verifier.verify_application_id(application_id, self.ask_application_id)
+
+        return alexa_request_payload
 
     def _flask_view_func(self, *args, **kwargs):
-        ask_payload = self._verified_request()
+        ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         log_json(ask_payload)
-        request_body = parse_request_body(ask_payload)
+        request_body = _parse_request_body(ask_payload)
+
         self.request = request_body.request
         self.session = request_body.session
         self.version = request_body.version
         self.state = State(self.session)
+
         if self.session.new and self._on_session_started_callback is not None:
             self._on_session_started_callback()
+
         result = None
         request_type = self.request.type
         if request_type == 'LaunchRequest' and self._launch_view_func:
@@ -160,10 +171,12 @@ class Ask(object):
             result = self._session_ended_view_func()
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
+
         if result is not None:
             if isinstance(result, Response):
                 return result.render_response()
             return result
+
         return "", 400
 
     def _map_intent_to_view_func(self, intent):
@@ -181,7 +194,7 @@ class Ask(object):
         mapping = self._intent_mappings[intent_id]
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
-        
+
         slot_data = {}
         for slot in slots:
             slot_data[slot.name] = getattr(slot, 'value', None)

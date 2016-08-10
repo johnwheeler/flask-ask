@@ -9,14 +9,14 @@
     :target: https://gitter.im/johnwheeler/flask-ask?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 
-Rapid Alexa Skills Kit Development for Python
-=============================================
+Program the Amazon Echo with Python
+===================================
     
-Building high-quality Alexa skills for Amazon Echo Devices takes time. Flask-Ask makes it easier and much more fun. 
+Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building high-quality Alexa skills easier and much more fun. 
 
 Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
-👊 `Level Up with the Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
+👊 `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 
 
 ☤ The Basics
@@ -60,6 +60,18 @@ For more information about how the Alexa Skills Kit works, see `Understanding Cu
 
 Additionally, more code and template examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
 
+☤ Documentation
+----------------
+These resources will get you up and running quickly:
+
+.. image:: http://i.imgur.com/rGD2hSx.png
+   :target: https://www.youtube.com/watch?v=cXL8FDUag-s
+   :alt: 5-minute Flask-Ask tutorial.
+   
+`5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
+
+`Full online documentation <https://alexatutorial.com/flask-ask/>`_
+
 ☤ Features
 -----------
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
@@ -75,18 +87,7 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 To install Flask-Ask::
 
   pip install flask-ask
-
-☤ Documentation
-----------------
-These resources will get you up and running quickly:
-
-.. image:: http://i.imgur.com/rGD2hSx.png
-   :target: https://www.youtube.com/watch?v=cXL8FDUag-s
-   :alt: 5-minute Flask-Ask tutorial.
-   
-`5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
-
-`Full online documentation <https://alexatutorial.com/flask-ask/>`_
+  
 
 ☤ Thank You
 ------------
