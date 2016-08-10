@@ -117,11 +117,12 @@ class Ask(object):
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
-        alexa_request_payload = json.loads(raw_body)        
-        cert_url = flask_request.headers['Signaturecertchainurl']
-        signature = flask_request.headers['Signature']
+        alexa_request_payload = json.loads(raw_body)  
         
         if verify:
+            cert_url = flask_request.headers['Signaturecertchainurl']
+            signature = flask_request.headers['Signature']
+            
             # load certificate - this verifies a the certificate url and format under the hood
             cert = verifier.load_certificate(cert_url)        
             # verify signature
