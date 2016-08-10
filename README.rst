@@ -12,7 +12,7 @@
 Program the Amazon Echo with Python
 ===================================
     
-Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building high-quality Alexa skills easier and much more fun. 
+Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun. 
 
 Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
