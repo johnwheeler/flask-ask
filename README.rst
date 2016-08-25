@@ -6,7 +6,7 @@
 
 .. image:: https://img.shields.io/badge/chat-slack-ff69b4.svg
     :alt: Chat
-    :target: https://zappateam.slack.com/messages/alexa/
+    :target: https://slackautoinviter.herokuapp.com/
 
 
 Program the Amazon Echo with Python
@@ -88,6 +88,9 @@ To install Flask-Ask::
 
   pip install flask-ask
   
+☤ Deployment
+---------------
+You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). `To deploy on Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
 
 ☤ Thank You
 ------------
