@@ -4,9 +4,9 @@
 
 |
 
-.. image:: https://badges.gitter.im/johnwheeler/flask-ask.svg
-    :alt: Join the chat at https://gitter.im/johnwheeler/flask-ask
-    :target: https://gitter.im/johnwheeler/flask-ask?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+.. image:: https://img.shields.io/badge/chat-slack-ff69b4.svg
+    :alt: Chat
+    :target: https://zappateam.slack.com/messages/alexa/
 
 
 Program the Amazon Echo with Python
