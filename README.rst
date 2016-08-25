@@ -90,7 +90,7 @@ To install Flask-Ask::
   
 ☤ Deployment
 ---------------
-You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). `To deploy on Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
+You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). `To deploy on AWS Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
 
 ☤ Thank You
 ------------
