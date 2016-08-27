@@ -319,6 +319,12 @@ class _RequestBody(object): pass
 class _Session(object): pass
 class _Slot(object): pass
 class _User(object): pass
+class _Context(object): pass
+class _System(object): pass
+class _AudioPlayer(object): pass
+class _Device(object): pass
+class _SupportedInterfaces(object): pass
+
 
 
 def _copyattr(src, dest, attr, convert=None):
@@ -335,10 +341,19 @@ def _parse_request_body(request_body_json):
     setattr(request_body, 'request', request)
     session = _parse_session(request_body_json['session'])
     setattr(request_body, 'session', session)
+    context = _parse_context(request_body_json['context'])
+    setattr(request_body, 'context', context)
     setattr(request_body, 'version', request_body_json['version'])
-    setattr(request_body, 'context', request_body_json['context'])
     return request_body
 
+
+def _parse_context(context_json):
+    context = _Context()
+    if 'System' in context_json:
+        setattr(context, 'System', _parse_system(context_json['System']))
+    if 'AudioPlayer' in context_json:
+        setattr(context, 'AudioPlayer', _parse_system(context_json['AudioPlayer']))
+    return context
 
 def _parse_request(request_json):
     request = _Request()
@@ -364,24 +379,57 @@ def _parse_request(request_json):
             setattr(intent, 'slots', slots)
     return request
 
-
 def _parse_session(session_json):
     session = _Session()
     _copyattr(session_json, session, 'sessionId')
     _copyattr(session_json, session, 'new')
     setattr(session, 'attributes', session_json.get('attributes', {}))
     if 'application' in session_json:
-        application_json = session_json['application']
-        application = _Application()
-        _copyattr(application_json, application, 'applicationId')
-        setattr(session, 'application', application)
+        setattr(session, 'application', _parse_application(session_json['application']))
     if 'user' in session_json:
-        user_json = session_json['user']
-        user = _User()
-        _copyattr(user_json, user, 'userId')
-        _copyattr(user_json, user, 'accessToken')
-        setattr(session, 'user', user)
+        setattr(session, 'user', _parse_user(session_json['user']))
     return session
+
+
+def _parse_application(application_json):
+    application = _Application()
+    _copyattr(application_json, application, 'applicationId')
+    return application
+
+def _parse_audio_player(audio_player_json):
+    audio_player = _AudioPlayer()
+    _copyattr(audio_player_json, audio_player, 'token')
+    _copyattr(audio_player_json, audio_player, 'offsetInMilliseconds')
+    _copyattr(audio_player_json, audio_player, 'playerActivity')
+    return audio_player
+
+def _parse_device(device_json):
+    device = _Device()
+    supported_interface_list = device_json['supportedInterfaces'] if 'supportedInterfaces' in device_json else []
+    setattr(device, 'supportedInterfaces', _parse_supported_interfaces(supported_interface_list))
+    return device
+
+def _parse_supported_interfaces(supported_interface_json):
+    interfaces = _SupportedInterfaces()
+    for device in supported_interface_json:
+        setattr(interfaces, device, True)
+    return interfaces
+
+def _parse_system(system_json):
+    system = _System()
+    if 'application' in system_json:
+        setattr(system, 'application', _parse_application(system_json['application']))
+    if 'user' in system_json:
+        setattr(system, 'user', _parse_user(system_json['user']))
+    if 'device' in system_json:
+        setattr(system, 'device', _parse_device(system_json['device']))
+    return system
+
+def _parse_user(user_json):
+    user = _User()
+    _copyattr(user_json, user, 'userId')
+    _copyattr(user_json, user, 'accessToken')
+    return user
 
 
 def _dbgdump(obj, indent=2, default=None, cls=None):
