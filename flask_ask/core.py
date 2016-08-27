@@ -18,6 +18,7 @@ import collections
 request = LocalProxy(lambda: current_app.ask.request)
 session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
+context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
@@ -41,17 +42,17 @@ class Ask(object):
     def init_app(self, app):
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
-            
+
         app.ask = self
-        
+
         self.ask_verify_requests = app.config.get('ASK_VERIFY_REQUESTS', True)
         self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
         self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
-        
+
         if self.ask_verify_requests and self.ask_application_id is None:
             logger.warning("The ASK_APPLICATION_ID has not been set. Application ID verification disabled.")
-            
-        app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])        
+
+        app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
     def on_session_started(self, f):
@@ -108,6 +109,14 @@ class Ask(object):
         _app_ctx_stack.top._ask_version = value
 
     @property
+    def context(self):
+        return getattr(_app_ctx_stack.top, '_ask_context', None)
+
+    @context.setter
+    def context(self, value):
+        _app_ctx_stack.top._ask_context = value
+
+    @property
     def convert_errors(self):
         return getattr(_app_ctx_stack.top, '_ask_convert_errors', None)
 
@@ -117,25 +126,25 @@ class Ask(object):
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
-        alexa_request_payload = json.loads(raw_body)  
-        
+        alexa_request_payload = json.loads(raw_body)
+
         if verify:
             cert_url = flask_request.headers['Signaturecertchainurl']
             signature = flask_request.headers['Signature']
-            
+
             # load certificate - this verifies a the certificate url and format under the hood
-            cert = verifier.load_certificate(cert_url)        
+            cert = verifier.load_certificate(cert_url)
             # verify signature
-            verifier.verify_signature(cert, signature, raw_body)        
+            verifier.verify_signature(cert, signature, raw_body)
             # verify timestamp
             timestamp = aniso8601.parse_datetime(alexa_request_payload['request']['timestamp'])
             if not current_app.debug or self.ask_verify_timestamp_debug:
-                verifier.verify_timestamp(timestamp)            
+                verifier.verify_timestamp(timestamp)
             # verify application id
             application_id = alexa_request_payload['session']['application']['applicationId']
             if self.ask_application_id is not None:
                 verifier.verify_application_id(application_id, self.ask_application_id)
-            
+
         return alexa_request_payload
 
     def _flask_view_func(self, *args, **kwargs):
@@ -145,6 +154,7 @@ class Ask(object):
         self.request = request_body.request
         self.session = request_body.session
         self.version = request_body.version
+        self.context = request_body.context
         if self.session.new and self._on_session_started_callback is not None:
             self._on_session_started_callback()
         result = None
@@ -309,6 +319,12 @@ class _RequestBody(object): pass
 class _Session(object): pass
 class _Slot(object): pass
 class _User(object): pass
+class _Context(object): pass
+class _System(object): pass
+class _AudioPlayer(object): pass
+class _Device(object): pass
+class _SupportedInterfaces(object): pass
+
 
 
 def _copyattr(src, dest, attr, convert=None):
@@ -325,9 +341,19 @@ def _parse_request_body(request_body_json):
     setattr(request_body, 'request', request)
     session = _parse_session(request_body_json['session'])
     setattr(request_body, 'session', session)
+    context = _parse_context(request_body_json['context'])
+    setattr(request_body, 'context', context)
     setattr(request_body, 'version', request_body_json['version'])
     return request_body
 
+
+def _parse_context(context_json):
+    context = _Context()
+    if 'System' in context_json:
+        setattr(context, 'System', _parse_system(context_json['System']))
+    if 'AudioPlayer' in context_json:
+        setattr(context, 'AudioPlayer', _parse_system(context_json['AudioPlayer']))
+    return context
 
 def _parse_request(request_json):
     request = _Request()
@@ -353,24 +379,57 @@ def _parse_request(request_json):
             setattr(intent, 'slots', slots)
     return request
 
-
 def _parse_session(session_json):
     session = _Session()
     _copyattr(session_json, session, 'sessionId')
     _copyattr(session_json, session, 'new')
     setattr(session, 'attributes', session_json.get('attributes', {}))
     if 'application' in session_json:
-        application_json = session_json['application']
-        application = _Application()
-        _copyattr(application_json, application, 'applicationId')
-        setattr(session, 'application', application)
+        setattr(session, 'application', _parse_application(session_json['application']))
     if 'user' in session_json:
-        user_json = session_json['user']
-        user = _User()
-        _copyattr(user_json, user, 'userId')
-        _copyattr(user_json, user, 'accessToken')
-        setattr(session, 'user', user)
+        setattr(session, 'user', _parse_user(session_json['user']))
     return session
+
+
+def _parse_application(application_json):
+    application = _Application()
+    _copyattr(application_json, application, 'applicationId')
+    return application
+
+def _parse_audio_player(audio_player_json):
+    audio_player = _AudioPlayer()
+    _copyattr(audio_player_json, audio_player, 'token')
+    _copyattr(audio_player_json, audio_player, 'offsetInMilliseconds')
+    _copyattr(audio_player_json, audio_player, 'playerActivity')
+    return audio_player
+
+def _parse_device(device_json):
+    device = _Device()
+    supported_interface_list = device_json['supportedInterfaces'] if 'supportedInterfaces' in device_json else []
+    setattr(device, 'supportedInterfaces', _parse_supported_interfaces(supported_interface_list))
+    return device
+
+def _parse_supported_interfaces(supported_interface_json):
+    interfaces = _SupportedInterfaces()
+    for device in supported_interface_json:
+        setattr(interfaces, device, True)
+    return interfaces
+
+def _parse_system(system_json):
+    system = _System()
+    if 'application' in system_json:
+        setattr(system, 'application', _parse_application(system_json['application']))
+    if 'user' in system_json:
+        setattr(system, 'user', _parse_user(system_json['user']))
+    if 'device' in system_json:
+        setattr(system, 'device', _parse_device(system_json['device']))
+    return system
+
+def _parse_user(user_json):
+    user = _User()
+    _copyattr(user_json, user, 'userId')
+    _copyattr(user_json, user, 'accessToken')
+    return user
 
 
 def _dbgdump(obj, indent=2, default=None, cls=None):
