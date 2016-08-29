@@ -60,6 +60,7 @@ class Ask(object):
 
     def launch(self, f):
         self._launch_view_func = f
+
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
@@ -67,6 +68,7 @@ class Ask(object):
 
     def session_ended(self, f):
         self._session_ended_view_func = f
+
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
@@ -78,6 +80,7 @@ class Ask(object):
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
+
             @wraps(f)
             def wrapper(*args, **kw):
                 self._flask_view_func(*args, **kw)
@@ -264,7 +267,7 @@ class _Response(object):
         return self
 
     def link_account_card(self):
-        card = { 'type': 'LinkAccount' }
+        card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
 
@@ -297,7 +300,7 @@ class question(_Response):
         self._response['shouldEndSession'] = False
 
     def reprompt(self, reprompt):
-        reprompt = { 'outputSpeech': _output_speech(reprompt) }
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
         self._response['reprompt'] = reprompt
         return self
 
@@ -306,10 +309,10 @@ def _output_speech(speech):
     try:
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
-            return { 'type': 'SSML', 'ssml': speech }
+            return {'type': 'SSML', 'ssml': speech}
     except ElementTree.ParseError as e:
         pass
-    return { 'type': 'PlainText', 'text': speech }
+    return {'type': 'PlainText', 'text': speech}
 
 
 class _Application(object): pass
@@ -324,7 +327,6 @@ class _System(object): pass
 class _AudioPlayer(object): pass
 class _Device(object): pass
 class _SupportedInterfaces(object): pass
-
 
 
 def _copyattr(src, dest, attr, convert=None):
@@ -355,6 +357,7 @@ def _parse_context(context_json):
         setattr(context, 'AudioPlayer', _parse_system(context_json['AudioPlayer']))
     return context
 
+
 def _parse_request(request_json):
     request = _Request()
     _copyattr(request_json, request, 'requestId')
@@ -379,6 +382,7 @@ def _parse_request(request_json):
             setattr(intent, 'slots', slots)
     return request
 
+
 def _parse_session(session_json):
     session = _Session()
     _copyattr(session_json, session, 'sessionId')
@@ -396,6 +400,7 @@ def _parse_application(application_json):
     _copyattr(application_json, application, 'applicationId')
     return application
 
+
 def _parse_audio_player(audio_player_json):
     audio_player = _AudioPlayer()
     _copyattr(audio_player_json, audio_player, 'token')
@@ -403,17 +408,20 @@ def _parse_audio_player(audio_player_json):
     _copyattr(audio_player_json, audio_player, 'playerActivity')
     return audio_player
 
+
 def _parse_device(device_json):
     device = _Device()
     supported_interface_list = device_json['supportedInterfaces'] if 'supportedInterfaces' in device_json else []
     setattr(device, 'supportedInterfaces', _parse_supported_interfaces(supported_interface_list))
     return device
 
+
 def _parse_supported_interfaces(supported_interface_json):
     interfaces = _SupportedInterfaces()
     for device in supported_interface_json:
         setattr(interfaces, device, True)
     return interfaces
+
 
 def _parse_system(system_json):
     system = _System()
@@ -424,6 +432,7 @@ def _parse_system(system_json):
     if 'device' in system_json:
         setattr(system, 'device', _parse_device(system_json['device']))
     return system
+
 
 def _parse_user(user_json):
     user = _User()
