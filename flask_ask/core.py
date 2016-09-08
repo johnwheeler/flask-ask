@@ -41,17 +41,14 @@ class Ask(object):
     def init_app(self, app):
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
-            
+
         app.ask = self
-        
+
         self.ask_verify_requests = app.config.get('ASK_VERIFY_REQUESTS', True)
         self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
         self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
-        
-        if self.ask_verify_requests and self.ask_application_id is None:
-            logger.warning("The ASK_APPLICATION_ID has not been set. Application ID verification disabled.")
-            
-        app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])        
+
+        app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
     def on_session_started(self, f):
@@ -59,6 +56,7 @@ class Ask(object):
 
     def launch(self, f):
         self._launch_view_func = f
+
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
@@ -66,6 +64,7 @@ class Ask(object):
 
     def session_ended(self, f):
         self._session_ended_view_func = f
+
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
@@ -77,6 +76,7 @@ class Ask(object):
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
+
             @wraps(f)
             def wrapper(*args, **kw):
                 self._flask_view_func(*args, **kw)
@@ -117,25 +117,25 @@ class Ask(object):
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
-        alexa_request_payload = json.loads(raw_body)  
-        
+        alexa_request_payload = json.loads(raw_body)
+
         if verify:
             cert_url = flask_request.headers['Signaturecertchainurl']
             signature = flask_request.headers['Signature']
-            
+
             # load certificate - this verifies a the certificate url and format under the hood
-            cert = verifier.load_certificate(cert_url)        
+            cert = verifier.load_certificate(cert_url)
             # verify signature
-            verifier.verify_signature(cert, signature, raw_body)        
+            verifier.verify_signature(cert, signature, raw_body)
             # verify timestamp
             timestamp = aniso8601.parse_datetime(alexa_request_payload['request']['timestamp'])
             if not current_app.debug or self.ask_verify_timestamp_debug:
-                verifier.verify_timestamp(timestamp)            
+                verifier.verify_timestamp(timestamp)
             # verify application id
             application_id = alexa_request_payload['session']['application']['applicationId']
             if self.ask_application_id is not None:
                 verifier.verify_application_id(application_id, self.ask_application_id)
-            
+
         return alexa_request_payload
 
     def _flask_view_func(self, *args, **kwargs):
@@ -246,15 +246,19 @@ class _Response(object):
             'title': title,
             'text': text
         }
+
+        if any((small_image_url, large_image_url)):
+            card['image'] = {}
         if small_image_url is not None:
-            card['smallImageUrl'] = small_image_url
+            card['image']['smallImageUrl'] = small_image_url
         if large_image_url is not None:
-            card['largeImageUrl'] = large_image_url
+            card['image']['largeImageUrl'] = large_image_url
+
         self._response['card'] = card
         return self
 
     def link_account_card(self):
-        card = { 'type': 'LinkAccount' }
+        card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
 
@@ -287,7 +291,7 @@ class question(_Response):
         self._response['shouldEndSession'] = False
 
     def reprompt(self, reprompt):
-        reprompt = { 'outputSpeech': _output_speech(reprompt) }
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
         self._response['reprompt'] = reprompt
         return self
 
@@ -296,10 +300,10 @@ def _output_speech(speech):
     try:
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
-            return { 'type': 'SSML', 'ssml': speech }
+            return {'type': 'SSML', 'ssml': speech}
     except ElementTree.ParseError as e:
         pass
-    return { 'type': 'PlainText', 'text': speech }
+    return {'type': 'PlainText', 'text': speech}
 
 
 class _Application(object): pass
