@@ -92,6 +92,8 @@ To install Flask-Ask::
 ---------------
 You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). `To deploy on AWS Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
 
+Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates.
+
 ☤ Thank You
 ------------
 Thanks for checking this library out! I hope you find it useful.
