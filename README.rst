@@ -2,8 +2,6 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
 
-|
-
 Program the Amazon Echo with Python
 ===================================
     
