@@ -4,11 +4,6 @@
 
 |
 
-.. image:: https://img.shields.io/badge/chat-slack-ff69b4.svg
-    :alt: Chat
-    :target: https://slackautoinviter.herokuapp.com/
-
-
 Program the Amazon Echo with Python
 ===================================
     
