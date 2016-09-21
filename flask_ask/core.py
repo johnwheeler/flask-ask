@@ -24,8 +24,58 @@ _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 
 class Ask(object):
+    """The Ask object provides the central interface for interacting with the Alexa service.
+
+     
+    
+    
+    
+    Variables:
+        request {[type]} -- [description]
+        session {[type]} -- [description]
+        version {[type]} -- [description]
+        convert_errors {[type]} -- [description]
+        _converters {dict} -- [description]
+        try: {[type]} -- [description]
+        except ElementTree.ParseError as e: {[type]} -- [description]
+        return {'type': 'PlainText', 'text': speech} {[type]} -- [description]
+        if attr in src: {[type]} -- [description]
+        request_body {[type]} -- [description]
+        request {[type]} -- [description]
+        setattr(request_body, 'request', request) {[type]} -- [description]
+        session {[type]} -- [description]
+        setattr(request_body, 'session', session) {[type]} -- [description]
+        setattr(request_body, 'version', request_body_json['version']) {[type]} -- [description]
+        return request_body {[type]} -- [description]
+        request {[type]} -- [description]
+        _copyattr(request_json, request, 'requestId') {[type]} -- [description]
+        _copyattr(request_json, request, 'type') {[type]} -- [description]
+        _copyattr(request_json, request, 'reason') {[type]} -- [description]
+        _copyattr(request_json, request, 'timestamp', aniso8601.parse_datetime) {[type]} -- [description]
+        if 'intent' in request_json: {[type]} -- [description]
+        return request {[type]} -- [description]
+        session {[type]} -- [description]
+        _copyattr(session_json, session, 'sessionId') {[type]} -- [description]
+        _copyattr(session_json, session, 'new') {[type]} -- [description]
+        setattr(session, 'attributes', session_json.get('attributes', {})) {[type]} -- [description]
+        if 'application' in session_json: {[type]} -- [description]
+        if 'user' in session_json: {[type]} -- [description]
+        return session {[type]} -- [description]
+        msg {[type]} -- [description]
+        logger.debug(msg) {[type]} -- [description]
+    """
 
     def __init__(self, app=None, route=None):
+        """The constructor is passed a Flask App instance, and a URL
+        Once created it will act as an interface for mapping intents, routing requests to Alexa via A Flask REST API
+        
+        
+        
+        Keyword Arguments:
+            app {Flask App} -- App instance - created with app = Flask(__name__) (default: {None})
+            route {str} -- URL to which Alexa Requests are forwarded (default: {None})
+        """
+        
         self.app = app
         self._route = route
         self._intent_view_funcs = {}
@@ -39,6 +89,17 @@ class Ask(object):
             self.init_app(app)
 
     def init_app(self, app):
+        """Initializes app by configuring Flask App options.
+        
+        Ask instance is assigned to the 'ask' attribute of the Flask App.
+        The instance aquires it's
+        
+        Arguments:
+            app {Flask App} -- [description]
+        
+        Raises:
+            TypeError -- [description]
+        """
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
 
