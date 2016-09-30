@@ -1,11 +1,14 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
+|
+
+`Follow me for updates <https://twitter.com/_johnwheeler>`_
 
 Program the Amazon Echo with Python
 ===================================
-    
-Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun. 
+
+Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun.
 
 Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
@@ -60,7 +63,7 @@ These resources will get you up and running quickly:
 .. image:: http://i.imgur.com/rGD2hSx.png
    :target: https://www.youtube.com/watch?v=cXL8FDUag-s
    :alt: 5-minute Flask-Ask tutorial.
-   
+
 `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
 
 `Full online documentation <https://alexatutorial.com/flask-ask/>`_
@@ -80,7 +83,7 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 To install Flask-Ask::
 
   pip install flask-ask
-  
+
 ☤ Deployment
 ---------------
 You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). `To deploy on AWS Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
