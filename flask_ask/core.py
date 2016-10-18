@@ -175,6 +175,39 @@ class Ask(object):
         """
         def decorator(f):
             self._intent_view_funcs[intent_name] = f
+            self._intent_mappings[intent_name] = mapping
+            self._intent_converts[intent_name] = convert
+            self._intent_defaults[intent_name] = default
+
+            @wraps(f)
+            def wrapper(*args, **kw):
+                self._flask_view_func(*args, **kw)
+            return f
+        return decorator
+
+    @property
+    def request(self):
+        return getattr(_app_ctx_stack.top, '_ask_request', None)
+
+    @request.setter
+    def request(self, value):
+        _app_ctx_stack.top._ask_request = value
+
+    @property
+    def session(self):
+        return getattr(_app_ctx_stack.top, '_ask_session', None)
+
+    @session.setter
+    def session(self, value):
+        _app_ctx_stack.top._ask_session = value
+
+    @property
+    def version(self):
+        return getattr(_app_ctx_stack.top, '_ask_version', None)
+
+    @version.setter
+    def version(self, value):
+        _app_ctx_stack.top._ask_version = value
 
     @property
     def convert_errors(self):
@@ -375,32 +408,13 @@ def _output_speech(speech):
     return {'type': 'PlainText', 'text': speech}
 
 
-class _Application(object):
-    pass
-
-
-class _Intent(object):
-    pass
-
-
-class _Request(object):
-    pass
-
-
-class _RequestBody(object):
-    pass
-
-
-class _Session(object):
-    pass
-
-
-class _Slot(object):
-    pass
-
-
-class _User(object):
-    pass
+class _Application(object): pass
+class _Intent(object): pass
+class _Request(object): pass
+class _RequestBody(object): pass
+class _Session(object): pass
+class _Slot(object): pass
+class _User(object): pass
 
 
 def _copyattr(src, dest, attr, convert=None):
