@@ -25,12 +25,11 @@ _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 class Ask(object):
     """The Ask object provides the central interface for interacting with the Alexa service.
-    
-    An Ask object is responsible for mapping Requests to flask view functions and handling Alexa sessions.
-    
+
+    Ask object maps Alexa Requests to flask view functions and handles Alexa sessions.
     The constructor is passed a Flask App instance, and URL endpoint.
-    The Flask instance provides the convienient API of endpoints and their view functions, so that Alexa requests may
-    be mapped with syntax similar to a typical Flask server.
+    The Flask instance allows the convienient API of endpoints and their view functions,
+    so that Alexa requests may be mapped with syntax similar to a typical Flask server.
     Route provides the entry point for the skill, and must be provided if an app is given.
 
     Keyword Arguments:
@@ -54,10 +53,9 @@ class Ask(object):
             self.init_app(app)
 
     def init_app(self, app):
-        """Initializes Ask app by setting configuration variables, loading templates, and maps it's URL to a flask view.
+        """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
 
-        The Ask instance is given the following configuration varables by calling on Flask's .config attribute
-
+        The Ask instance is given the following configuration varables by calling on Flask's configuration:
 
         `ASK_APPLICATION_ID`:
 
@@ -105,13 +103,12 @@ class Ask(object):
         a function regardless of how the session began.
 
         Arguments:
-            f {func} -- function to be called when session is started.
+            f {function} -- function to be called when session is started.
         """
         self._on_session_started_callback = f
 
     def launch(self, f):
-        """Decorator routes an Alexa LaunchRequest to the wrapped view fucntion and starts the skill.
-        Decorator maps a view fucntion as the endpoint for an Alexa LaunchRequest
+        """Decorator maps a view fucntion as the endpoint for an Alexa LaunchRequest and starts the skill.
 
         @ask.launch
         def launched():
@@ -124,7 +121,6 @@ class Ask(object):
 
         Arguments:
             f {function} -- Launch view function
-
         """
         self._launch_view_func = f
 
@@ -140,17 +136,11 @@ class Ask(object):
         def session_ended():
             return "", 200
 
-        The wrapped function is registered as the launch view function and serves
-        as the endpoint for requests to the Launch URL.
-        A request to the launch URL is verified with the Alexa server before the payload is
-        passed to the view function.
-
+        The wrapped function is registered as the session_ended view function
+        and renders the response for requests to the end of the session.
 
         Arguments:
-            f {[type]} -- [description]
-
-        Returns:
-            [type] -- [description]
+            f {function} -- session_ended view function
         """
         self._session_ended_view_func = f
 
@@ -161,26 +151,27 @@ class Ask(object):
 
     def intent(self, intent_name, mapping={}, convert={}, default={}):
         """Decorator routes an Alexa IntentRequest and provides the slot parameters to the wrapped function.
-        
-        Functions decorated as an intent are registered as the view function for the Intent's URL, and provide the 
-        backend responses to give your Skill its functionality.
 
+        Functions decorated as an intent are registered as the view function for the Intent's URL,
+        and provide the backend responses to give your Skill its functionality.
+
+        @ask.intent('WeatherIntent', mapping={'city': 'City'})
+        def weather(city):
+            return statement('I predict great weather for {}'.format(city))
 
         Arguments:
-            intent_name {str} -- [Name of the intent request to be mapped to the decorated function]
+            intent_name {str} -- Name of the intent request to be mapped to the decorated function
 
         Keyword Arguments:
-            mapping {dict} -- maps parameters to intent slots of a different name
+            mapping {dict} -- Maps parameters to intent slots of a different name
+                                default: {}
 
-                @ask.intent('WeatherIntent', mapping={'city': 'City'})
-                def weather(city):
-                    return statement('I predict great weather for {}'.format(city))
-                (default: {{}})
+            convert {dict} -- Converts slot values to data types before assignment to parameters
+                                default: {}
 
-            convert {dict} -- Converts slot values to data types before assignment to parameters (default: {{}})
-            default {dict} --  Provides default values for Intent slots if 
-                               the Alexa request returns no corresponding slot, or a slot with an empty value
-                                 (default: {{}})
+            default {dict} --  Provides default values for Intent slots if Alexa reuqest
+                                returns no corresponding slot, or a slot with an empty value
+                                default: {}
         """
         def decorator(f):
             self._intent_view_funcs[intent_name] = f
