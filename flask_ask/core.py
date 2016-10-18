@@ -24,8 +24,22 @@ _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 
 class Ask(object):
+    """The Ask object provides the central interface for interacting with the Alexa service.
+
+    Ask object maps Alexa Requests to flask view functions and handles Alexa sessions.
+    The constructor is passed a Flask App instance, and URL endpoint.
+    The Flask instance allows the convienient API of endpoints and their view functions,
+    so that Alexa requests may be mapped with syntax similar to a typical Flask server.
+    Route provides the entry point for the skill, and must be provided if an app is given.
+
+    Keyword Arguments:
+            app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
+            route {str} -- entry point to which initial Alexa Requests are forwarded (default: {None})
+
+    """
 
     def __init__(self, app=None, route=None):
+
         self.app = app
         self._route = route
         self._intent_view_funcs = {}
@@ -39,6 +53,33 @@ class Ask(object):
             self.init_app(app)
 
     def init_app(self, app):
+        """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
+
+        The Ask instance is given the following configuration varables by calling on Flask's configuration:
+
+        `ASK_APPLICATION_ID`:
+
+             Turn on application ID verification by setting this variable to an application ID or a
+             list of allowed application IDs. By default, application ID verification is disabled and a
+             warning is logged. This variable should be set in production to ensure
+             requests are being sent by the applications you specify. 
+             Default: None
+
+
+        `ASK_VERIFY_REQUESTS`:
+
+            Enables or disables Alexa request verification, which ensures requests sent to your skill
+            are from Amazon’s Alexa service. This setting should not be disabled in production.
+            It is useful for mocking JSON requests in automated tests. 
+            Default: True
+
+        ASK_VERIFY_TIMESTAMP_DEBUG:
+
+            Turn on request timestamp verification while debugging by setting this to True.
+            Timestamp verification helps mitigate against replay attacks. It relies on the system clock
+            being synchronized with an NTP server. This setting should not be enabled in production.
+            Default: False
+        """
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
 
@@ -52,9 +93,35 @@ class Ask(object):
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
     def on_session_started(self, f):
+        """Decorator to call wrapped function upon starting a session. 
+
+        @ask.on_session_started
+        def new_session():
+            log.info('new session started')
+
+        Because both launch and intent requests may begin a session, this decorator is used call
+        a function regardless of how the session began.
+
+        Arguments:
+            f {function} -- function to be called when session is started.
+        """
         self._on_session_started_callback = f
 
     def launch(self, f):
+        """Decorator maps a view fucntion as the endpoint for an Alexa LaunchRequest and starts the skill.
+
+        @ask.launch
+        def launched():
+            return question('Welcome to Foo')
+
+        The wrapped function is registered as the launch view function and renders the response
+        for requests to the Launch URL.
+        A request to the launch URL is verified with the Alexa server before the payload is
+        passed to the view function.
+
+        Arguments:
+            f {function} -- Launch view function
+        """
         self._launch_view_func = f
 
         @wraps(f)
@@ -63,6 +130,18 @@ class Ask(object):
         return f
 
     def session_ended(self, f):
+        """Decorator routes Alexa SessionEndedRequest to the wrapped view fucntion to end the skill.
+
+        @ask.session_ended
+        def session_ended():
+            return "", 200
+
+        The wrapped function is registered as the session_ended view function
+        and renders the response for requests to the end of the session.
+
+        Arguments:
+            f {function} -- session_ended view function
+        """
         self._session_ended_view_func = f
 
         @wraps(f)
@@ -71,6 +150,29 @@ class Ask(object):
         return f
 
     def intent(self, intent_name, mapping={}, convert={}, default={}):
+        """Decorator routes an Alexa IntentRequest and provides the slot parameters to the wrapped function.
+
+        Functions decorated as an intent are registered as the view function for the Intent's URL,
+        and provide the backend responses to give your Skill its functionality.
+
+        @ask.intent('WeatherIntent', mapping={'city': 'City'})
+        def weather(city):
+            return statement('I predict great weather for {}'.format(city))
+
+        Arguments:
+            intent_name {str} -- Name of the intent request to be mapped to the decorated function
+
+        Keyword Arguments:
+            mapping {dict} -- Maps parameters to intent slots of a different name
+                                default: {}
+
+            convert {dict} -- Converts slot values to data types before assignment to parameters
+                                default: {}
+
+            default {dict} --  Provides default values for Intent slots if Alexa reuqest
+                                returns no corresponding slot, or a slot with an empty value
+                                default: {}
+        """
         def decorator(f):
             self._intent_view_funcs[intent_name] = f
             self._intent_mappings[intent_name] = mapping
