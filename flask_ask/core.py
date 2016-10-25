@@ -22,6 +22,7 @@ version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
+
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 
@@ -309,34 +310,41 @@ class question(_Response):
 class audio(_Response):
     """Returns a response object with the appropiate Amazon AudioPlayer Directive.
 
-    The response may include a normal speech attribute in addition to the execution of an AudioPlayer Directive.
-    When including a directive in your response, set the type property to the directive you want to send.
+    LaunchRequest and IntentRequest responses may include outputSpeech in addition to the execution of an AudioPlayer Directive.
+    When provoking an audio response, set the directive type with the respective method.
+
+    Note that responses to AudioPlayer requests do not allow outputSpeech.
+    The response must only include AudioPlayer Directives.
     
-    @ask.intent('SomeAudioIntent')
-    def some_audio_intent():
-        stream_url = www.example.com
+    @ask.intent('PlayFooAudioIntent')
+    def play_foo_audio():
+        speech = 'playing from foo'
+        stream_url = www.foo.com
         return audio(speech).play(stream_url)
 
 
-    Include directives in the directives array in your response:
+    @ask.intent('AMAZON.PauseIntent')
+    def stop_audio():
+        return audio('Ok, stopping the audio').stop()
+
     """
 
     _previous_stream_token = None
 
-    def __init__(self, speech):
+    def __init__(self, speech=None):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
-        # self._directive = {}
-    
+
+
     def play(self, stream_url, behavior='REPLACE_ALL'):
         """Sends a response containing the AudioPlayer.Play Directive to the Alexa Service to stream the audio file.
       
         Arguments:
-            stream_url {str} -- url to stream audio from
+            stream_url {str} -- URL of the audio stream.
         
         Keyword Arguments:
             behavior {str} -- Determines whether the stream begins playing immediately, or is added to the queue.
-                            options:
+                        
 
                         'REPLACE_ALL': Immediately begin playback of the specified stream
                                      and replace current and enqueued streams.
@@ -350,6 +358,7 @@ class audio(_Response):
                         default: 'REPLACE_ALL'
         """
         directive = {}
+        self._response['shouldEndSession'] = True
         directive['type'] = "AudioPlayer.Play"
         directive['playBehavior'] = behavior
         directive['audioItem'] = self._audio_item(stream_url, behavior)
@@ -362,10 +371,12 @@ class audio(_Response):
         return self
 
     def clear_queue(self, stop=False):
-        """Clears the audio playback queue.
-
-        You can set this directive to clear the queue without stopping the currently playing stream
-        or clear the queue and stop any currently playing stream.
+        """Clears queued streams and optionally stops current stream.
+        
+        Keyword Arguments:
+            stop {bool} -- set True to stop current current stream and clear queued streams.
+                           set False to clear queued streams and allow current stream to finish
+                           (default: {False})
         """
 
         directive = {}
@@ -377,12 +388,6 @@ class audio(_Response):
 
         self._response.append(directive)
         return self
-
-
-
-
-
-
 
 
     def _audio_item(self, stream_url, behavior, offset=0):
@@ -397,16 +402,6 @@ class audio(_Response):
         return audio_item
 
 
-
-        
-
-
-
-
-
-def _directives():
-    pass
-
 def _output_speech(speech):
     try:
         xmldoc = ElementTree.fromstring(speech)
@@ -415,6 +410,7 @@ def _output_speech(speech):
     except ElementTree.ParseError as e:
         pass
     return {'type': 'PlainText', 'text': speech}
+
 
 
 class _Application(object): pass
@@ -445,9 +441,13 @@ def _parse_request_body(request_body_json):
     setattr(request_body, 'request', request)
     session = _parse_session(request_body_json['session'])
     setattr(request_body, 'session', session)
-    context = _parse_context(request_body_json['context'])
-    setattr(request_body, 'context', context)
     setattr(request_body, 'version', request_body_json['version'])
+
+    try:
+        context = _parse_context(request_body_json['context'])
+        setattr(request_body, 'context', context)
+    except KeyError:
+        setattr(request_body, 'context', _Context())
     return request_body
 
 

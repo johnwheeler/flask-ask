@@ -26,8 +26,6 @@ def demo():
     return audio('weeeeeee').play('https://ia800203.us.archive.org/27/items/CarelessWhisper_435/CarelessWhisper.ogg')
 
 
-
-
 @ask.session_ended
 def session_ended():
     return "", 200
