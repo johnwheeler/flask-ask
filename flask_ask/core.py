@@ -442,12 +442,12 @@ def _parse_request_body(request_body_json):
     session = _parse_session(request_body_json['session'])
     setattr(request_body, 'session', session)
     setattr(request_body, 'version', request_body_json['version'])
-
     try:
         context = _parse_context(request_body_json['context'])
         setattr(request_body, 'context', context)
     except KeyError:
         setattr(request_body, 'context', _Context())
+
     return request_body
 
 
@@ -456,7 +456,7 @@ def _parse_context(context_json):
     if 'System' in context_json:
         setattr(context, 'System', _parse_system(context_json['System']))
     if 'AudioPlayer' in context_json:
-        setattr(context, 'AudioPlayer', _parse_system(context_json['AudioPlayer']))
+        setattr(context, 'AudioPlayer', _parse_audio_player(context_json['AudioPlayer']))
     return context
 
 
