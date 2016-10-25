@@ -13,6 +13,7 @@ from . import verifier
 from . import logger
 from .convert import to_date, to_time, to_timedelta
 import collections
+import random
 
 
 request = LocalProxy(lambda: current_app.ask.request)
@@ -286,6 +287,7 @@ class _Response(object):
         return json.dumps(response_wrapper, **kw)
 
 
+
 class statement(_Response):
 
     def __init__(self, speech):
@@ -304,6 +306,106 @@ class question(_Response):
         self._response['reprompt'] = reprompt
         return self
 
+class audio(_Response):
+    """Returns a response object with the appropiate Amazon AudioPlayer Directive.
+
+    The response may include a normal speech attribute in addition to the execution of an AudioPlayer Directive.
+    When including a directive in your response, set the type property to the directive you want to send.
+    
+    @ask.intent('SomeAudioIntent')
+    def some_audio_intent():
+        stream_url = www.example.com
+        return audio(speech).play(stream_url)
+
+
+    Include directives in the directives array in your response:
+    """
+
+    _previous_stream_token = None
+
+    def __init__(self, speech):
+        super(audio, self).__init__(speech)
+        self._response['directives'] = []
+        # self._directive = {}
+    
+    def play(self, stream_url, behavior='REPLACE_ALL'):
+        """Sends a response containing the AudioPlayer.Play Directive to the Alexa Service to stream the audio file.
+      
+        Arguments:
+            stream_url {str} -- url to stream audio from
+        
+        Keyword Arguments:
+            behavior {str} -- Determines whether the stream begins playing immediately, or is added to the queue.
+                            options:
+
+                        'REPLACE_ALL': Immediately begin playback of the specified stream
+                                     and replace current and enqueued streams.
+
+                        'ENQUEUE': Add the specified stream to the end of the current queue.
+                                   This does not impact the currently playing stream.
+
+                        'REPLACE_ENQUEUED': Replace all streams in the queue.
+                                            This does not impact the currently playing stream.
+
+                        default: 'REPLACE_ALL'
+        """
+        directive = {}
+        directive['type'] = "AudioPlayer.Play"
+        directive['playBehavior'] = behavior
+        directive['audioItem'] = self._audio_item(stream_url, behavior)
+        self._response['directives'].append(directive)
+        return self
+
+    def stop(self):
+        """Stops the current audio playback by including the Audio.Player Directive in the response"""
+        self._response['directives'].append({'type': 'AudioPlayer.Stop'})
+        return self
+
+    def clear_queue(self, stop=False):
+        """Clears the audio playback queue.
+
+        You can set this directive to clear the queue without stopping the currently playing stream
+        or clear the queue and stop any currently playing stream.
+        """
+
+        directive = {}
+        directive['type'] = 'AudioPlayer.ClearQueue'
+        if stop:
+            directive['clearBehavior'] = 'CLEAR_ALL'
+        else:
+            directive['clearBehavior'] = 'CLEAR_ENQUEUED'
+
+        self._response.append(directive)
+        return self
+
+
+
+
+
+
+
+
+    def _audio_item(self, stream_url, behavior, offset=0):
+        audio_item = {'stream': {}}
+        stream = audio_item['stream']
+        stream['url'] = stream_url
+        stream['token'] = str(random.randint(10000, 100000))
+        if behavior == 'ENQUEUE':
+            stream['expectedPreviousToken'] = audio._previous_stream_token
+        stream['offsetInMilliseconds'] = offset
+        audio._previous_stream_token = stream['token']
+        return audio_item
+
+
+
+        
+
+
+
+
+
+def _directives():
+    pass
 
 def _output_speech(speech):
     try:
