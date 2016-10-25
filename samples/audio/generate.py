@@ -3,16 +3,7 @@ import os
 import inspect
 from flask import json
 
-from ask_soundcloud import ask
-
-import argparse
-
-# parser = argparse.ArgumentParser(description='Generates Intent Model Schema from intent functions')
-# parser.add_argument('skill_file', type=str,
-#                     help='The file in which the ask app is initialized')
-
-# args = parser.parse_args()
-# print(args)
+from ask_audio import ask
 
 
 
@@ -36,9 +27,9 @@ def generate_schema(skill):
         print("""It appears you have already have an IntentSchema.json file.
         Running this command will overwrite any existing schema.\n""")
 
-        # confirm = input("Do you wish to continue? [y/n]")
-        # if confirm != 'n':
-        #     quit
+        confirm = input("Do you wish to continue? [y/n]")
+        if confirm != 'n':
+            quit
 
     schema = {'intents': []}
 

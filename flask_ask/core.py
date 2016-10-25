@@ -22,7 +22,6 @@ version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
-
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 
@@ -38,6 +37,8 @@ class Ask(object):
         self._launch_view_func = None
         self._session_ended_view_func = None
         self._on_session_started_callback = None
+        self._player_view_funcs = {}
+        self._player_mappings = {}
         if app is not None:
             self.init_app(app)
 
@@ -56,6 +57,7 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
+        audio._previous_stream_token = None
 
     def on_session_started(self, f):
         self._on_session_started_callback = f
@@ -88,6 +90,70 @@ class Ask(object):
                 self._flask_view_func(*args, **kw)
             return f
         return decorator
+
+    def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}):
+        """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
+
+        Sent when Alexa begins playing the audio stream previously sent in a Play directive.
+        This lets your skill verify that playback began successfully.
+        This request is also sent when Alexa resumes playback after pausing it for a voice request.
+
+        """
+        def decorator(f):
+            self._player_view_funcs['AudioPlayer.PlaybackStarted'] = f
+            self._player_mappings['AudioPlayer.PlaybackStarted'] = mapping
+
+
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                self._player_func(*args, **kwargs)
+            return f
+        return decorator
+
+    def on_playback_finished(self, mapping={'offset': 'offsetInMilliseconds'}):
+        """Decorator routes an AudioPlayer.PlaybackFinished Request to the wrapped function.
+
+        This type of request is sent when the stream Alexa is playing comes to an end on its own.
+        Note: If your skill explicitly stops the playback with the Stop directive,
+        Alexa sends PlaybackStopped instead of PlaybackFinished.
+        """
+        def decorator(f):
+            self._player_view_funcs['AudioPlayer.PlaybackFinished'] = f
+            self._player_mappings['AudioPlayer.PlaybackFinished'] = mapping
+
+
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                self._player_func(*args, **kwargs)
+            return f
+        return decorator
+
+    def on_playback_stopped(self, mapping={'offset': 'offsetInMilliseconds'}):
+        """Decorator routes an AudioPlayer.PlaybackStopped Request to the wrapped function.
+
+        Sent when Alexa stops playing an audio stream in response to one of the following:
+            -AudioPlayer.Stop
+            -AudioPlayer.Play with a playBehavior of REPLACE_ALL.
+            -AudioPlayer.ClearQueue with a clearBehavior of CLEAR_ALL.
+
+        This request is also sent if the user makes a voice request to Alexa, since this temporarily pauses the playback.
+        In this case, the playback begins automatically once the voice interaction is complete.
+
+        Note: If playback stops because the audio stream comes to an end on its own,
+        Alexa sends PlaybackFinished instead of PlaybackStopped.
+
+        """
+        def decorator(f):
+            self._player_view_funcs['AudioPlayer.PlaybackFinished'] = f
+            self._player_mappings['AudioPlayer.PlaybackFinished'] = mapping
+
+
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                self._player_func(*args, **kwargs)
+            return f
+        return decorator
+
 
     @property
     def request(self):
@@ -130,6 +196,15 @@ class Ask(object):
         _app_ctx_stack.top._ask_convert_errors = value
 
     def _alexa_request(self, verify=True):
+        """Returns the Alexa Request payload sent to the skill.
+        
+        All requests include the version, context, and request objects at the top level.
+        The session object is included for all standard requests,
+        but it is not included for AudioPlayer or PlaybackController requests.
+        
+        Returns:
+            request {dict} -- Alxa Request payload
+        """
         raw_body = flask_request.data
         alexa_request_payload = json.loads(raw_body)
 
@@ -170,11 +245,53 @@ class Ask(object):
             result = self._session_ended_view_func()
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
+
         if result is not None:
             if isinstance(result, _Response):
                 return result.render_response()
             return result
         return "", 400
+
+    def _player_func(self, *args, **kwargs):
+        ask_payload = self._alexa_request(verify=self.ask_verify_requests)
+        _dbgdump(ask_payload)
+        request_body = _parse_request_body(ask_payload)
+        #AudioPlayer requests do not contain a session object
+        self.request = request_body.request
+        self.context = request_body.context
+
+        # for user-initiated AudioPlayer requests
+        if hasattr(self.context, 'AudioPlayer'): 
+            result = self._map_player_request_to_func(self.context.AudioPlayer)
+
+        # for non user-initiated AudioPlayer requests.
+        # these contain a request type and may be routed using the playback decorators
+        elif hasattr(self.request, 'AudioPlayer'):
+            result = self._map_player_request_to_func(self.request.AudioPlayer)
+
+        return result
+
+
+    def _map_player_request_to_func(self, audio_player):
+        if hasattr(audio_player, 'type'):
+            func = self._player_view_funcs[audio_player.type]
+            mapping = self._player_mappings[audio_player.type]
+            argspec = inspect.getargspec(func)
+            arg_names = argspec.args
+            arg_values = []
+            for arg_name in arg_names:
+                request_param = mapping.get(arg_name, arg_name)
+                arg_value = getattr(audio_player, request_param)
+                arg_values.append(arg_value)
+
+            return partial(func, *arg_values)
+
+
+
+
+
+
+
 
     def _map_intent_to_view_func(self, intent):
         view_func = self._intent_view_funcs[intent.name]
@@ -331,12 +448,13 @@ class audio(_Response):
 
     _previous_stream_token = None
 
+
     def __init__(self, speech=None):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
 
 
-    def play(self, stream_url, behavior='REPLACE_ALL'):
+    def play(self, stream_url=_previous_stream_token, behavior='REPLACE_ALL'):
         """Sends a response containing the AudioPlayer.Play Directive to the Alexa Service to stream the audio file.
       
         Arguments:
@@ -376,7 +494,7 @@ class audio(_Response):
         Keyword Arguments:
             stop {bool} -- set True to stop current current stream and clear queued streams.
                            set False to clear queued streams and allow current stream to finish
-                           (default: {False})
+                           default: {False}
         """
 
         directive = {}
@@ -390,7 +508,7 @@ class audio(_Response):
         return self
 
 
-    def _audio_item(self, stream_url, behavior, offset=0):
+    def _audio_item(self, stream_url, behavior, token=None, offset=0):
         audio_item = {'stream': {}}
         stream = audio_item['stream']
         stream['url'] = stream_url
@@ -455,7 +573,7 @@ def _parse_context(context_json):
     context = _Context()
     if 'System' in context_json:
         setattr(context, 'System', _parse_system(context_json['System']))
-    if 'AudioPlayer' in context_json:
+    if 'AudioPlayer' in context_json:  # Audioplayer only within context when it is user-initiated
         setattr(context, 'AudioPlayer', _parse_audio_player(context_json['AudioPlayer']))
     return context
 
@@ -482,6 +600,12 @@ def _parse_request(request_json):
                     _copyattr(slot_json, slot, 'value')
                     slots.append(slot)
             setattr(intent, 'slots', slots)
+
+    # For non user-initiated audioplayer requests.
+    # Details are not provided under an AudioPlayer object, but instead under the request object
+    # Assigns the details as an AudioPlayer attribute for the request
+    elif 'AudioPlayer.Playback' in request_json['type']:  
+        setattr(request, 'AudioPlayer', _parse_audio_player(request_json))
     return request
 
 
@@ -508,6 +632,11 @@ def _parse_audio_player(audio_player_json):
     _copyattr(audio_player_json, audio_player, 'token')
     _copyattr(audio_player_json, audio_player, 'offsetInMilliseconds')
     _copyattr(audio_player_json, audio_player, 'playerActivity')
+
+    #audio_player_json will have a type when sent under request object
+    _copyattr(audio_player_json, audio_player, 'type')
+
+
     return audio_player
 
 

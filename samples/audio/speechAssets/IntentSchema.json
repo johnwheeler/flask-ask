@@ -4,10 +4,13 @@
       "intent": "AMAZON.PauseIntent"
     },
     {
-      "intent": "AMAZON.ResumeIntent"
+      "intent": "DemoIntent"
     },
     {
-      "intent": "DemoIntent"
+      "intent": "StopIntent"
+    },
+    {
+      "intent": "AMAZON.ResumeIntent"
     }
   ]
 }
