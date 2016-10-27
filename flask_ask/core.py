@@ -21,8 +21,11 @@ session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
+stream_state = LocalProxy(lambda: current_app.ask.stream_state)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
+
+_streams_to_queue = {}
 
 
 class Ask(object):
@@ -37,8 +40,9 @@ class Ask(object):
         self._launch_view_func = None
         self._session_ended_view_func = None
         self._on_session_started_callback = None
-        self._player_view_funcs = {}
+        self._player_request_view_funcs = {}
         self._player_mappings = {}
+        self._player_converts = {}
         if app is not None:
             self.init_app(app)
 
@@ -57,7 +61,6 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
-        audio._previous_stream_token = None
 
     def on_session_started(self, f):
         self._on_session_started_callback = f
@@ -91,22 +94,27 @@ class Ask(object):
             return f
         return decorator
 
+
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}):
         """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
 
-        Sent when Alexa begins playing the audio stream previously sent in a Play directive.
+        Request sent when Alexa begins playing the audio stream previously sent in a Play directive.
         This lets your skill verify that playback began successfully.
         This request is also sent when Alexa resumes playback after pausing it for a voice request.
 
+        @ask.on_playback_started()
+        def on_playback_start(url, token, offset):
+            log.info('stream from {} started'.format(url))
+            log.info('stream has token {}'.format(token))
+            log.info('Current position within the stream is {} ms'.format(offset))
         """
         def decorator(f):
-            self._player_view_funcs['AudioPlayer.PlaybackStarted'] = f
+            self._player_request_view_funcs['AudioPlayer.PlaybackStarted'] = f
             self._player_mappings['AudioPlayer.PlaybackStarted'] = mapping
-
 
             @wraps(f)
             def wrapper(*args, **kwargs):
-                self._player_func(*args, **kwargs)
+                self._flask_view_func(*args, **kwargs)
             return f
         return decorator
 
@@ -118,17 +126,16 @@ class Ask(object):
         Alexa sends PlaybackStopped instead of PlaybackFinished.
         """
         def decorator(f):
-            self._player_view_funcs['AudioPlayer.PlaybackFinished'] = f
+            self._player_request_view_funcs['AudioPlayer.PlaybackFinished'] = f
             self._player_mappings['AudioPlayer.PlaybackFinished'] = mapping
-
 
             @wraps(f)
             def wrapper(*args, **kwargs):
-                self._player_func(*args, **kwargs)
+                self._flask_view_func(*args, **kwargs)
             return f
         return decorator
 
-    def on_playback_stopped(self, mapping={'offset': 'offsetInMilliseconds'}):
+    def on_playback_stopped(self, mapping={'offset': 'offsetInMilliseconds'}, convert={'offset': int}):
         """Decorator routes an AudioPlayer.PlaybackStopped Request to the wrapped function.
 
         Sent when Alexa stops playing an audio stream in response to one of the following:
@@ -141,19 +148,17 @@ class Ask(object):
 
         Note: If playback stops because the audio stream comes to an end on its own,
         Alexa sends PlaybackFinished instead of PlaybackStopped.
-
         """
         def decorator(f):
-            self._player_view_funcs['AudioPlayer.PlaybackFinished'] = f
+            self._player_request_view_funcs['AudioPlayer.PlaybackFinished'] = f
             self._player_mappings['AudioPlayer.PlaybackFinished'] = mapping
 
 
             @wraps(f)
             def wrapper(*args, **kwargs):
-                self._player_func(*args, **kwargs)
+                self._flask_view_func(*args, **kwargs)
             return f
         return decorator
-
 
     @property
     def request(self):
@@ -195,6 +200,15 @@ class Ask(object):
     def convert_errors(self, value):
         _app_ctx_stack.top._ask_convert_errors = value
 
+    @property
+    def stream_state(self):
+        return getattr(_app_ctx_stack.top, '_ask_stream_state', None)
+
+    @stream_state.setter
+    def stream_state(self, value):
+        _app_ctx_stack.top._ask_stream_state = value
+
+
     def _alexa_request(self, verify=True):
         """Returns the Alexa Request payload sent to the skill.
         
@@ -227,6 +241,7 @@ class Ask(object):
 
         return alexa_request_payload
 
+
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
@@ -245,6 +260,15 @@ class Ask(object):
             result = self._session_ended_view_func()
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
+        elif 'AudioPlayer' in request_type:
+            result = self._map_player_request_to_func(self.request.AudioPlayer)()
+
+
+        # Not mapped to view func explicitly bc not a request.
+        # Intent funcs may be created for amazon intents which invoke the stream update.
+        # Therefore, user can implicitly form a response to any event dealing with Audio streams.
+        if context.Audioplayer:
+            self._sync_stream(context.AudioPlayer)
 
         if result is not None:
             if isinstance(result, _Response):
@@ -252,46 +276,47 @@ class Ask(object):
             return result
         return "", 400
 
-    def _player_func(self, *args, **kwargs):
-        ask_payload = self._alexa_request(verify=self.ask_verify_requests)
-        _dbgdump(ask_payload)
-        request_body = _parse_request_body(ask_payload)
-        #AudioPlayer requests do not contain a session object
-        self.request = request_body.request
-        self.context = request_body.context
+    def _sync_stream(self, audio_player_object):
+        """Syncs stream with Alexa AudioPlayer contained in either the request or context body."""
+        stream = _Stream(audio_player_object)
+        self.stream_state = stream
 
-        # for user-initiated AudioPlayer requests
-        if hasattr(self.context, 'AudioPlayer'): 
-            result = self._map_player_request_to_func(self.context.AudioPlayer)
+    def _map_player_request_to_func(self, audio_player_request):
+        """Provides appropiate parameters to the on_playback functions.
 
-        # for non user-initiated AudioPlayer requests.
-        # these contain a request type and may be routed using the playback decorators
-        elif hasattr(self.request, 'AudioPlayer'):
-            result = self._map_player_request_to_func(self.request.AudioPlayer)
+        Request values are mapped to on_playback_<request type> functions
+        Parameters can recieve the values of the following details:
 
-        return result
+            url (str) - URL from which audio is being streamed
+            token (str) - token belonging to the stream as an identifier
+            offset - tracks offset in milliseconds when the PlaybackStarted request is sent.
+        """
+        self._sync_stream(audio_player_object)
+        func = self._player_request_funcs[audio_player_request.type]
+        mapping = self._player_mappings[audio_player_request.type]
+        convert = self._player_converts[audio_player_request.type]
+        argspec = inspect.getargspec(func)
+        arg_names = argspec.args
+        arg_values = []
+        convert_errors = {}
+        for arg_name in arg_names:
+            request_param = mapping.get(arg_name, arg_name)
+            arg_value = getattr(audio_player_request, request_param)
 
+            if arg_name in convert:
+                    shorthand_or_function = convert[arg_name]
+                    if shorthand_or_function in _converters:
+                        shorthand = shorthand_or_function
+                        convert_func = _converters[shorthand]
+                    else:
+                        convert_func = shorthand_or_function
+                    try:
+                        arg_value = convert_func(arg_value)
+                    except Exception as e:
+                        convert_errors[arg_name] = e
+            arg_values.append(arg_value)
 
-    def _map_player_request_to_func(self, audio_player):
-        if hasattr(audio_player, 'type'):
-            func = self._player_view_funcs[audio_player.type]
-            mapping = self._player_mappings[audio_player.type]
-            argspec = inspect.getargspec(func)
-            arg_names = argspec.args
-            arg_values = []
-            for arg_name in arg_names:
-                request_param = mapping.get(arg_name, arg_name)
-                arg_value = getattr(audio_player, request_param)
-                arg_values.append(arg_value)
-
-            return partial(func, *arg_values)
-
-
-
-
-
-
-
+        return partial(func, *arg_values)
 
     def _map_intent_to_view_func(self, intent):
         view_func = self._intent_view_funcs[intent.name]
@@ -330,6 +355,29 @@ class Ask(object):
             self.convert_errors = convert_errors
         return partial(view_func, *arg_values)
 
+
+class _Stream(object):
+    def __init__(self, audio_player_request):
+        for attr in audio_player_request:
+            _copyattr(audio_player_request, self, attr)
+
+        @property
+        def status(self):
+            if self.playerActivity and not self.type:
+                return self.playerActivity.lower()
+            else:
+                return self._map_type_to_status()
+
+        def _map_type_to_status(self):
+            status = self.type.replace('AudioPlayer.Playback', '')
+            return status.lower()
+
+        @property
+        def paused(self):
+            return self._paused
+
+        def __repr__(self):
+            return self.token
 
 class YamlLoader(BaseLoader):
 
@@ -424,14 +472,16 @@ class question(_Response):
         self._response['reprompt'] = reprompt
         return self
 
+
 class audio(_Response):
     """Returns a response object with the appropiate Amazon AudioPlayer Directive.
+
 
     LaunchRequest and IntentRequest responses may include outputSpeech in addition to the execution of an AudioPlayer Directive.
     When provoking an audio response, set the directive type with the respective method.
 
     Note that responses to AudioPlayer requests do not allow outputSpeech.
-    The response must only include AudioPlayer Directives.
+    These must only include AudioPlayer Directives.
     
     @ask.intent('PlayFooAudioIntent')
     def play_foo_audio():
@@ -446,51 +496,79 @@ class audio(_Response):
 
     """
 
-    _previous_stream_token = None
-
-
-    def __init__(self, speech=None):
+    def __init__(self, speech):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
-
-
-    def play(self, stream_url=_previous_stream_token, behavior='REPLACE_ALL'):
-        """Sends a response containing the AudioPlayer.Play Directive to the Alexa Service to stream the audio file.
-      
-        Arguments:
-            stream_url {str} -- URL of the audio stream.
-        
-        Keyword Arguments:
-            behavior {str} -- Determines whether the stream begins playing immediately, or is added to the queue.
-                        
-
-                        'REPLACE_ALL': Immediately begin playback of the specified stream
-                                     and replace current and enqueued streams.
-
-                        'ENQUEUE': Add the specified stream to the end of the current queue.
-                                   This does not impact the currently playing stream.
-
-                        'REPLACE_ENQUEUED': Replace all streams in the queue.
-                                            This does not impact the currently playing stream.
-
-                        default: 'REPLACE_ALL'
-        """
-        directive = {}
         self._response['shouldEndSession'] = True
-        directive['type'] = "AudioPlayer.Play"
-        directive['playBehavior'] = behavior
-        directive['audioItem'] = self._audio_item(stream_url, behavior)
+        self._directive = {}
+
+        
+    def play(self, stream_url, offset=0):
+        """Sends a Play Directive to begin playback and replace current and enqueued streams."""
+
+        directive = self._play_directive('REPLACE_ALL')
+        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
         self._response['directives'].append(directive)
         return self
 
+    def enqueue(self, stream_url, offset=0):
+        """Adds stream to the end of current queue. Does not impact the currently playing stream."""
+        directive = self._play_directive('ENQUEUE')
+        audio_item = self._audio_item(stream_url=stream_url, offset=offset)
+        audio_item['stream']['expectedPreviousToken'] = stream_state.token
+
+        directive['audioItem'] = audio_item
+        self._response['directives'].append(directive)
+        return self
+
+    def play_next(self, stream_url, offset=0):
+        """Replace all streams in the queue but does not impact the currently playing stream."""
+
+        directive = self._play_directive('REPLACE_ENQUEUED')
+        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
+        self._response['directives'].append(directive)
+        return self
+
+    def resume(self):
+        """Sends Play Directive to resume playback at the paused offset"""
+        directive = self._play_directive('REPLACE_ALL')
+        directive['audioItem'] = self._audio_item(token=stream_state.token)
+        self._response['directives'].append(directive)
+        return self
+
+    def _play_directive(self, behavior):
+        directive = {}
+        directive['type'] = 'AudioPlayer.Play'
+        directive['playBehavior'] = behavior
+        return directive
+
+    def _audio_item(self, stream_url=None, offset=0, token=None):
+        """Builds audioitem to send within an AudioPlayer Directive."""
+        audio_item = {'stream': {}}
+        stream = audio_item['stream']
+
+        #existing stream
+        if token and stream_state.token == token: 
+            stream['url'] = stream_state.url
+            stream['token'] = stream_state.token
+            stream['offsetInMilliseconds'] = stream_state.offsetInMilliseconds
+
+        # new stream
+        else:
+            stream['url'] = stream_url
+            stream['token'] = str(random.randint(10000, 100000))
+            stream['offsetInMilliseconds'] = offset
+
+        return audio_item
+
     def stop(self):
-        """Stops the current audio playback by including the Audio.Player Directive in the response"""
+        """Sends AudioPlayer.Stop Directive to stop the current stream playback"""
         self._response['directives'].append({'type': 'AudioPlayer.Stop'})
         return self
 
     def clear_queue(self, stop=False):
         """Clears queued streams and optionally stops current stream.
-        
+
         Keyword Arguments:
             stop {bool} -- set True to stop current current stream and clear queued streams.
                            set False to clear queued streams and allow current stream to finish
@@ -506,18 +584,6 @@ class audio(_Response):
 
         self._response.append(directive)
         return self
-
-
-    def _audio_item(self, stream_url, behavior, token=None, offset=0):
-        audio_item = {'stream': {}}
-        stream = audio_item['stream']
-        stream['url'] = stream_url
-        stream['token'] = str(random.randint(10000, 100000))
-        if behavior == 'ENQUEUE':
-            stream['expectedPreviousToken'] = audio._previous_stream_token
-        stream['offsetInMilliseconds'] = offset
-        audio._previous_stream_token = stream['token']
-        return audio_item
 
 
 def _output_speech(speech):
@@ -601,9 +667,9 @@ def _parse_request(request_json):
                     slots.append(slot)
             setattr(intent, 'slots', slots)
 
-    # For non user-initiated audioplayer requests.
-    # Details are not provided under an AudioPlayer object, but instead under the request object
-    # Assigns the details as an AudioPlayer attribute for the request
+    # For non user-initiated audioplayer requests,
+    # details are not provided under an Context.AudioPlayer object
+    # but instead under the request object
     elif 'AudioPlayer.Playback' in request_json['type']:  
         setattr(request, 'AudioPlayer', _parse_audio_player(request_json))
     return request
@@ -628,6 +694,7 @@ def _parse_application(application_json):
 
 
 def _parse_audio_player(audio_player_json):
+    """AudioPlayer details parsed from context or request"""
     audio_player = _AudioPlayer()
     _copyattr(audio_player_json, audio_player, 'token')
     _copyattr(audio_player_json, audio_player, 'offsetInMilliseconds')
@@ -635,8 +702,6 @@ def _parse_audio_player(audio_player_json):
 
     #audio_player_json will have a type when sent under request object
     _copyattr(audio_player_json, audio_player, 'type')
-
-
     return audio_player
 
 
