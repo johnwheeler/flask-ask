@@ -5,7 +5,7 @@ from functools import wraps, partial
 from xml.etree import ElementTree
 
 import aniso8601
-from werkzeug.local import LocalProxy, Local, LocalManager
+from werkzeug.local import LocalProxy
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
 
@@ -22,7 +22,6 @@ context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
-
 
 class Ask(object):
 
@@ -57,7 +56,7 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
-        audio.current_stream = None
+        audio.current_stream = _Stream()
 
     def on_session_started(self, f):
         self._on_session_started_callback = f
@@ -139,7 +138,8 @@ class Ask(object):
             -AudioPlayer.Play with a playBehavior of REPLACE_ALL.
             -AudioPlayer.ClearQueue with a clearBehavior of CLEAR_ALL.
 
-        This request is also sent if the user makes a voice request to Alexa, since this temporarily pauses the playback.
+        This request is also sent if the user makes a voice request to Alexa,
+        since this temporarily pauses the playback.
         In this case, the playback begins automatically once the voice interaction is complete.
 
         Note: If playback stops because the audio stream comes to an end on its own,
@@ -148,7 +148,6 @@ class Ask(object):
         def decorator(f):
             self._player_request_view_funcs['AudioPlayer.PlaybackStopped'] = f
             self._player_mappings['AudioPlayer.PlaybackStopped'] = mapping
-
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -179,13 +178,11 @@ class Ask(object):
             self._player_request_view_funcs['AudioPlayer.PlaybackNearlyFinished'] = f
             self._player_mappings['AudioPlayer.PlaybackNearlyFinished'] = mapping
 
-
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
             return f
         return decorator
-
 
     def on_playback_failed(self, mapping={'offset': 'offsetInMilliseconds'}, convert={'offset': int}):
         """Decorator routes an AudioPlayer.PlaybackNearlyFinished Request to the wrapped function.
@@ -193,7 +190,7 @@ class Ask(object):
         This AudioPlayer Request sent when Alexa encounters an error when attempting to play a stream.
 
         This request type includes two token properties:
-        -request.token property represents the stream that failed to play. 
+        -request.token property represents the stream that failed to play.
         -currentPlaybackState.token property can be different if Alexa is playing a stream
             and the error occurs when attempting to buffer the next stream on the queue.
             In this case, currentPlaybackState.token represents the stream that was successfully playing.
@@ -255,22 +252,6 @@ class Ask(object):
     def convert_errors(self, value):
         _app_ctx_stack.top._ask_convert_errors = value
 
-    @property
-    def current_stream(self):
-        stream = getattr(self.request, 'AudioPlayer', None)
-        if stream is None:
-            stream = getattr(self.context, 'AudioPlayer', None)
-        if stream:
-            return stream.token
-        # return getattr(_app_ctx_stack.top, '_ask_current_stream', None)
-
-    @current_stream.setter
-    def current_stream(self, value):
-        _app_ctx_stack._ask_current_stream = value
-
-    
-
-
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
         alexa_request_payload = json.loads(raw_body)
@@ -320,11 +301,10 @@ class Ask(object):
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
         elif 'AudioPlayer' in request_type:
-            result = self._map_player_request_to_func(self.request.AudioPlayer)()
+            result = self._map_player_request_to_func(self.request)()
             # Context AudioPlayer not mapped to view func explicitly bc not a request.
             # Intent funcs may be created for amazon intents which invoke the stream update.
             # Therefore, user can implicitly form a response to any event dealing with Audio streams.
-
 
         if result is not None:
             if isinstance(result, _Response):
@@ -332,28 +312,50 @@ class Ask(object):
             return result
         return "", 400
 
+
     def _sync_stream(self):
 
         if 'AudioPlayer' in self.request.type:
             self._sync_from_request()
+
         elif hasattr(self.context, 'AudioPlayer'):
-            audio.current_stream = self.context.AudioPlayer
+           
+            self._sync_from_context()
+
+
+    def _sync_from_context(self):
+        print('SYNC FROM CONTEXT')
+        print(self.context.AudioPlayer.__dict__)
+        print
+        context_stream = self.context.AudioPlayer.__dict__
+        current_stream = audio.current_stream.__dict__
+        current_stream.update(context_stream)
 
     def _sync_from_request(self):
         """Updates audio.current_stream in response to AudioPlayer Requests"""
 
+        print('SYNC FROM REQUEST')
+        print(self.request.__dict__)
+        print
+
         if 'PlaybackStarted' in self.request.type:
-            audio.current_stream = self.request
+            audio.current_stream.token = self.request.token
+
         if 'PlaybackFinished' in self.request.type:
             audio.current_stream = None
-            audio.prev_stream = self.request # TODO implement queueing
+            audio.prev_stream = self.request  # TODO implement queueing
+
         if 'PlaybackStopped' in self.request.type:
-            audio.current_stream.offsetInMilliseconds = request.offsetInMilliseconds
+            audio.current_stream.offsetInMilliseconds = self.request.offsetInMilliseconds
+
         if 'PlaybackNearlyFinished' in self.request.type:
-            audio.current_stream = self.request
+            # audio.current_stream = self.request
+
+            pass
 
         if 'PlaybackFailed' in self.request.type:
-            audio.current_stream = self.request.currentPlaybackState
+            audio.current_stream = self.request.currentPlaybackState # currentPlaybackState has same props as context.AudioPlayer
+
             audio._failed_stream_token = self.request.token  # TODO - manage retry using token
             _dbgdump(self.request.error)
 
@@ -392,7 +394,6 @@ class Ask(object):
                         convert_errors[arg_name] = e
             arg_values.append(arg_value)
         return partial(func, *arg_values)
-
 
     def _map_intent_to_view_func(self, intent):
         view_func = self._intent_view_funcs[intent.name]
@@ -549,6 +550,8 @@ class audio(_Response):
 
     current_stream = None
 
+
+
     def __init__(self, speech):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
@@ -595,26 +598,29 @@ class audio(_Response):
         return directive
 
     def _audio_item(self, stream_url=None, offset=0, token=None):
-        """Builds audioitem to send within an AudioPlayer Directive."""
+        """Builds audioitem to send within an AudioPlayer Directive and updates audio.current_stream"""
         audio_item = {'stream': {}}
         stream = audio_item['stream']
 
-        if token:
-            print("AUDIOITM RECIEVED TOKEN: {}".format(token))
-
         #existing stream
-        if token and audio.current_stream.token == token:   # TODO FIX thIS
+        if not stream_url:
             stream['url'] = audio.current_stream.url
             stream['token'] = audio.current_stream.token
             stream['offsetInMilliseconds'] = audio.current_stream.offsetInMilliseconds
+
+        # #existing stream
+        # if token and audio.current_stream.token == token:   # TODO FIX thIS
+        #     stream['url'] = audio.current_stream.url
+        #     stream['token'] = audio.current_stream.token
+        #     stream['offsetInMilliseconds'] = audio.current_stream.offsetInMilliseconds
 
         # new stream
         else:
             stream['url'] = stream_url
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
-            audio.current_stream = _Stream(stream)
-
+        
+        audio.current_stream = _Stream(stream)
         return audio_item
 
     def stop(self):
@@ -641,10 +647,6 @@ class audio(_Response):
         self._response['directives'].append(directive)
         return self
 
-class _Stream(object):
-    def __init__(self, stream_dict):
-        for attr in stream_dict:
-            _copyattr(stream_dict, self, attr)
 
 def _output_speech(speech):
     try:
@@ -655,6 +657,13 @@ def _output_speech(speech):
         pass
     return {'type': 'PlainText', 'text': speech}
 
+
+class _Stream(object):
+    def __init__(self, stream_dict=None):
+        if stream_dict:
+            # for attr in stream_dict:
+            #     _copyattr(stream_dict, self, attr)
+            self.__dict__.update(stream_dict)
 
 
 class _Application(object): pass
@@ -706,7 +715,7 @@ def _parse_context(context_json):
     context = _Context()
     if 'System' in context_json:
         setattr(context, 'System', _parse_system(context_json['System']))
-    if 'AudioPlayer' in context_json:  # Audioplayer only within context when it is user-initiated
+    if 'AudioPlayer' in context_json:  # AudioPlayer only within context when it is user-initiated
         setattr(context, 'AudioPlayer', _parse_audio_player(context_json['AudioPlayer']))
 
     return context
@@ -740,7 +749,14 @@ def _parse_request(request_json):
     # but instead under the request object
     if 'AudioPlayer.Playback' in request_json['type']:
         print('AUDIOPLAYER REQUEST!')
-        setattr(request, 'AudioPlayer', _parse_audio_player_request(request_json))   #WAS WORKING WHEN THIS WAS _parse_audio_player_request
+        print(request_json)
+        _copyattr(request_json, request, 'token')
+        _copyattr(request_json, request, 'offsetInMilliseconds')
+        _copyattr(request_json, request, 'currentPlaybackState')
+
+        if hasattr(request_json, 'currentPlaybackState'):
+            _copyattr(request_json, request, 'currentPlaybackState')  # for PlaybackFailed
+        # setattr(request, 'AudioPlayer', _parse_audio_player_request(request_json))   #WAS WORKING WHEN THIS WAS _parse_audio_player_request
     return request
 
 
@@ -761,12 +777,23 @@ def _parse_application(application_json):
     _copyattr(application_json, application, 'applicationId')
     return application
 
+
 def _parse_audio_player_request(request_json):
-    audio_player = _AudioPlayer()
-    _copyattr(request_json, audio_player, 'type')
-    _copyattr(request_json, audio_player, 'offsetInMilliseconds')
-    _copyattr(request_json, audio_player, 'token')
-    audio.current_stream = audio_player
+    print('AUDIOPLAYER REQUEST!')
+    print(request_json)
+    _copyattr(request_json, request, 'token')
+    _copyattr(request_json, request, 'offsetInMilliseconds')
+    _copyattr(request_json, request, 'currentPlaybackState')
+
+    if hasattr(request_json, 'currentPlaybackState'):
+        _copyattr(request_json, request, 'currentPlaybackState') 
+    # print(request_json)
+    # audio_player = _AudioPlayer()
+    # # _copyattr(request_json, audio_player, 'type')
+    # _copyattr(request_json, audio_player, 'offsetInMilliseconds')
+    # _copyattr(request_json, audio_player, 'token')
+    # if hasattr(request_json, 'currentPlaybackState'):
+    #     setattr()
 
     return audio_player
 
