@@ -599,9 +599,6 @@ class audio(_Response):
         audio_item = {'stream': {}}
         stream = audio_item['stream']
 
-        if token:
-            print("AUDIOITM RECIEVED TOKEN: {}".format(token))
-
         #existing stream
         if token and audio.current_stream.token == token:   # TODO FIX thIS
             stream['url'] = audio.current_stream.url

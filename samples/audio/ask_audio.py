@@ -6,6 +6,7 @@ from flask_ask import Ask, request, session, question, statement, context, audio
 app = Flask(__name__)
 ask = Ask(app, "/")
 log = logging.getLogger()
+log.level = logging.DEBUG
 
 
 @ask.launch
@@ -18,6 +19,7 @@ def launch():
 @ask.intent('AMAZON.PauseIntent')
 def pause():
     return audio('Paused the stream, yo.').stop()
+
 
 @ask.intent('AMAZON.StopIntent')
 def stop():
@@ -32,18 +34,25 @@ def stopped(pos, token):
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    return audio('Its resumed yo').play()
+    return audio('Its resumed yo').resume()
 
 
+# 'https://ec-media.sndcdn.com/cWHNerOLlkUq.128.mp3?f10880d39085a94a0418a7ef69b03d522cd6dfee9399eeb9a522069b6afcba38ad23528f539348fb621bd1ab9b86ceb62f4e8096ac06e99aaf649754011e62e512fcdd3bf9'
 @ask.intent('DemoIntent')
 def demo():
-    return audio('weee').play('https://ia800203.us.archive.org/27/items/CarelessWhisper_435/CarelessWhisper.ogg')
+    stream_url = 'https://ia800203.us.archive.org/27/items/CarelessWhisper_435/CarelessWhisper.ogg'
+    return audio('weee').play(stream_url)
+
+@ask.intent('GeorgeMichaelIntent')
+def george_michael():
+    stream_url = 'https://ia800203.us.archive.org/27/items/CarelessWhisper_435/CarelessWhisper.ogg'
+    return audio('Oh yeh!').play(stream_url)
 
 
 @ask.on_playback_started(mapping={'stream_number': 'token'})
 def on_start(offset, stream_number):
-    log.info('Audio Stream was started at {} ms'.format(offset))
-    log.info('The stopped AudioStream owns the token {}'.format(stream_number))
+    log.debug('Audio Stream was started at {} ms'.format(offset))
+    log.debug('The stopped AudioStream owns the token {}'.format(stream_number))
 
 
 @ask.session_ended

@@ -7,6 +7,9 @@
       "intent": "DemoIntent"
     },
     {
+      "intent": "GeorgeMichaelIntent"
+    },
+    {
       "intent": "StopIntent"
     },
     {
