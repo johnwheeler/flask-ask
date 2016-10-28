@@ -29,6 +29,7 @@ convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 
 
 
+
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 _streams_to_queue = {}
@@ -67,6 +68,7 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
+        audio.current_stream = None
 
     def on_session_started(self, f):
         self._on_session_started_callback = f
@@ -437,8 +439,10 @@ class _Response(object):
             kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
             kw[kwargname] = json_encoder
         _dbgdump(response_wrapper, **kw)
-        # pprint(response_wrapper)
+        pprint(audio.current_stream)
+        print('\n'*3)
         pprint(json.dumps(response_wrapper, **kw))
+        print('\n'*3)
         return json.dumps(response_wrapper, **kw)
 
 
@@ -482,21 +486,14 @@ class audio(_Response):
     def stop_audio():
         return audio('Ok, stopping the audio').stop()
     """
+
+    current_stream = None
+
     def __init__(self, speech):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
         self._response['shouldEndSession'] = True
         self._directive = {}
-
-    @property
-    def _player_state(self):
-        # if hasattr(request.AudioPlayer, 'token'):
-        #     return request.AudioPlayer
-
-        if hasattr(context, 'AudioPlayer'):
-            return context.AudioPlayer
-
-    
 
     def play(self, stream_url, offset=0):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
@@ -511,7 +508,7 @@ class audio(_Response):
         """Adds stream to the end of current queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url, offset=offset)
-        audio_item['stream']['expectedPreviousToken'] = current_stream.token
+        audio_item['stream']['expectedPreviousToken'] = context.AudioPlayer.token
 
         directive['audioItem'] = audio_item
         self._response['directives'].append(directive)
@@ -543,17 +540,21 @@ class audio(_Response):
         audio_item = {'stream': {}}
         stream = audio_item['stream']
 
+        if token:
+            print("AUDIOITM RECIEVED TOKEN: {}".format(token))
+
         #existing stream
-        if token and self.player_state == token:   # TODO FIX thIS
-            stream['url'] = self._player_state.url
-            stream['token'] = self._player_state.token
-            stream['offsetInMilliseconds'] = self._player_state.offsetInMilliseconds
+        if token and context.AudioPlayer.token == token:   # TODO FIX thIS
+            stream['url'] = audio.current_stream.url
+            stream['token'] = audio.current_stream.token
+            stream['offsetInMilliseconds'] = audio.current_stream.offsetInMilliseconds
 
         # new stream
         else:
             stream['url'] = stream_url
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
+            audio.current_stream = _Stream(stream)
 
         return audio_item
 
@@ -583,23 +584,25 @@ class audio(_Response):
 
 class _Stream(object):
 
-    def __init__(self, audio_player_request):
-        for attr in audio_player_request:
-            _copyattr(audio_player_request, self, attr)
+    def __init__(self, stream_dict):
+        for attr in stream_dict:
+            _copyattr(stream_dict, self, attr)
 
-        @property
-        def status(self):
-            if self.playerActivity and not self.type:
-                return self.playerActivity.lower()
-            else:
-                return self._map_type_to_status()
 
-        def _map_type_to_status(self):
-            status = self.type.replace('AudioPlayer.Playback', '')
-            return status.lower()
 
-        def _sync(self):
-            _app_ctx_stack.top._ask_stream_state = self
+    #     @property
+    #     def status(self):
+    #         if self.playerActivity and not self.type:
+    #             return self.playerActivity.lower()
+    #         else:
+    #             return self._map_type_to_status()
+
+    #     def _map_type_to_status(self):
+    #         status = self.type.replace('AudioPlayer.Playback', '')
+    #         return status.lower()
+
+    #     def _sync(self):
+    #         _app_ctx_stack.top._ask_stream_state = self
 
 
 def _output_speech(speech):
@@ -637,14 +640,18 @@ def _copyattr(src, dest, attr, convert=None):
 
 def _parse_request_body(request_body_json):
     request_body = _RequestBody()
+    setattr(request_body, 'version', request_body_json['version'])
 
     request = _parse_request(request_body_json['request'])
     setattr(request_body, 'request', request)
-    context = _parse_context(request_body_json['context'])
-    setattr(request_body, 'context', context)
-    setattr(request_body, 'version', request_body_json['version'])
+
+    try:
+        context = _parse_context(request_body_json['context'])
+        setattr(request_body, 'context', context)
+    except KeyError:
+        setattr(request_body, 'session', _Context())
     
-    # session pbject not included in AudioPlayer or Playback requests
+    # session object not included in AudioPlayer or Playback requests
     try:
         session = _parse_session(request_body_json['session'])
         setattr(request_body, 'session', session)
