@@ -1,3 +1,3 @@
 DemoIntent begin demo
-GeorgeMichaelIntent play that one george michael song
-GoergeMichaelIntent hey play that one george michael song
+StopIntent stop
+StopIntent stop playing
