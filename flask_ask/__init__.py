@@ -14,5 +14,6 @@ from .core import (
     session,
     version,
     context,
+    current_stream,
     convert_errors
 )

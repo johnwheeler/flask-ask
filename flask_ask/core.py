@@ -70,11 +70,10 @@ class Ask(object):
              requests are being sent by the applications you specify.
              Default: None
 
-
         `ASK_VERIFY_REQUESTS`:
 
             Enables or disables Alexa request verification, which ensures requests sent to your skill
-            are from Amazon’s Alexa service. This setting should not be disabled in production.
+            are from Amazon's Alexa service. This setting should not be disabled in production.
             It is useful for mocking JSON requests in automated tests.
             Default: True
 
@@ -420,7 +419,6 @@ class Ask(object):
             result = self._launch_view_func()
         elif request_type == 'SessionEndedRequest' and self._session_ended_view_func:
             result = self._session_ended_view_func()
-
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
         elif 'AudioPlayer' in request_type:
@@ -599,7 +597,6 @@ class question(_Response):
 class audio(_Response):
     """Returns a response object with an Amazon AudioPlayer Directive.
 
-
     Responses for LaunchRequests and IntentRequests may include outputSpeech in addition to an audio directive
 
     Note that responses to AudioPlayer requests do not allow outputSpeech.
@@ -720,7 +717,6 @@ def _output_speech(speech):
 
 
 class _Application(object): pass
-
 class _Intent(object): pass
 class _Request(object):pass
 class _RequestBody(object):pass
