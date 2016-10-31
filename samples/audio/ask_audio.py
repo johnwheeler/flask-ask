@@ -5,13 +5,13 @@ from flask_ask import Ask, request, session, question, statement, context, audio
 
 app = Flask(__name__)
 ask = Ask(app, "/")
-logging.getLogger('flask_ask').setLevel(logging.INFO)
+logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
 @ask.launch
 def launch():
     card_title = 'Audio Example'
-    text = 'Welcome to an audio example. Ready to hear the stream?'
+    text = 'Welcome to an audio example. You can ask to begin demo, or try asking me to play the sax.'
     prompt = 'You can ask to begin demo, or try asking me to play the sax.'
     return question(text).reprompt(prompt).simple_card(card_title, text)
 
@@ -21,6 +21,7 @@ def demo(offset):
     speech = "Here's one of my favorites"
     stream_url = 'https://www.vintagecomputermusic.com/mp3/s2t9_Computer_Speech_Demonstration.mp3'
     return audio(speech).play(stream_url, offset=93000)
+
 
 # 'ask audio_skil Play the sax
 @ask.intent('SaxIntent')
@@ -38,6 +39,7 @@ def pause():
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
     return audio('Resuming.').resume()
+
 
 # optional callbacks
 @ask.on_playback_stopped(mapping={'pos': 'offsetInMilliseconds'})
