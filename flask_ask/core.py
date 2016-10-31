@@ -5,7 +5,7 @@ from functools import wraps, partial
 from xml.etree import ElementTree
 
 import aniso8601
-from werkzeug.local import LocalProxy
+from werkzeug.local import LocalProxy, LocalStack
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
 
@@ -20,6 +20,7 @@ session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
+current_stream = LocalStack()
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -58,7 +59,6 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
-        audio.current_stream = _AudioPlayer()
 
     def on_session_started(self, f):
         self._on_session_started_callback = f
@@ -107,7 +107,9 @@ class Ask(object):
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStarted'] = f
-            self._player_mappings['AudioPlayer.PlaybackStarted'] = mapping
+            self._intent_mappings['AudioPlayer.PlaybackStarted'] = mapping
+            self._intent_converts['AudioPlayer.PlaybackStarted'] = convert
+            self._intent_defaults['AudioPlayer.PlaybackStarted'] = default
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -124,7 +126,9 @@ class Ask(object):
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackFinished'] = f
-            self._player_mappings['AudioPlayer.PlaybackFinished'] = mapping
+            self._intent_mappings['AudioPlayer.PlaybackFinished'] = mapping
+            self._intent_converts['AudioPlayer.PlaybackFinished'] = convert
+            self._intent_defaults['AudioPlayer.PlaybackFinished'] = default
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -149,7 +153,9 @@ class Ask(object):
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStopped'] = f
-            self._player_mappings['AudioPlayer.PlaybackStopped'] = mapping
+            self._intent_mappings['AudioPlayer.PlaybackStopped'] = mapping
+            self._intent_converts['AudioPlayer.PlaybackStopped'] = convert
+            self._intent_defaults['AudioPlayer.PlaybackStopped'] = default
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -178,7 +184,9 @@ class Ask(object):
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackNearlyFinished'] = f
-            self._player_mappings['AudioPlayer.PlaybackNearlyFinished'] = mapping
+            self._intent_mappings['AudioPlayer.PlaybackNearlyFinished'] = mapping
+            self._intent_converts['AudioPlayer.PlaybackNearlyFinished'] = convert
+            self._intent_defaults['AudioPlayer.PlaybackNearlyFinished'] = default
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -205,8 +213,10 @@ class Ask(object):
             logger.debug('Still playing stream from {}'.format(request.currentPlaybackState.url))
         """
         def decorator(f):
-            self._intent_view_funcs['AudioPlayer.PlaybackFailed'] = f
-            self._player_mappings['AudioPlayer.PlaybackFailed'] = mapping
+            self._intent_view_funcs['AudioPlayer.PlaybackStarted'] = f
+            self._intent_mappings['AudioPlayer.PlaybackStarted'] = mapping
+            self._intent_converts['AudioPlayer.PlaybackStarted'] = convert
+            self._intent_defaults['AudioPlayer.PlaybackStarted'] = default
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -281,6 +291,14 @@ class Ask(object):
 
         return alexa_request_payload
 
+    def _update_stream(self):
+        stream_update = getattr(self.context, 'AudioPlayer', _AudioPlayer).__dict__
+        current = current_stream.top
+
+        if current:
+            current.__dict__.update(stream_update)
+            current_stream.push(current)
+
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
@@ -289,10 +307,13 @@ class Ask(object):
         self.session = request_body.session
         self.version = request_body.version
         self.context = request_body.context
-        self._sync_stream()
+        self._update_stream()
 
-        if self.session.new and self._on_session_started_callback is not None:
-            self._on_session_started_callback()
+        try:
+            if self.session.new and self._on_session_started_callback is not None:
+                self._on_session_started_callback()
+        except AttributeError:
+            pass
 
         result = None
         request_type = self.request.type
@@ -306,10 +327,8 @@ class Ask(object):
             result = self._map_intent_to_view_func(self.request.intent)()
         elif 'AudioPlayer' in request_type:
             result = self._map_player_request_to_func(self.request)()
-            # Context AudioPlayer not mapped to view func explicitly bc not a request.
-            # Intent funcs may be created for amazon intents which invoke the stream update.
-            # Therefore, user can implicitly form a response to any event dealing with
-            # Audio streams.
+            # routes to on_playback funcs
+            # user can also access state of content.AudioPlayer with current_stream
 
         if result is not None:
             if isinstance(result, _Response):
@@ -328,7 +347,9 @@ class Ask(object):
 
     def _map_player_request_to_func(self, audio_player_request):
         """Provides appropiate parameters to the on_playback functions."""
-        view_func = self._intent_view_funcs[audio_player_request.type]
+        # calbacks for on_playback requests are optional
+        view_func = self._intent_view_funcs.get(audio_player_request.type, lambda: None)
+ 
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(audio_player_request.type, arg_names)
@@ -338,9 +359,10 @@ class Ask(object):
     def _map_params_to_view_args(self, view_name, arg_names):
 
         arg_values = []
-        convert = self._intent_converts[view_name]
-        default = self._intent_defaults[view_name]
-        mapping = self._intent_mappings[view_name]
+        convert = self._intent_converts.get(view_name)
+        default = self._intent_defaults.get(view_name)
+        mapping = self._intent_mappings.get(view_name)
+
         convert_errors = {}
 
         request_data = {}
@@ -350,7 +372,7 @@ class Ask(object):
                 for slot in intent.slots:
                     request_data[slot.name] = getattr(slot, 'value', None)
         else:
-            for param_name in self.request:
+            for param_name in self.request.__dict__:
                 request_data[param_name] = getattr(self.request, param_name, None)
 
         for arg_name in arg_names:
@@ -376,37 +398,6 @@ class Ask(object):
                 arg_values.append(arg_value)
         self.convert_errors = convert_errors
         return arg_values
-
-    def _sync_stream(self):
-
-        if 'AudioPlayer' in self.request.type:
-            self._sync_from_request()
-
-        elif hasattr(self.context, 'AudioPlayer'):
-            self._sync_from_context()
-
-    def _sync_from_context(self):
-        context_stream = self.context.AudioPlayer.__dict__
-        current_stream = audio.current_stream.__dict__
-        current_stream.update(context_stream)
-
-    def _sync_from_request(self):
-        """Updates audio.current_stream in response to AudioPlayer Requests"""
-
-        current_stream = audio.current_stream.__dict__
-
-        if 'PlaybackFinished' in self.request.type:
-            audio.prev_stream = audio.current_stream # TODO implement queueing
-            audio.current_stream = None
-
-        if 'PlaybackFailed' in self.request.type:
-            # currentPlaybackState has same props as context.AudioPlayer
-            _dbgdump(self.request.error)
-            audio.current_stream = self.request.currentPlaybackState
-            audio.failed_token = self.request.token
-
-        else:
-            current_stream.update(self.request.__dict__)
 
 
 class YamlLoader(BaseLoader):
@@ -524,8 +515,6 @@ class audio(_Response):
         return audio('Ok, stopping the audio').stop()
     """
 
-    current_stream = None
-
     def __init__(self, speech):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
@@ -577,9 +566,10 @@ class audio(_Response):
 
         # existing stream
         if not stream_url:
-            stream['url'] = audio.current_stream.url
-            stream['token'] = audio.current_stream.token
-            stream['offsetInMilliseconds'] = audio.current_stream.offsetInMilliseconds
+            # stream.update(current_stream)
+            stream['url'] = current_stream.top.url
+            stream['token'] = current_stream.top.token
+            stream['offsetInMilliseconds'] = current_stream.top.offsetInMilliseconds
 
         # new stream
         else:
@@ -589,7 +579,8 @@ class audio(_Response):
 
         player = _AudioPlayer()
         player.__dict__.update(stream)
-        audio.current_stream = player
+        current_stream.push(player)
+
         return audio_item
 
     def stop(self):
@@ -657,8 +648,11 @@ def _parse_request_body(request_body_json):
     request = _parse_request(request_body_json['request'])
     setattr(request_body, 'request', request)
 
-    context = _parse_context(request_body_json['context'])
-    setattr(request_body, 'context', context)
+    try:
+        context = _parse_context(request_body_json['context'])
+        setattr(request_body, 'context', context)
+    except KeyError:
+        setattr(request_body, 'context', _Context())
 
     # session object not included in AudioPlayer or Playback requests
     try:
