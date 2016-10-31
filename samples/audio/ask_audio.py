@@ -5,7 +5,7 @@ from flask_ask import Ask, request, session, question, statement, context, audio
 
 app = Flask(__name__)
 ask = Ask(app, "/")
-log = logging.getLogger()
+logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
 @ask.launch
@@ -32,7 +32,7 @@ def stopped(pos, token):
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    return audio('Its resumed yo').play()
+    return audio('Its resumed yo').resume()
 
 
 @ask.intent('DemoIntent')

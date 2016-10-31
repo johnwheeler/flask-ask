@@ -317,44 +317,8 @@ class Ask(object):
             return result
         return "", 400
 
-    # def _map_intent_to_view_func(self, intent):
-    #     view_func = self._intent_view_funcs[intent.name]
-    #     arg_values = []
-    #     if hasattr(intent, 'slots'):
-    #         slot_data = {}
-    #         for slot in intent.slots:
-    #             slot_data[slot.name] = getattr(slot, 'value', None)
-    #         convert = self._intent_converts[intent.name]
-    #         default = self._intent_defaults[intent.name]
-    #         mapping = self._intent_mappings[intent.name]
-    #         argspec = inspect.getargspec(view_func)
-    #         arg_names = argspec.args
-    #         convert_errors = {}
-    #         for arg_name in arg_names:
-    #             slot_key = mapping.get(arg_name, arg_name)
-    #             arg_value = slot_data.get(slot_key)
-    #             if arg_value is None or arg_value == "":
-    #                 if arg_name in default:
-    #                     default_value = default[arg_name]
-    #                     if isinstance(default_value, collections.Callable):
-    #                         default_value = default_value()
-    #                     arg_value = default_value
-    #             elif arg_name in convert:
-    #                 shorthand_or_function = convert[arg_name]
-    #                 if shorthand_or_function in _converters:
-    #                     shorthand = shorthand_or_function
-    #                     convert_func = _converters[shorthand]
-    #                 else:
-    #                     convert_func = shorthand_or_function
-    #                 try:
-    #                     arg_value = convert_func(arg_value)
-    #                 except Exception as e:
-    #                     convert_errors[arg_name] = e
-    #             arg_values.append(arg_value)
-    #         self.convert_errors = convert_errors
-    #     return partial(view_func, *arg_values)
-
     def _map_intent_to_view_func(self, intent):
+        """Provides appropiate parameters to the intent functions."""
         view_func = self._intent_view_funcs[intent.name]
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
@@ -363,15 +327,7 @@ class Ask(object):
         return partial(view_func, *arg_values)
 
     def _map_player_request_to_func(self, audio_player_request):
-        """Provides appropiate parameters to the on_playback functions.
-
-        Request values are mapped to on_playback_<request type> functions
-        Parameters can recieve the values of the following details:
-
-            url (str) - URL from which audio is being streamed
-            token (str) - token belonging to the stream as an identifier
-            offset - tracks offset in milliseconds when the PlaybackStarted request is sent.
-        """
+        """Provides appropiate parameters to the on_playback functions."""
         view_func = self._intent_view_funcs[audio_player_request.type]
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
@@ -440,8 +396,8 @@ class Ask(object):
         current_stream = audio.current_stream.__dict__
 
         if 'PlaybackFinished' in self.request.type:
+            audio.prev_stream = audio.current_stream # TODO implement queueing
             audio.current_stream = None
-            audio.prev_stream = _Stream(self.request.__dict__)  # TODO implement queueing
 
         if 'PlaybackFailed' in self.request.type:
             # currentPlaybackState has same props as context.AudioPlayer
@@ -671,12 +627,6 @@ def _output_speech(speech):
     return {'type': 'PlainText', 'text': speech}
 
 
-class _Stream(object):
-    def __init__(self, stream_dict=None):
-        if stream_dict:
-            self.__dict__.update(stream_dict)
-
-
 class _Application(object): pass
 
 class _Intent(object): pass
@@ -707,11 +657,8 @@ def _parse_request_body(request_body_json):
     request = _parse_request(request_body_json['request'])
     setattr(request_body, 'request', request)
 
-    try:
-        context = _parse_context(request_body_json['context'])
-        setattr(request_body, 'context', context)
-    except KeyError:
-        setattr(request_body, 'context', _Context())
+    context = _parse_context(request_body_json['context'])
+    setattr(request_body, 'context', context)
 
     # session object not included in AudioPlayer or Playback requests
     try:
@@ -791,7 +738,6 @@ def _parse_audio_player(audio_player_json):
     _copyattr(audio_player_json, audio_player, 'token')
     _copyattr(audio_player_json, audio_player, 'offsetInMilliseconds')
     _copyattr(audio_player_json, audio_player, 'playerActivity')
-
 
     return audio_player
 
