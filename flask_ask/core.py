@@ -518,15 +518,17 @@ class audio(_Response):
     def __init__(self, speech):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
-        self._response['shouldEndSession'] = True
+        
 
     def play(self, stream_url, offset=0):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
 
+        self._response['shouldEndSession'] = True
         directive = self._play_directive('REPLACE_ALL')
         directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
         self._response['directives'].append(directive)
         return self
+
 
     def enqueue(self, stream_url, offset=0):
         """Adds stream to the end of current queue. Does not impact the currently playing stream."""
@@ -566,10 +568,7 @@ class audio(_Response):
 
         # existing stream
         if not stream_url:
-            # stream.update(current_stream)
-            stream['url'] = current_stream.top.url
-            stream['token'] = current_stream.top.token
-            stream['offsetInMilliseconds'] = current_stream.top.offsetInMilliseconds
+            stream.update(current_stream.top.__dict__)
 
         # new stream
         else:
