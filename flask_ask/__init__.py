@@ -9,6 +9,7 @@ from .core import (
     Ask,
     question,
     statement,
+    audio,
     request,
     session,
     version,
