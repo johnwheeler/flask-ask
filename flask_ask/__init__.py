@@ -9,8 +9,11 @@ from .core import (
     Ask,
     question,
     statement,
+    audio,
     request,
     session,
     version,
+    context,
+    current_stream,
     convert_errors
 )
