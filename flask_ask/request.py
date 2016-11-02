@@ -10,13 +10,14 @@ def _copyattr(src, dest, attr, convert=None):
 
 class _RequestField():
     """Holds the request field as an aobject with attributes."""
-    def __init__(self, request_json):
-        if request_json is not None:
-            self.__dict__.update(request_json)
+    def __init__(self, request_json={}):
+        # if request_json is not None:
+        for key in request_json:
+            setattr(self, key, request_json[key])
+
+            # self.__dict__.update(request_json)
 
         for attr in self.__dict__:
-            # # print(attr)
-            # print(type(getattr(self, attr)))
             attr_val = getattr(self, attr)
             if type(attr_val) is dict:
                 setattr(self, attr, _RequestField(attr_val))
@@ -26,7 +27,7 @@ class Request():
     def __init__(self, request_body_json):
         self._parse_request_body(request_body_json)
         # print(self.request.type)
-        print(self.request.intent.name)
+        print(type(self.request.intent.name))
 
     def _parse_request_body(self, request_body_json):
         # private attributes hold the json of the request field

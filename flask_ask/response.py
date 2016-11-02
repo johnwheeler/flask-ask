@@ -48,14 +48,14 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': session.attributes
+            'sessionAttributes': core.session.attributes
         }
         kw = {}
-        if hasattr(session, 'attributes_encoder'):
-            json_encoder = session.attributes_encoder
+        if hasattr(core.session, 'attributes_encoder'):
+            json_encoder = core.session.attributes_encoder
             kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
             kw[kwargname] = json_encoder
-        _dbgdump(response_wrapper, **kw)
+        core._dbgdump(response_wrapper, **kw)
 
         return json.dumps(response_wrapper, **kw)
 
