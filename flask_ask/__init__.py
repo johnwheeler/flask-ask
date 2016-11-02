@@ -7,9 +7,6 @@ if logger.level == logging.NOTSET:
 
 from .core import (
     Ask,
-    question,
-    statement,
-    audio,
     request,
     session,
     version,
@@ -17,3 +14,6 @@ from .core import (
     current_stream,
     convert_errors
 )
+
+# from .request import Request
+from .response import question, statement, audio

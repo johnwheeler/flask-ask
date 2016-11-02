@@ -2,7 +2,6 @@ import os
 import yaml
 import inspect
 from functools import wraps, partial
-from xml.etree import ElementTree
 
 import aniso8601
 from werkzeug.local import LocalProxy, LocalStack
@@ -21,6 +20,9 @@ version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 current_stream = LocalStack()
+
+from .request import Request, _RequestField
+from .response import _Response
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -214,7 +216,7 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_finished(self,mapping={}, convert={}, default={}):
+    def on_playback_finished(self, mapping={}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackFinished Request to the wrapped function.
 
         This type of request is sent when the stream Alexa is playing comes to an end on its own.
@@ -389,7 +391,7 @@ class Ask(object):
         return alexa_request_payload
 
     def _update_stream(self):
-        stream_update = getattr(self.context, 'AudioPlayer', _AudioPlayer).__dict__
+        stream_update = getattr(self.context, 'AudioPlayer', _RequestField).__dict__
         current = current_stream.top
 
         if current:
@@ -399,7 +401,7 @@ class Ask(object):
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
-        request_body = _parse_request_body(ask_payload)
+        request_body = Request(ask_payload)
         self.request = request_body.request
         self.session = request_body.session
         self.version = request_body.version
@@ -463,6 +465,7 @@ class Ask(object):
 
         request_data = {}
         intent = getattr(self.request, 'intent', None)
+
         if intent is not None:
             if hasattr(intent, 'slots'):
                 for slot in intent.slots:
@@ -518,352 +521,6 @@ class YamlLoader(BaseLoader):
             source = self.mapping[template]
             return source, None, lambda: source == self.mapping.get(template)
         return TemplateNotFound(template)
-
-
-class _Response(object):
-
-    def __init__(self, speech):
-        self._json_default = None
-        self._response = {
-            'outputSpeech': _output_speech(speech)
-        }
-
-    def simple_card(self, title=None, content=None):
-        card = {
-            'type': 'Simple',
-            'title': title,
-            'content': content
-        }
-        self._response['card'] = card
-        return self
-
-    def standard_card(self, title=None, text=None, small_image_url=None, large_image_url=None):
-        card = {
-            'type': 'Standard',
-            'title': title,
-            'text': text
-        }
-
-        if any((small_image_url, large_image_url)):
-            card['image'] = {}
-        if small_image_url is not None:
-            card['image']['smallImageUrl'] = small_image_url
-        if large_image_url is not None:
-            card['image']['largeImageUrl'] = large_image_url
-
-        self._response['card'] = card
-        return self
-
-    def link_account_card(self):
-        card = {'type': 'LinkAccount'}
-        self._response['card'] = card
-        return self
-
-    def render_response(self):
-        response_wrapper = {
-            'version': '1.0',
-            'response': self._response,
-            'sessionAttributes': session.attributes
-        }
-        kw = {}
-        if hasattr(session, 'attributes_encoder'):
-            json_encoder = session.attributes_encoder
-            kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
-            kw[kwargname] = json_encoder
-        _dbgdump(response_wrapper, **kw)
-
-        return json.dumps(response_wrapper, **kw)
-
-
-class statement(_Response):
-
-    def __init__(self, speech):
-        super(statement, self).__init__(speech)
-        self._response['shouldEndSession'] = True
-
-
-class question(_Response):
-
-    def __init__(self, speech):
-        super(question, self).__init__(speech)
-        self._response['shouldEndSession'] = False
-
-    def reprompt(self, reprompt):
-        reprompt = {'outputSpeech': _output_speech(reprompt)}
-        self._response['reprompt'] = reprompt
-        return self
-
-
-class audio(_Response):
-    """Returns a response object with an Amazon AudioPlayer Directive.
-
-    Responses for LaunchRequests and IntentRequests may include outputSpeech in addition to an audio directive
-
-    Note that responses to AudioPlayer requests do not allow outputSpeech.
-    These must only include AudioPlayer Directives.
-
-    @ask.intent('PlayFooAudioIntent')
-    def play_foo_audio():
-        speech = 'playing from foo'
-        stream_url = www.foo.com
-        return audio(speech).play(stream_url)
-
-
-    @ask.intent('AMAZON.PauseIntent')
-    def stop_audio():
-        return audio('Ok, stopping the audio').stop()
-    """
-
-    def __init__(self, speech):
-        super(audio, self).__init__(speech)
-        self._response['directives'] = []
-
-
-    def play(self, stream_url, offset=0):
-        """Sends a Play Directive to begin playback and replace current and enqueued streams."""
-
-        self._response['shouldEndSession'] = True
-        directive = self._play_directive('REPLACE_ALL')
-        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
-        self._response['directives'].append(directive)
-        return self
-
-
-    def enqueue(self, stream_url, offset=0):
-        """Adds stream to the end of current queue. Does not impact the currently playing stream."""
-        directive = self._play_directive('ENQUEUE')
-        audio_item = self._audio_item(stream_url=stream_url, offset=offset)
-        audio_item['stream']['expectedPreviousToken'] = audio.prev_stream.token
-
-        directive['audioItem'] = audio_item
-        self._response['directives'].append(directive)
-        return self
-
-    def play_next(self, stream_url=None, offset=0):
-        """Replace all streams in the queue but does not impact the currently playing stream."""
-
-        directive = self._play_directive('REPLACE_ENQUEUED')
-        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
-        self._response['directives'].append(directive)
-        return self
-
-    def resume(self):
-        """Sends Play Directive to resume playback at the paused offset"""
-        directive = self._play_directive('REPLACE_ALL')
-        directive['audioItem'] = self._audio_item()
-        self._response['directives'].append(directive)
-        return self
-
-    def _play_directive(self, behavior):
-        directive = {}
-        directive['type'] = 'AudioPlayer.Play'
-        directive['playBehavior'] = behavior
-        return directive
-
-    def _audio_item(self, stream_url=None, offset=0):
-        """Builds an AudioPlayer Directive's audioItem and updates audio.current_stream"""
-        audio_item = {'stream': {}}
-        stream = audio_item['stream']
-
-        # existing stream
-        if not stream_url:
-            stream.update(current_stream.top.__dict__)
-
-        # new stream
-        else:
-            stream['url'] = stream_url
-            stream['token'] = str(random.randint(10000, 100000))
-            stream['offsetInMilliseconds'] = offset
-
-        player = _AudioPlayer()
-        player.__dict__.update(stream)
-        current_stream.push(player)
-
-        return audio_item
-
-    def stop(self):
-        """Sends AudioPlayer.Stop Directive to stop the current stream playback"""
-        self._response['directives'].append({'type': 'AudioPlayer.Stop'})
-        return self
-
-    def clear_queue(self, stop=False):
-        """Clears queued streams and optionally stops current stream.
-
-        Keyword Arguments:
-            stop {bool} -- set True to stop current current stream and clear queued streams.
-                           set False to clear queued streams and allow current stream to finish
-                           default: {False}
-        """
-
-        directive = {}
-        directive['type'] = 'AudioPlayer.ClearQueue'
-        if stop:
-            directive['clearBehavior'] = 'CLEAR_ALL'
-        else:
-            directive['clearBehavior'] = 'CLEAR_ENQUEUED'
-
-        self._response['directives'].append(directive)
-        return self
-
-
-def _output_speech(speech):
-    try:
-        xmldoc = ElementTree.fromstring(speech)
-        if xmldoc.tag == 'speak':
-            return {'type': 'SSML', 'ssml': speech}
-    except ElementTree.ParseError as e:
-        pass
-    return {'type': 'PlainText', 'text': speech}
-
-
-class _Application(object): pass
-class _Intent(object): pass
-class _Request(object):pass
-class _RequestBody(object):pass
-class _Session(object):pass
-class _Slot(object):pass
-class _User(object):pass
-class _Context(object):pass
-class _System(object):pass
-class _AudioPlayer(object):pass
-class _Device(object):pass
-class _SupportedInterfaces(object):pass
-
-
-def _copyattr(src, dest, attr, convert=None):
-    if attr in src:
-        value = src[attr]
-        if convert is not None:
-            value = convert(value)
-        setattr(dest, attr, value)
-
-
-def _parse_request_body(request_body_json):
-    request_body = _RequestBody()
-    setattr(request_body, 'version', request_body_json['version'])
-
-    request = _parse_request(request_body_json['request'])
-    setattr(request_body, 'request', request)
-
-    try:
-        context = _parse_context(request_body_json['context'])
-        setattr(request_body, 'context', context)
-    except KeyError:
-        setattr(request_body, 'context', _Context())
-
-    # session object not included in AudioPlayer or Playback requests
-    try:
-        session = _parse_session(request_body_json['session'])
-        setattr(request_body, 'session', session)
-    except KeyError:
-        setattr(request_body, 'session', _Session())
-
-    return request_body
-
-
-def _parse_context(context_json):
-    context = _Context()
-    if 'System' in context_json:
-        setattr(context, 'System', _parse_system(context_json['System']))
-    if 'AudioPlayer' in context_json:  # AudioPlayer only within context when it is user-initiated
-        setattr(context, 'AudioPlayer', _parse_audio_player(context_json['AudioPlayer']))
-
-    return context
-
-
-def _parse_request(request_json):
-    request = _Request()
-    _copyattr(request_json, request, 'requestId')
-    _copyattr(request_json, request, 'type')
-    _copyattr(request_json, request, 'reason')
-    _copyattr(request_json, request, 'timestamp', aniso8601.parse_datetime)
-    if 'intent' in request_json:
-        intent_json = request_json['intent']
-        intent = _Intent()
-        _copyattr(intent_json, intent, 'name')
-        setattr(request, 'intent', intent)
-        if 'slots' in intent_json:
-            slots = []
-            slots_json = intent_json['slots']
-            if hasattr(slots_json, 'values') and isinstance(slots_json.values, collections.Callable):
-                slot_jsons = list(slots_json.values())
-                for slot_json in slot_jsons:
-                    slot = _Slot()
-                    _copyattr(slot_json, slot, 'name')
-                    _copyattr(slot_json, slot, 'value')
-                    slots.append(slot)
-            setattr(intent, 'slots', slots)
-
-    # For non user-initiated audioplayer requests,
-    # details are provided under the Request object, not the Context.AudioPlayer object
-    if 'AudioPlayer.Playback' in request_json['type']:
-        _copyattr(request_json, request, 'token')
-        _copyattr(request_json, request, 'offsetInMilliseconds')
-        _copyattr(request_json, request, 'currentPlaybackState')
-
-    return request
-
-
-def _parse_session(session_json):
-    session = _Session()
-    _copyattr(session_json, session, 'sessionId')
-    _copyattr(session_json, session, 'new')
-    setattr(session, 'attributes', session_json.get('attributes', {}))
-    if 'application' in session_json:
-        setattr(session, 'application', _parse_application(session_json['application']))
-    if 'user' in session_json:
-        setattr(session, 'user', _parse_user(session_json['user']))
-    return session
-
-
-def _parse_application(application_json):
-    application = _Application()
-    _copyattr(application_json, application, 'applicationId')
-    return application
-
-
-def _parse_audio_player(audio_player_json):
-    """AudioPlayer details parsed from context."""
-    audio_player = _AudioPlayer()
-
-    _copyattr(audio_player_json, audio_player, 'token')
-    _copyattr(audio_player_json, audio_player, 'offsetInMilliseconds')
-    _copyattr(audio_player_json, audio_player, 'playerActivity')
-
-    return audio_player
-
-
-def _parse_device(device_json):
-    device = _Device()
-    supported_interface_list = device_json[
-        'supportedInterfaces'] if 'supportedInterfaces' in device_json else []
-    setattr(device, 'supportedInterfaces', _parse_supported_interfaces(supported_interface_list))
-    return device
-
-
-def _parse_supported_interfaces(supported_interface_json):
-    interfaces = _SupportedInterfaces()
-    for device in supported_interface_json:
-        setattr(interfaces, device, True)
-    return interfaces
-
-
-def _parse_system(system_json):
-    system = _System()
-    if 'application' in system_json:
-        setattr(system, 'application', _parse_application(system_json['application']))
-    if 'user' in system_json:
-        setattr(system, 'user', _parse_user(system_json['user']))
-    if 'device' in system_json:
-        setattr(system, 'device', _parse_device(system_json['device']))
-    return system
-
-
-def _parse_user(user_json):
-    user = _User()
-    _copyattr(user_json, user, 'userId')
-    _copyattr(user_json, user, 'accessToken')
-    return user
 
 
 def _dbgdump(obj, indent=2, default=None, cls=None):
