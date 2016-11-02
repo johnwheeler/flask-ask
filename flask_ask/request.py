@@ -1,5 +1,8 @@
 
 
+from pprint import pprint
+
+
 def _copyattr(src, dest, attr, convert=None):
     if attr in src:
         value = src[attr]
@@ -20,14 +23,23 @@ class _RequestField():
         for attr in self.__dict__:
             attr_val = getattr(self, attr)
             if type(attr_val) is dict:
+                # print(attr)
                 setattr(self, attr, _RequestField(attr_val))
 
 
 class Request():
     def __init__(self, request_body_json):
         self._parse_request_body(request_body_json)
-        # print(self.request.type)
-        print(type(self.request.intent.name))
+        pprint(self)
+        # print(self.request.__dict__)
+        # print(self.session.__dict__)
+        # print('\n'*3)
+
+    def __repr__(self):
+        rep = {}
+        for attr in self.__dict__:
+            rep[attr] = getattr(self, attr)
+        return str(rep)
 
     def _parse_request_body(self, request_body_json):
         # private attributes hold the json of the request field
@@ -36,6 +48,8 @@ class Request():
         self._request = self._body.get('request')
         self._context = self._body.get('context')
         self._session = self._body.get('session')
+        print(self._session)
+        print('\n'*3)
 
     @property
     def body(self):

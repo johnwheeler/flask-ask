@@ -48,7 +48,7 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': core.session.attributes
+            'sessionAttributes': getattr(core.session, 'attributes', None)
         }
         kw = {}
         if hasattr(core.session, 'attributes_encoder'):
