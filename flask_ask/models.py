@@ -6,15 +6,16 @@ import random
 
 
 class _Field():
-    """Holds the request/response field as an aobject with attributes."""
+    """Holds the request/response field as an object with attributes."""
     def __init__(self, request_json={}):
         for key in request_json:
             setattr(self, key, request_json[key])
 
+        # turn attributes' value from a dict into another object
+        # allows all attributes to be accessed with dot notation
         for attr in self.__dict__:
             attr_val = getattr(self, attr)
             if type(attr_val) is dict:
-                # print(attr)
                 setattr(self, attr, _Field(attr_val))
 
 class _Request():
