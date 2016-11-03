@@ -7,16 +7,15 @@ import random
 
 class _Field():
     """Holds the request/response field as an object with attributes."""
-    def __init__(self, request_json={}):
-        for key in request_json:
-            setattr(self, key, request_json[key])
 
-        # turn attributes' value from a dict into another object
-        # allows all attributes to be accessed with dot notation
-        for attr in self.__dict__:
-            attr_val = getattr(self, attr)
-            if type(attr_val) is dict:
-                setattr(self, attr, _Field(attr_val))
+    def __init__(self, request_param={}):
+
+        for key, value in request_param.items():
+            # turn attributes' value from a dict into another object
+            # allows all attributes of each parameter to be accessed with dot notation
+            if isinstance(value, dict):
+                value = _Field(value)
+            setattr(self, key, value)
 
 class _Request():
     def __init__(self, request_body_json):
@@ -25,10 +24,10 @@ class _Request():
     def _parse_request_body(self, request_body_json):
         # private attributes hold the json of the request field
         self._body = request_body_json
-        self._version = self._body['version']
-        self._request = self._body['request']
-        self._context = self._body['context']
-        self._session = self._body['session']
+        self._version = self._body.get('version', {})
+        self._request = self._body.get('request', {})
+        self._context = self._body.get('context', {})
+        self._session = self._body.get('session', {})
 
     @property
     def body(self):
