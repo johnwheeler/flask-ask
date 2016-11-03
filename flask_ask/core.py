@@ -402,7 +402,7 @@ class Ask(object):
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
-        request_body = models._Field(ask_payload)
+        request_body = models._Request(ask_payload)
         self.request = request_body.request
         self.session = request_body.session
         self.version = request_body.version
