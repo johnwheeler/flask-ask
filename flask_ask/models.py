@@ -5,6 +5,51 @@ from . import core
 import random
 
 
+class _Field():
+    """Holds the request/response field as an aobject with attributes."""
+    def __init__(self, request_json={}):
+        for key in request_json:
+            setattr(self, key, request_json[key])
+
+        for attr in self.__dict__:
+            attr_val = getattr(self, attr)
+            if type(attr_val) is dict:
+                # print(attr)
+                setattr(self, attr, _Field(attr_val))
+
+class _Request():
+    def __init__(self, request_body_json):
+        self._parse_request_body(request_body_json)
+
+    def _parse_request_body(self, request_body_json):
+        # private attributes hold the json of the request field
+        self._body = request_body_json
+        self._version = self._body['version']
+        self._request = self._body['request']
+        self._context = self._body['context']
+        self._session = self._body['session']
+
+    @property
+    def body(self):
+        return self._body
+
+    @property
+    def version(self):
+        return self._version
+
+    @property
+    def context(self):
+        return _Field(self._context)
+
+    @property
+    def request(self):
+        return _Field(self._request)
+
+    @property
+    def session(self):
+        return _Field(self._session)
+
+
 class _Response(object):
 
     def __init__(self, speech):
@@ -48,7 +93,7 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': getattr(core.session, 'attributes', None)
+            'sessionAttributes': getattr(core.session, 'attributes', {})
         }
         kw = {}
         if hasattr(core.session, 'attributes_encoder'):
@@ -158,8 +203,9 @@ class audio(_Response):
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
-        player = _AudioPlayer()
-        player.__dict__.update(stream)
+        # player = _AudioPlayer()
+        # player.__dict__.update(stream)
+        player = _Field(stream)
         core.current_stream.push(player)
 
         return audio_item
@@ -187,6 +233,13 @@ class audio(_Response):
 
         self._response['directives'].append(directive)
         return self
+
+def _copyattr(src, dest, attr, convert=None):
+    if attr in src:
+        value = src[attr]
+        if convert is not None:
+            value = convert(value)
+        setattr(dest, attr, value)
 
 
 def _output_speech(speech):

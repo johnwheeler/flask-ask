@@ -14,6 +14,8 @@ from .convert import to_date, to_time, to_timedelta
 import collections
 import random
 
+from . import models
+
 request = LocalProxy(lambda: current_app.ask.request)
 session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
@@ -21,10 +23,9 @@ context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 current_stream = LocalStack()
 
-from .request import Request, _RequestField
-from .response import _Response
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
+
 
 
 class Ask(object):
@@ -391,7 +392,7 @@ class Ask(object):
         return alexa_request_payload
 
     def _update_stream(self):
-        stream_update = getattr(self.context, 'AudioPlayer', _RequestField).__dict__
+        stream_update = getattr(self.context, 'AudioPlayer', models._Field()).__dict__
         current = current_stream.top
 
         if current:
@@ -401,7 +402,7 @@ class Ask(object):
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
-        request_body = Request(ask_payload)
+        request_body = models._Field(ask_payload)
         self.request = request_body.request
         self.session = request_body.session
         self.version = request_body.version
@@ -429,7 +430,7 @@ class Ask(object):
             # user can also access state of content.AudioPlayer with current_stream
 
         if result is not None:
-            if isinstance(result, _Response):
+            if isinstance(result, models._Response):
                 return result.render_response()
             return result
         return "", 400
@@ -444,7 +445,7 @@ class Ask(object):
         return partial(view_func, *arg_values)
 
     def _map_player_request_to_func(self, audio_player_request):
-        """Provides appropiate parameters to the on_playback functions."""
+        """Provides appropriate parameters to the on_playback functions."""
         # calbacks for on_playback requests are optional
         view_func = self._intent_view_funcs.get(audio_player_request.type, lambda: None)
 
