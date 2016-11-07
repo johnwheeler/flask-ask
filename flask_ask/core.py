@@ -21,6 +21,7 @@ version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 current_stream = LocalProxy(lambda: current_app.ask.current_stream)
+_stream_buffer = LocalStack()
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -403,7 +404,7 @@ class Ask(object):
 
     @property
     def current_stream(self):
-        return getattr(_app_ctx_stack.top, '_ask_current_stream', None)
+        return getattr(_app_ctx_stack.top, '_ask_current_stream', _AudioPlayer())
 
     @current_stream.setter
     def current_stream(self, value):
@@ -437,13 +438,27 @@ class Ask(object):
         return alexa_request_payload
 
     def _update_stream(self):
-        stream_update = getattr(self.context, 'AudioPlayer', _AudioPlayer())
+        fresh_stream = _AudioPlayer()
+        fresh_stream.__dict__.update(self.current_stream.__dict__)  # keeps url attribute after stopping stream
+        fresh_stream.__dict__.update(self._from_directive())
+        fresh_stream.__dict__.update(self._from_context())
+        self.current_stream = fresh_stream
 
-        if self.current_stream:
-            self.current_stream.__dict__.update(stream_update.__dict__)
-        else:
-            self.current_stream = stream_update
-        # _dbgdump(current_stream.__dict__)
+        _dbgdump(current_stream.__dict__)
+
+
+    def _from_context(self):
+        from_context = getattr(self.context, 'AudioPlayer', None)
+        if from_context:
+            return from_context.__dict__
+        return {}
+
+    def _from_directive(self):
+        from_buffer = _stream_buffer.top
+        if from_buffer:
+            return from_buffer
+        return {}
+
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
@@ -716,7 +731,10 @@ class audio(_Response):
 
         # existing stream
         if not stream_url:
-            stream.update(current_stream.__dict__)
+            # stream.update(current_stream.__dict__)
+            stream['url'] = current_stream.url
+            stream['token'] = current_stream.token
+            stream['offsetInMilliseconds'] = current_stream.offsetInMilliseconds
 
         # new stream
         else:
@@ -724,6 +742,7 @@ class audio(_Response):
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
+        _stream_buffer.push(stream)
         return audio_item
 
     def stop(self):
