@@ -10,7 +10,7 @@ from werkzeug.local import LocalProxy
 
 app = Flask(__name__)
 ask = Ask(app, "/")
-logging.getLogger('flask_ask').setLevel(logging.DEBUG)
+logging.getLogger('flask_ask').setLevel(logging.INFO)
 
 
 playlist = [
@@ -40,6 +40,7 @@ class QueueManager(object):
     """
 
     def __init__(self, urls):
+        self._urls = urls
         self._queued = collections.deque(urls)
         self._history = []
         self._current = None
@@ -48,7 +49,8 @@ class QueueManager(object):
         return """
         Queue at track {}
         Current url: {}
-        History: {}""".format(self.current_position, self.current, self.history)
+        Next url: {}
+        History: {}""".format(self.current_position, self.current, self.up_next, self.history)
 
     @property
     def up_next(self):
@@ -73,6 +75,7 @@ class QueueManager(object):
         return self._history[-1]
 
     def add(self, url):
+        self._urls.append(url)
         self._queued.append(url)
 
     def _save_to_history(self):
@@ -80,7 +83,7 @@ class QueueManager(object):
             self._history.append(self._current)
 
     def end_current(self):
-        self._save_to_history
+        self._save_to_history()
         self._current = None
 
     def step(self):
@@ -93,6 +96,14 @@ class QueueManager(object):
         self._current = self._history.pop()
         return self._current
 
+    def reset(self):
+        self._queued = collections.deque(self._urls)
+        self._history = []
+
+    def start(self):
+        self.__init__(self._urls)
+        return self.step()
+
     @property
     def current_position(self):
         return len(self._history)
@@ -100,38 +111,39 @@ class QueueManager(object):
 
 queue = QueueManager(playlist)
 
+def queue_card():
+    title = 'Playlist Status - track {}'.format(queue.current_position)
+    text = 'Playing from {}'.format(queue.current)
+    return title, text
 
 @ask.launch
 def launch():
-    card_title = 'Audio Example'
+    card_title = 'Playlist Example'
     text = 'Welcome to an example for playing a playlist. You can ask me to start the playlist.'
     prompt = 'You can ask start playlist.'
     return question(text).reprompt(prompt).simple_card(card_title, text)
 
 
 @ask.intent('PlaylistDemoIntent')
-def begin_playlist():
-    speech = 'Heres a playlist of some sounds. You can say Alexa Next to skip a song'
-    stream_url = queue.step()
-    print(queue)
+def start_playlist():
+    speech = 'Heres a playlist of some sounds. You can ask me Next, Previous, or Start Over'
+    stream_url = queue.start()
     return audio(speech).play(stream_url)
 
 
 @ask.on_playback_nearly_finished()
-def show_request_feedback(token):
-    logger.info('Nearly Finished with stream token'.format(token))
-    logger.info('Stream playing from url {}'.format(current_stream.url))
+def show_request_feedback():
+    # logger.info('Nearly Finished with stream token'.format(token))
+    logger.info('Alexa is now ready for a Next or Previous Intent')
     next_stream = queue.up_next
-    print(queue)
     return audio().enqueue(next_stream)
 
 
 @ask.intent('AMAZON.NextIntent')
 def next_song():
-    speech = 'playing next queued song'
     try:
+        speech = 'playing next queued song'
         next_stream = queue.step()
-        print(queue)
         return audio(speech).play(next_stream)
     except IndexError:
         return audio('There are no more songs in the queue')
@@ -142,41 +154,49 @@ def previous_song():
     try:
         speech = 'playing previously played song'
         prev_stream = queue.step_back()
-        print(queue)
-        return audio(speech).play(previous)
+        return audio(speech).play(prev_stream)
     except IndexError:
         return audio('There are no songs in your playlist history.')
+
+@ask.intent('AMAZON.StartOverIntent')
+def restart_track():
+    if queue.current:
+        speech = 'Restarting current track'
+        return audio(speech).play(queue.current, offset=0)
+    else:
+        return statement('There is no current song')
 
 
 @ask.on_playback_finished()
 def finished():
-    logger.info('FINISHED Audio stream from {}'.format(current_stream.url))
     queue.step()
-    print(queue)
-
+    logger.info('FINISHED Audio stream from {}'.format(current_stream.url))
 
 @ask.on_playback_started()
-def started(offset, token):
+def started(offset):
     logger.info('STARTED Audio Stream at {} ms'.format(offset))
-    logger.info('STARTED Audio Stream with token {}'.format(token))
     logger.info('STARTED Audio stream from {}'.format(current_stream.url))
     print(queue)
+    title, text = queue_card()
+    return audio().simple_card(title, text)
 
 
 @ask.on_playback_stopped()
-def stopped(offset, token):
+def stopped(offset):
     logger.info('STOPPED Audio Stream at {} ms'.format(offset))
-    logger.info('Stream was playing from {}'.format(current_stream.url))
+    logger.info('Stream stopped playing from {}'.format(current_stream.url))
 
 
 @ask.intent('AMAZON.PauseIntent')
 def pause():
-    return audio('Paused the stream.').stop()
+    msg = 'Paused the Playlist on track {}'.format(queue.current_position)
+    return audio('Paused the stream.').stop().simple_card(msg)
 
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    return audio('Resuming.').resume()
+    msg = 'Paused the Playlist on track {}'.format(queue.current_position)
+    return audio('Resuming.').resume().simple_card(msg)
 
 
 @ask.session_ended
