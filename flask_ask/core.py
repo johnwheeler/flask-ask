@@ -20,7 +20,7 @@ session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
 context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
-current_stream = LocalStack()
+current_stream = LocalProxy(lambda: current_app.ask.current_stream)
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -260,7 +260,7 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_nearly_finished(self, mapping={}, convert={}, default={}):
+    def on_playback_nearly_finished(self, mapping={}, convert={}, default={'offset': 'offsetInMilliseconds'}):
         """Decorator routes an AudioPlayer.PlaybackNearlyFinished Request to the wrapped function.
 
         This AudioPlayer Request sent when the currently playing stream
@@ -361,6 +361,14 @@ class Ask(object):
     def convert_errors(self, value):
         _app_ctx_stack.top._ask_convert_errors = value
 
+    @property
+    def current_stream(self):
+        return getattr(_app_ctx_stack.top, '_ask_current_stream', None)
+
+    @current_stream.setter
+    def current_stream(self, value):
+        _app_ctx_stack.top._ask_current_stream = value
+
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
         alexa_request_payload = json.loads(raw_body)
@@ -389,12 +397,13 @@ class Ask(object):
         return alexa_request_payload
 
     def _update_stream(self):
-        stream_update = getattr(self.context, 'AudioPlayer', _AudioPlayer).__dict__
-        current = current_stream.top
+        stream_update = getattr(self.context, 'AudioPlayer', _AudioPlayer())
 
-        if current:
-            current.__dict__.update(stream_update)
-            current_stream.push(current)
+        if self.current_stream:
+            self.current_stream.__dict__.update(stream_update.__dict__)
+        else:
+            self.current_stream = stream_update
+        # _dbgdump(current_stream.__dict__)
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
@@ -422,7 +431,7 @@ class Ask(object):
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
         elif 'AudioPlayer' in request_type:
-            result = self._map_player_request_to_func(self.request)()
+            result = self._map_player_request_to_func(self.request.type)()
             # routes to on_playback funcs
             # user can also access state of content.AudioPlayer with current_stream
 
@@ -441,14 +450,14 @@ class Ask(object):
 
         return partial(view_func, *arg_values)
 
-    def _map_player_request_to_func(self, audio_player_request):
+    def _map_player_request_to_func(self, player_request_type):
         """Provides appropiate parameters to the on_playback functions."""
         # calbacks for on_playback requests are optional
-        view_func = self._intent_view_funcs.get(audio_player_request.type, lambda: None)
+        view_func = self._intent_view_funcs.get(player_request_type, lambda: None)
 
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
-        arg_values = self._map_params_to_view_args(audio_player_request.type, arg_names)
+        arg_values = self._map_params_to_view_args(player_request_type, arg_names)
 
         return partial(view_func, *arg_values)
 
@@ -563,7 +572,7 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': session.attributes
+            'sessionAttributes': getattr(session, 'attributes', {})
         }
         kw = {}
         if hasattr(session, 'attributes_encoder'):
@@ -614,7 +623,7 @@ class audio(_Response):
         return audio('Ok, stopping the audio').stop()
     """
 
-    def __init__(self, speech):
+    def __init__(self, speech=''):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
 
@@ -633,7 +642,7 @@ class audio(_Response):
         """Adds stream to the end of current queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url, offset=offset)
-        audio_item['stream']['expectedPreviousToken'] = audio.prev_stream.token
+        audio_item['stream']['expectedPreviousToken'] = current_stream.token
 
         directive['audioItem'] = audio_item
         self._response['directives'].append(directive)
@@ -667,17 +676,13 @@ class audio(_Response):
 
         # existing stream
         if not stream_url:
-            stream.update(current_stream.top.__dict__)
+            stream.update(current_stream.__dict__)
 
         # new stream
         else:
             stream['url'] = stream_url
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
-
-        player = _AudioPlayer()
-        player.__dict__.update(stream)
-        current_stream.push(player)
 
         return audio_item
 
