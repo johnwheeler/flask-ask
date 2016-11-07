@@ -17,7 +17,7 @@ def launch():
 
 
 @ask.intent('DemoIntent')
-def demo(offset):
+def demo():
     speech = "Here's one of my favorites"
     stream_url = 'https://www.vintagecomputermusic.com/mp3/s2t9_Computer_Speech_Demonstration.mp3'
     return audio(speech).play(stream_url, offset=93000)
@@ -41,20 +41,32 @@ def resume():
     return audio('Resuming.').resume()
 
 
+
 # optional callbacks
-@ask.on_playback_stopped(mapping={'pos': 'offsetInMilliseconds'})
-def stopped(pos, url, token):
-    print('Playback stopped from {}'.format(url))
-    print('Audio Stream was stopped at {} ms'.format(pos))
-    print('The stopped AudioStream owns the token {}'.format(token))
+@ask.on_playback_started()
+def started(offset, token):
+    print('STARTED Audio Stream at {} ms'.format(offset))
+    print('STARTED Audio Stream with token {}'.format(token))
+
+@ask.on_playback_stopped()
+def stopped(offset, token):
+    print('STOPPED Audio Stream at {} ms'.format(offset))
+    print('STOPPED Audio Stream with token {}'.format(token))
 
 
-@ask.on_playback_started(
-    mapping={'offset': 'offsetInMilliseconds', 'stream_location': 'url', 'stream_number': 'token'})
-def on_start(offset, stream_location, stream_number):
-    print('Playback started from {}'.format(stream_location))
-    print('Audio stream was started with an offset of {} ms'.format(offset))
-    print('The stopped stream owns the token {}'.format(stream_number))
+@ask.on_playback_nearly_finished()
+def show_request_feedback(offset, token):
+    print('Nearly Finished')
+    print('Stream at {} ms when Playback Request sent'.format(offset))
+    print('Stream holds the token {}'.format(token))
+
+
+@ask.on_playback_finished()
+def stream_finished(token):
+    print('Playback has finished for stream with token {}'.format(token))
+
+
+
 
 
 @ask.session_ended
