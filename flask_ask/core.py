@@ -822,6 +822,7 @@ def _parse_request(request_json):
     _copyattr(request_json, request, 'type')
     _copyattr(request_json, request, 'reason')
     _copyattr(request_json, request, 'timestamp', aniso8601.parse_datetime)
+    _copyattr(request_json, request, 'locale')
     if 'intent' in request_json:
         intent_json = request_json['intent']
         intent = _Intent()
