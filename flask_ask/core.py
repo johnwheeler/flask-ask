@@ -189,16 +189,24 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_started(self, mapping={}, convert={}, default={}):
+    def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
 
         Request sent when Alexa begins playing the audio stream previously sent in a Play directive.
         This lets your skill verify that playback began successfully.
         This request is also sent when Alexa resumes playback after pausing it for a voice request.
 
+        The wrapped view function may accept parameters from the AudioPlayer Request.
+        In addition to locale, requestId, timestamp, and type
+        AudioPlayer Requests include:
+                offsetInMilliseconds - position in stream when request was sent
+                                     - not end of stream, often few ms after Play Directive offset
+                                     - this parameter is automatically mapped to 'offset' by default
+
+                token - token of the stream that is nearly finished.
+
         @ask.on_playback_started()
-        def on_playback_start(url, token, offset):
-            logger.info('stream from {} started'.format(url))
+        def on_playback_start(token, offset):
             logger.info('stream has token {}'.format(token))
             logger.info('Current position within the stream is {} ms'.format(offset))
         """
@@ -214,10 +222,20 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_finished(self,mapping={}, convert={}, default={}):
+    def on_playback_finished(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackFinished Request to the wrapped function.
 
         This type of request is sent when the stream Alexa is playing comes to an end on its own.
+
+        The wrapped view function may accept parameters from the AudioPlayer Request.
+        In addition to locale, requestId, timestamp, and type
+        AudioPlayer Requests include:
+                offsetInMilliseconds - position in stream when request was sent
+                                     - not end of stream, often few ms after Play Directive offset
+                                     - this parameter is automatically mapped to 'offset' by default
+
+                token - token of the stream that is nearly finished.
+
         Note: If your skill explicitly stops the playback with the Stop directive,
         Alexa sends PlaybackStopped instead of PlaybackFinished.
         """
@@ -233,7 +251,7 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_stopped(self, mapping={}, convert={}, default={}):
+    def on_playback_stopped(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackStopped Request to the wrapped function.
 
         Sent when Alexa stops playing an audio stream in response to one of the following:
@@ -244,6 +262,15 @@ class Ask(object):
         This request is also sent if the user makes a voice request to Alexa,
         since this temporarily pauses the playback.
         In this case, the playback begins automatically once the voice interaction is complete.
+
+        The wrapped view function may accept parameters from the AudioPlayer Request.
+        In addition to locale, requestId, timestamp, and type
+        AudioPlayer Requests include:
+                offsetInMilliseconds - position in stream when request was sent
+                                     - not end of stream, often few ms after Play Directive offset
+                                     - this parameter is automatically mapped to 'offset' by default
+
+                token - token of the stream that is nearly finished.
 
         Note: If playback stops because the audio stream comes to an end on its own,
         Alexa sends PlaybackFinished instead of PlaybackStopped.
@@ -260,24 +287,37 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_nearly_finished(self, mapping={}, convert={}, default={'offset': 'offsetInMilliseconds'}):
+    def on_playback_nearly_finished(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackNearlyFinished Request to the wrapped function.
 
         This AudioPlayer Request sent when the currently playing stream
         is nearly complete and the device is ready to receive a new stream.
         To progress through a playlist, respond to this request with an enqueue or play_next audio response.
 
-        @ask.on_playback_nearly_finished
+        The wrapped view function may accept parameters from the AudioPlayer Request.
+        In addition to locale, requestId, timestamp, and type
+        AudioPlayer Requests include:
+                offsetInMilliseconds - position in stream when request was sent
+                                     - not end of stream, often few ms after Play Directive offset
+                                     - this parameter is automatically mapped to 'offset' by default
+
+                token - token of the stream that is nearly finished.
+
+        **Note that this request is sent when Alexa is ready to receive a new stream to enqueue, and not
+        necessarily when the stream's offset is near the end.
+        Therefore, this request may be sent by Alexa immediately after your skill sends a Play Directive.
+
+        Example usage:
+
+        @ask.on_playback_nearly_finished()
         def play_next_stream():
             audio().enqueue(my_next_song)
 
-        @ask.on_playback_nearly_finished
-        def start_new_queue():
-            audio().play_next(my_next_song)
-
-        This adds the new stream to the queue without stopping the current playback.
-        Alexa begins streaming the new audio item once the currently playing track finishes.
-
+        @ask.on_playback_nearly_finished()
+        def show_request_feedback(offset, token):
+            print('Nearly Finished')
+            print('Stream at {} ms when Playback Request sent'.format(offset))
+            print('Stream holds the token {}'.format(token))
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackNearlyFinished'] = f
@@ -639,7 +679,7 @@ class audio(_Response):
 
 
     def enqueue(self, stream_url, offset=0):
-        """Adds stream to the end of current queue. Does not impact the currently playing stream."""
+        """Adds stream to the queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url, offset=offset)
         audio_item['stream']['expectedPreviousToken'] = current_stream.token
