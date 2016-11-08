@@ -228,6 +228,9 @@ class Ask(object):
 
         This type of request is sent when the stream Alexa is playing comes to an end on its own.
 
+        Note: If your skill explicitly stops the playback with the Stop directive,
+        Alexa sends PlaybackStopped instead of PlaybackFinished.
+
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         AudioPlayer Requests include:
@@ -237,8 +240,7 @@ class Ask(object):
 
                 token - token of the stream that is nearly finished.
 
-        Note: If your skill explicitly stops the playback with the Stop directive,
-        Alexa sends PlaybackStopped instead of PlaybackFinished.
+        Audioplayer Requests do not include the stream URL, it must be accessed from current_stream.url
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackFinished'] = f
@@ -264,6 +266,9 @@ class Ask(object):
         since this temporarily pauses the playback.
         In this case, the playback begins automatically once the voice interaction is complete.
 
+        Note: If playback stops because the audio stream comes to an end on its own,
+        Alexa sends PlaybackFinished instead of PlaybackStopped.
+
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         AudioPlayer Requests include:
@@ -273,8 +278,8 @@ class Ask(object):
 
                 token - token of the stream that is nearly finished.
 
-        Note: If playback stops because the audio stream comes to an end on its own,
-        Alexa sends PlaybackFinished instead of PlaybackStopped.
+        Audioplayer Requests do not include the stream URL, it must be accessed from current_stream.url
+
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStopped'] = f
@@ -296,19 +301,19 @@ class Ask(object):
 
         **Note** that this request is sent when Alexa is ready to receive a new stream to enqueue, and not
         necessarily when the stream's offset is near the end.
-        Therefore, this request may be sent by Alexa immediately after your skill sends a Play Directive.
+        The request may be sent by Alexa immediately after your skill sends a Play Directive.
 
 
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
-        AudioPlayer Requests include:
+        This AudioPlayer Request includes:
                 offsetInMilliseconds - position in stream when request was sent
                                      - not end of stream, often few ms after Play Directive offset
                                      - this parameter is automatically mapped to 'offset' by default
 
                 token - token of the stream that is nearly finished.
 
-       
+        Audioplayer Requests do not include the stream URL, and must be accessed from current_stream
 
         Example usage:
 
@@ -316,12 +321,20 @@ class Ask(object):
         def play_next_stream():
             audio().enqueue(my_next_song)
 
-        @ask.on_playback_nearly_finished()
+        # offsetInMilliseconds is mapped to offset by default for convenience
+        @ask.on_playback_nearly_finished()      
         def show_request_feedback(offset, token):
-            print('Nearly Finished')
-            print('Stream at {} ms when Playback Request sent'.format(offset))
-            print('Stream holds the token {}'.format(token))
-            print('Streaming from {}'.format(current_stream.url))
+            logging.info('Nearly Finished')
+            logging.info('Stream at {} ms when Playback Request sent'.format(offset))
+            logging.info('Stream holds the token {}'.format(token))
+            logging.info('Streaming from {}'.format(current_stream.url))
+
+        # example of changing the default parameter mapping
+        @ask.on_playback_nearly_finished(mapping={'pos': 'offsetInMilliseconds', 'stream_token': 'token'})
+        def show_request_feedback(pos, stream_token):
+            _infodump('Nearly Finished')
+            _infodump('Stream at {} ms when Playback Request sent'.format(pos))
+            _infodump('Stream holds the token {}'.format(stream_token))
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackNearlyFinished'] = f
@@ -340,18 +353,25 @@ class Ask(object):
 
         This AudioPlayer Request sent when Alexa encounters an error when attempting to play a stream.
 
-        This request type includes two token properties:
-        -request.token property represents the stream that failed to play.
-        -currentPlaybackState.token property can be different if Alexa is playing a stream
-            and the error occurs when attempting to buffer the next stream on the queue.
-            In this case, currentPlaybackState.token represents the stream that was successfully playing.
+        The wrapped view function may accept parameters from the AudioPlayer Request.
+        In addition to locale, requestId, timestamp, and type
+        PlayBackFailed Requests include:
+                error - Contains error info under parameters type and message
 
 
-        @ask.on_playback_failed
-        def log_eror(error_type, error_msg):
-            logger.debug(error_type, error_msg)
-            logger.debug('Playback of stream with token {} failed'.format(request.token))
-            logger.debug('Still playing stream from {}'.format(request.currentPlaybackState.url))
+                token - represents the stream that failed to play.
+
+                currentPlaybackState -details about the playback activity occurring at the time of the error
+                                    - contains the following parameters
+
+                        token - represents the audio stream currently playing when the error occurred.
+                                Note that this may be different from the value of the request.token property.
+
+                        offsetInMilliseconds - position in current stream when error occured
+                                         - not end of stream, often few ms after Play Directive offset
+                                         - this parameter is automatically mapped to 'offset' by default
+
+                        playerActivity - player state when the error occurred
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStarted'] = f
