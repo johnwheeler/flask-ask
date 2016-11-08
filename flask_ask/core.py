@@ -291,9 +291,13 @@ class Ask(object):
     def on_playback_nearly_finished(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackNearlyFinished Request to the wrapped function.
 
-        This AudioPlayer Request sent when the currently playing stream
-        is nearly complete and the device is ready to receive a new stream.
+        This AudioPlayer Request sent when the device is ready to receive a new stream.
         To progress through a playlist, respond to this request with an enqueue or play_next audio response.
+
+        **Note** that this request is sent when Alexa is ready to receive a new stream to enqueue, and not
+        necessarily when the stream's offset is near the end.
+        Therefore, this request may be sent by Alexa immediately after your skill sends a Play Directive.
+
 
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
@@ -304,9 +308,7 @@ class Ask(object):
 
                 token - token of the stream that is nearly finished.
 
-        **Note that this request is sent when Alexa is ready to receive a new stream to enqueue, and not
-        necessarily when the stream's offset is near the end.
-        Therefore, this request may be sent by Alexa immediately after your skill sends a Play Directive.
+       
 
         Example usage:
 
@@ -319,6 +321,7 @@ class Ask(object):
             print('Nearly Finished')
             print('Stream at {} ms when Playback Request sent'.format(offset))
             print('Stream holds the token {}'.format(token))
+            print('Streaming from {}'.format(current_stream.url))
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackNearlyFinished'] = f
