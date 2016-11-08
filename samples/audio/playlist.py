@@ -14,13 +14,13 @@ logging.getLogger('flask_ask').setLevel(logging.INFO)
 
 
 playlist = [
+    # 'https://www.freesound.org/data/previews/367/367142_2188-lq.mp3',
     'https://archive.org/download/mailboxbadgerdrumsamplesvolume2/Ringing.mp3',
     'https://archive.org/download/petescott20160927/20160927%20RC300-53-127.0bpm.mp3',
     'https://archive.org/download/plpl011/plpl011_05-johnny_ripper-rain.mp3',
     'https://archive.org/download/piano_by_maxmsp/beats107.mp3',
     'https://archive.org/download/petescott20160927/20160927%20RC300-58-115.1bpm.mp3',
     'https://archive.org/download/PianoScale/PianoScale.mp3',
-    # 'https://www.freesound.org/data/previews/367/367142_2188-lq.mp3',
     # 'https://archive.org/download/FemaleVoiceSample/Female_VoiceTalent_demo.mp4',
     'https://archive.org/download/mailboxbadgerdrumsamplesvolume2/Risset%20Drum%201.mp3',
     'https://archive.org/download/mailboxbadgerdrumsamplesvolume2/Submarine.mp3',
@@ -48,11 +48,11 @@ class QueueManager(object):
     @property
     def status(self):
         status = {
-        'Current Position': self.current_position,
-        'Current URl': self.current,
-        'Next URL': self.up_next,
-        'Previous': self.previous,
-        'History': list(self.history)
+            'Current Position': self.current_position,
+            'Current URl': self.current,
+            'Next URL': self.up_next,
+            'Previous': self.previous,
+            'History': list(self.history)
         }
         return status
 
