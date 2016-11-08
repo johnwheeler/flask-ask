@@ -5,7 +5,7 @@ from flask_ask import Ask, request, session, question, statement, context, audio
 
 app = Flask(__name__)
 ask = Ask(app, "/")
-logging.getLogger('flask_ask').setLevel(logging.DEBUG)
+logging.getLogger('flask_ask').setLevel(logging.INFO)
 
 
 @ask.launch
@@ -45,33 +45,33 @@ def resume():
 # optional callbacks
 @ask.on_playback_started()
 def started(offset, token):
-    print('STARTED Audio Stream at {} ms'.format(offset))
-    print('STARTED Audio Stream with token {}'.format(token))
+    _infodump('STARTED Audio Stream at {} ms'.format(offset))
+    _infodump('Stream holds the token {}'.format(token))
+    _infodump('STARTED Audio stream from {}'.format(current_stream.url))
+
 
 @ask.on_playback_stopped()
 def stopped(offset, token):
-    print('STOPPED Audio Stream at {} ms'.format(offset))
-    print('STOPPED Audio Stream with token {}'.format(token))
+    _infodump('STOPPED Audio Stream at {} ms'.format(offset))
+    _infodump('Stream holds the token {}'.format(token))
+    _infodump('Stream stopped playing from {}'.format(current_stream.url))
 
 
 @ask.on_playback_nearly_finished()
-def show_request_feedback(offset, token):
-    print('Nearly Finished')
-    print('Stream at {} ms when Playback Request sent'.format(offset))
-    print('Stream holds the token {}'.format(token))
-
+def nearly_finished():
+    _infodump('Stream nearly finished from {}'.format(current_stream.url))
 
 @ask.on_playback_finished()
 def stream_finished(token):
-    print('Playback has finished for stream with token {}'.format(token))
-
-
-
-
+    _infodump('Playback has finished for stream with token {}'.format(token))
 
 @ask.session_ended
 def session_ended():
     return "", 200
+
+def _infodump(obj, indent=2):
+    msg = json.dumps(obj, indent=indent)
+    logger.info(msg)
 
 
 if __name__ == '__main__':
