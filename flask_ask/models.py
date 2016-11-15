@@ -1,7 +1,7 @@
 import inspect
 from flask import json
 from xml.etree import ElementTree
-from .core import current_stream, _stream_buffer
+from . import core
 import random
 
 
@@ -163,7 +163,7 @@ class audio(_Response):
         """Adds stream to the queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url, offset=offset)
-        audio_item['stream']['expectedPreviousToken'] = current_stream.token
+        audio_item['stream']['expectedPreviousToken'] = core.current_stream.token
 
         directive['audioItem'] = audio_item
         self._response['directives'].append(directive)
@@ -198,9 +198,9 @@ class audio(_Response):
         # existing stream
         if not stream_url:
             # stream.update(current_stream.__dict__)
-            stream['url'] = current_stream.url
-            stream['token'] = current_stream.token
-            stream['offsetInMilliseconds'] = current_stream.offsetInMilliseconds
+            stream['url'] = core.current_stream.url
+            stream['token'] = core.current_stream.token
+            stream['offsetInMilliseconds'] = core.current_stream.offsetInMilliseconds
 
         # new stream
         else:
@@ -208,7 +208,7 @@ class audio(_Response):
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
-        _stream_buffer.push(stream)
+        core._stream_buffer.push(stream)
         return audio_item
 
     def stop(self):

@@ -14,7 +14,7 @@ from .convert import to_date, to_time, to_timedelta
 import collections
 import random
 
-from . import models
+
 
 request = LocalProxy(lambda: current_app.ask.request)
 session = LocalProxy(lambda: current_app.ask.session)
@@ -23,6 +23,8 @@ context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 current_stream = LocalProxy(lambda: current_app.ask.current_stream)
 _stream_buffer = LocalStack()
+
+from . import models
 
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
@@ -431,7 +433,7 @@ class Ask(object):
 
     @property
     def current_stream(self):
-        return getattr(_app_ctx_stack.top, '_ask_current_stream', _AudioPlayer())
+        return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
 
     @current_stream.setter
     def current_stream(self, value):
@@ -532,7 +534,7 @@ class Ask(object):
 
         return partial(view_func, *arg_values)
 
-    def _map_player_request_to_func(self, audio_player_request):
+    def _map_player_request_to_func(self, player_request_type):
         """Provides appropriate parameters to the on_playback functions."""
         # calbacks for on_playback requests are optional
         view_func = self._intent_view_funcs.get(player_request_type, lambda: None)
