@@ -1,7 +1,7 @@
 import inspect
 from flask import json
 from xml.etree import ElementTree
-from . import core
+from .core import current_stream, _stream_buffer
 import random
 
 
@@ -144,9 +144,10 @@ class audio(_Response):
         return audio('Ok, stopping the audio').stop()
     """
 
-    def __init__(self, speech):
+    def __init__(self, speech=''):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
+
 
     def play(self, stream_url, offset=0):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
@@ -157,11 +158,12 @@ class audio(_Response):
         self._response['directives'].append(directive)
         return self
 
+
     def enqueue(self, stream_url, offset=0):
-        """Adds stream to the end of current queue. Does not impact the currently playing stream."""
+        """Adds stream to the queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url, offset=offset)
-        audio_item['stream']['expectedPreviousToken'] = audio.prev_stream.token
+        audio_item['stream']['expectedPreviousToken'] = current_stream.token
 
         directive['audioItem'] = audio_item
         self._response['directives'].append(directive)
@@ -195,7 +197,10 @@ class audio(_Response):
 
         # existing stream
         if not stream_url:
-            stream.update(core.current_stream.top.__dict__)
+            # stream.update(current_stream.__dict__)
+            stream['url'] = current_stream.url
+            stream['token'] = current_stream.token
+            stream['offsetInMilliseconds'] = current_stream.offsetInMilliseconds
 
         # new stream
         else:
@@ -203,11 +208,7 @@ class audio(_Response):
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
-        # player = _AudioPlayer()
-        # player.__dict__.update(stream)
-        player = _Field(stream)
-        core.current_stream.push(player)
-
+        _stream_buffer.push(stream)
         return audio_item
 
     def stop(self):
@@ -219,7 +220,7 @@ class audio(_Response):
         """Clears queued streams and optionally stops current stream.
 
         Keyword Arguments:
-            stop {bool} -- set True to stop current current stream and clear queued streams.
+            stop {bool}  set True to stop current current stream and clear queued streams.
                            set False to clear queued streams and allow current stream to finish
                            default: {False}
         """
