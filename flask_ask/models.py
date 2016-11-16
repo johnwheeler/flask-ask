@@ -17,37 +17,14 @@ class _Field():
                 value = _Field(value)
             setattr(self, key, value)
 
+
 class _Request():
+    """Container for Aexa Request data. Request Parameters are accesible as attributes."""
     def __init__(self, request_body_json):
-        self._parse_request_body(request_body_json)
-
-    def _parse_request_body(self, request_body_json):
-        # private attributes hold the json of the request field
         self._body = request_body_json
-        self._version = self._body.get('version', {})
-        self._request = self._body.get('request', {})
-        self._context = self._body.get('context', {})
-        self._session = self._body.get('session', {})
-
-    @property
-    def body(self):
-        return self._body
-
-    @property
-    def version(self):
-        return self._version
-
-    @property
-    def context(self):
-        return _Field(self._context)
-
-    @property
-    def request(self):
-        return _Field(self._request)
-
-    @property
-    def session(self):
-        return _Field(self._session)
+        for param in self._body:
+            value = self._body.get(param, {})
+            setattr(self, param, _Field(value))
 
 
 class _Response(object):
@@ -148,7 +125,6 @@ class audio(_Response):
         super(audio, self).__init__(speech)
         self._response['directives'] = []
 
-
     def play(self, stream_url, offset=0):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
 
@@ -157,7 +133,6 @@ class audio(_Response):
         directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
         self._response['directives'].append(directive)
         return self
-
 
     def enqueue(self, stream_url, offset=0):
         """Adds stream to the queue. Does not impact the currently playing stream."""
@@ -234,6 +209,7 @@ class audio(_Response):
 
         self._response['directives'].append(directive)
         return self
+
 
 def _copyattr(src, dest, attr, convert=None):
     if attr in src:
