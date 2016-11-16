@@ -15,7 +15,6 @@ import collections
 import random
 
 
-
 request = LocalProxy(lambda: current_app.ask.request)
 session = LocalProxy(lambda: current_app.ask.session)
 version = LocalProxy(lambda: current_app.ask.version)
@@ -28,7 +27,6 @@ from . import models
 
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
-
 
 
 class Ask(object):
@@ -227,7 +225,6 @@ class Ask(object):
                 self._flask_view_func(*args, **kwargs)
             return f
         return decorator
-
 
     def on_playback_finished(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackFinished Request to the wrapped function.
@@ -475,7 +472,6 @@ class Ask(object):
 
         _dbgdump(current_stream.__dict__)
 
-
     def _from_context(self):
         from_context = getattr(self.context, 'AudioPlayer', models._Field())
         if from_context:
@@ -488,15 +484,15 @@ class Ask(object):
             return from_buffer
         return {}
 
-
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
-        request_body = models._Request(ask_payload)
+        request_body = models._Field(ask_payload)
         self.request = request_body.request
-        self.session = request_body.session
         self.version = request_body.version
         self.context = request_body.context
+        self.session = getattr(request_body, 'session', models._Field()) # session not present for AudioPlayer requests
+
         self._update_stream()
 
         try:
@@ -566,26 +562,26 @@ class Ask(object):
                 request_data[param_name] = getattr(self.request, param_name, None)
 
         for arg_name in arg_names:
-                param_or_slot = mapping.get(arg_name, arg_name)
-                arg_value = request_data.get(param_or_slot)
-                if arg_value is None or arg_value == "":
-                    if arg_name in default:
-                        default_value = default[arg_name]
-                        if isinstance(default_value, collections.Callable):
-                            default_value = default_value()
-                        arg_value = default_value
-                elif arg_name in convert:
-                    shorthand_or_function = convert[arg_name]
-                    if shorthand_or_function in _converters:
-                        shorthand = shorthand_or_function
-                        convert_func = _converters[shorthand]
-                    else:
-                        convert_func = shorthand_or_function
-                    try:
-                        arg_value = convert_func(arg_value)
-                    except Exception as e:
-                        convert_errors[arg_name] = e
-                arg_values.append(arg_value)
+            param_or_slot = mapping.get(arg_name, arg_name)
+            arg_value = request_data.get(param_or_slot)
+            if arg_value is None or arg_value == "":
+                if arg_name in default:
+                    default_value = default[arg_name]
+                    if isinstance(default_value, collections.Callable):
+                        default_value = default_value()
+                    arg_value = default_value
+            elif arg_name in convert:
+                shorthand_or_function = convert[arg_name]
+                if shorthand_or_function in _converters:
+                    shorthand = shorthand_or_function
+                    convert_func = _converters[shorthand]
+                else:
+                    convert_func = shorthand_or_function
+                try:
+                    arg_value = convert_func(arg_value)
+                except Exception as e:
+                    convert_errors[arg_name] = e
+            arg_values.append(arg_value)
         self.convert_errors = convert_errors
         return arg_values
 
