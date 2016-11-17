@@ -13,6 +13,7 @@ from . import logger
 from .convert import to_date, to_time, to_timedelta
 import collections
 import random
+from pprint import pprint
 
 
 request = LocalProxy(lambda: current_app.ask.request)
@@ -398,7 +399,7 @@ class Ask(object):
 
     @property
     def session(self):
-        return getattr(_app_ctx_stack.top, '_ask_session', None)
+        return getattr(_app_ctx_stack.top, '_ask_session', models._Field())
 
     @session.setter
     def session(self, value):
@@ -488,10 +489,14 @@ class Ask(object):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         _dbgdump(ask_payload)
         request_body = models._Field(ask_payload)
+
         self.request = request_body.request
         self.version = request_body.version
-        self.context = request_body.context
-        self.session = getattr(request_body, 'session', models._Field()) # session not present for AudioPlayer requests
+        self.context = getattr(request_body, 'context', models._Field())
+        self.session = getattr(request_body, 'session', self.session) # to keep old session.attributes through AudioRequests
+
+        if not self.session.attributes:
+            self.session.attributes = models._Field()
 
         self._update_stream()
 
@@ -552,11 +557,11 @@ class Ask(object):
 
         request_data = {}
         intent = getattr(self.request, 'intent', None)
-
         if intent is not None:
-            if hasattr(intent, 'slots'):
-                for slot in intent.slots:
-                    request_data[slot.name] = getattr(slot, 'value', None)
+            if intent.slots is not None:
+                for slot_key in intent.slots.keys():
+                    slot_object = getattr(intent.slots, slot_key)
+                    request_data[slot_object.name] = getattr(slot_object, 'value', None)
         else:
             for param_name in self.request.__dict__:
                 request_data[param_name] = getattr(self.request, param_name, None)
