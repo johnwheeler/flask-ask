@@ -5,9 +5,6 @@ from . import core
 import random
 
 
-import pprint
-
-
 class _Field(dict):
     """Container to represent Alexa Request Data.
 
@@ -18,9 +15,9 @@ class _Field(dict):
     are also represented as a _Field object.
 
     Example:
-    
+
     payload_object = _Field(alexa_josn_payload)
-    
+
     request_type_from_keys = payload_object['request']['type']
     request_type_from_attrs = payload_object.request.type
 
@@ -28,10 +25,10 @@ class _Field(dict):
 
 
     """
+
     def __init__(self, request_json={}):
         super(_Field, self).__init__(request_json)
         for key, value in request_json.items():
-            
 
             if isinstance(value, dict):
                 value = _Field(value)

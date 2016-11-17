@@ -13,8 +13,7 @@ from . import logger
 from .convert import to_date, to_time, to_timedelta
 import collections
 import random
-from pprint import pprint
-
+from . import models
 
 request = LocalProxy(lambda: current_app.ask.request)
 session = LocalProxy(lambda: current_app.ask.session)
@@ -23,8 +22,6 @@ context = LocalProxy(lambda: current_app.ask.context)
 convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 current_stream = LocalProxy(lambda: current_app.ask.current_stream)
 _stream_buffer = LocalStack()
-
-from . import models
 
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
