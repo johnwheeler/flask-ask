@@ -40,6 +40,10 @@ def pause():
 def resume():
     return audio('Resuming.').resume()
 
+@ask.intent('AMAZON.StopIntent')
+def stop():
+    return audio('stopping').clear_queue(stop=True)
+
 
 
 # optional callbacks
