@@ -9,10 +9,24 @@ import pprint
 
 
 class _Field(dict):
-    """Holds the request/response field as an object with attributes.
+    """Container to represent Alexa Request Data.
 
-    Turns request-json into an object with attributes
+    Initialized with request_json and creates a dict object with attributes
     to be accessed via dot notation or as a dict key-value.
+
+    Parameters within the request_json that contain their data as a json object
+    are also represented as a _Field object.
+
+    Example:
+    
+    payload_object = _Field(alexa_josn_payload)
+    
+    request_type_from_keys = payload_object['request']['type']
+    request_type_from_attrs = payload_object.request.type
+
+    assert request_type_from_keys == request_type_from_attrs
+
+
     """
     def __init__(self, request_json={}):
         super(_Field, self).__init__(request_json)
