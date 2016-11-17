@@ -492,6 +492,8 @@ class Ask(object):
         self.context = getattr(request_body, 'context', models._Field())
         self.session = getattr(request_body, 'session', self.session) # to keep old session.attributes through AudioRequests
 
+        if not self.session:
+            self.session = models._Field()
         if not self.session.attributes:
             self.session.attributes = models._Field()
 
