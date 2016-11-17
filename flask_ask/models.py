@@ -29,10 +29,8 @@ class _Field(dict):
     def __init__(self, request_json={}):
         super(_Field, self).__init__(request_json)
         for key, value in request_json.items():
-
             if isinstance(value, dict):
                 value = _Field(value)
-
             self[key] = value
 
     def __getattr__(self, attr):
