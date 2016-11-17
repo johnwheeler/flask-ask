@@ -5,26 +5,30 @@ from . import core
 import random
 
 
-class _Field():
-    """Holds the request/response field as an object with attributes."""
+import pprint
 
-    def __init__(self, request_param={}):
 
-        for key, value in request_param.items():
-            # turn attributes' value from a dict into another object
-            # allows all attributes of each parameter to be accessed with dot notation
+class _Field(dict):
+    """Holds the request/response field as an object with attributes.
+
+    Turns request-json into an object with attributes
+    to be accessed via dot notation or as a dict key-value.
+    """
+    def __init__(self, request_json={}):
+        super(_Field, self).__init__(request_json)
+        for key, value in request_json.items():
+            
+
             if isinstance(value, dict):
                 value = _Field(value)
-            setattr(self, key, value)
 
+            self[key] = value
 
-class _Request():
-    """Container for Aexa Request data. Request Parameters are accesible as attributes."""
-    def __init__(self, request_body_json):
-        self._body = request_body_json
-        for param in self._body:
-            value = self._body.get(param, {})
-            setattr(self, param, _Field(value))
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __setattr__(self, key, value):
+        self.__setitem__(key, value)
 
 
 class _Response(object):
@@ -70,7 +74,7 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': getattr(core.session, 'attributes', {})
+            'sessionAttributes': core.session.attributes
         }
         kw = {}
         if hasattr(core.session, 'attributes_encoder'):
