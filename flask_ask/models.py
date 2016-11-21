@@ -2,7 +2,7 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from . import core
+from .core import session, _stream_buffer, current_stream
 import random
 
 
@@ -87,14 +87,14 @@ class _Response(object):
         response_wrapper = {
             'version': '1.0',
             'response': self._response,
-            'sessionAttributes': core.session.attributes
+            'sessionAttributes': session.attributes
         }
         kw = {}
-        if hasattr(core.session, 'attributes_encoder'):
-            json_encoder = core.session.attributes_encoder
+        if hasattr(session, 'attributes_encoder'):
+            json_encoder = session.attributes_encoder
             kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
             kw[kwargname] = json_encoder
-        core._dbgdump(response_wrapper, **kw)
+        _dbgdump(response_wrapper, **kw)
 
         return json.dumps(response_wrapper, **kw)
 
@@ -155,7 +155,7 @@ class audio(_Response):
         """Adds stream to the queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url, offset=offset)
-        audio_item['stream']['expectedPreviousToken'] = core.current_stream.token
+        audio_item['stream']['expectedPreviousToken'] = current_stream.token
 
         directive['audioItem'] = audio_item
         self._response['directives'].append(directive)
@@ -190,9 +190,9 @@ class audio(_Response):
         # existing stream
         if not stream_url:
             # stream.update(current_stream.__dict__)
-            stream['url'] = core.current_stream.url
-            stream['token'] = core.current_stream.token
-            stream['offsetInMilliseconds'] = core.current_stream.offsetInMilliseconds
+            stream['url'] = current_stream.url
+            stream['token'] = current_stream.token
+            stream['offsetInMilliseconds'] = current_stream.offsetInMilliseconds
 
         # new stream
         else:
@@ -200,7 +200,7 @@ class audio(_Response):
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
-        core._stream_buffer.push(stream)
+        _stream_buffer.push(stream)
         return audio_item
 
     def stop(self):
@@ -244,3 +244,8 @@ def _output_speech(speech):
     except ElementTree.ParseError as e:
         pass
     return {'type': 'PlainText', 'text': speech}
+
+
+def _dbgdump(obj, indent=2, default=None, cls=None):
+    msg = json.dumps(obj, indent=indent, default=default, cls=cls)
+    logger.debug(msg)
