@@ -24,8 +24,6 @@ _stream_buffer = LocalStack()
 
 from . import models
 
-
-
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 

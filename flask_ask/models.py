@@ -3,6 +3,7 @@ from flask import json
 from xml.etree import ElementTree
 import aniso8601
 from .core import session, _stream_buffer, current_stream
+from . import logger
 import random
 
 
