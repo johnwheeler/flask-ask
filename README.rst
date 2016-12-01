@@ -67,9 +67,10 @@ These resources will get you up and running quickly:
 `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
 
 Tutorial series by Harrison Kinsley
-1. `Intro and Skill Logic - Alexa Skills w/ Python and Flask-Ask Part 1 <https://pythonprogramming.net/intro-alexa-skill-flask-ask-python-tutorial/>`_
-1. `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
-1. `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
+
+* `Intro and Skill Logic - Alexa Skills w/ Python and Flask-Ask Part 1 <https://pythonprogramming.net/intro-alexa-skill-flask-ask-python-tutorial/>`_
+* `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
+* `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
 
 `Full online documentation <https://alexatutorial.com/flask-ask/>`_
 
