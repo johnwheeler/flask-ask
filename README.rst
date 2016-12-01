@@ -3,7 +3,7 @@
 
 |
 
-`Follow me for updates <https://twitter.com/_johnwheeler>`_
+.. image:: http://i.imgur.com/UUARvmc.png `Follow me for updates <https://twitter.com/_johnwheeler>`_
 
 Program the Amazon Echo with Python
 ===================================
