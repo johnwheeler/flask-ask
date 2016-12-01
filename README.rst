@@ -60,9 +60,7 @@ Additionally, more code and template examples are in the `samples <https://githu
 ----------------
 These resources will get you up and running quickly:
 
-.. image:: http://i.imgur.com/rGD2hSx.png
-   :target: https://www.youtube.com/watch?v=cXL8FDUag-s
-   :alt: 5-minute Flask-Ask tutorial.
+`Full online documentation <https://alexatutorial.com/flask-ask/>`_
 
 `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
 
@@ -72,7 +70,6 @@ Tutorial series by Harrison Kinsley
 * `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
 * `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
 
-`Full online documentation <https://alexatutorial.com/flask-ask/>`_
 
 ☤ Features
 -----------
