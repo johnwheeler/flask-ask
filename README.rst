@@ -60,11 +60,10 @@ Additionally, more code and template examples are in the `samples <https://githu
 ----------------
 These resources will get you up and running quickly:
 
-`Full online documentation <https://alexatutorial.com/flask-ask/>`_
+* `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
+* `Full online documentation <https://alexatutorial.com/flask-ask/>`_
 
-`5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
-
-Tutorial series by Harrison Kinsley
+Fantastic 3-part tutorial series by Harrison Kinsley
 
 * `Intro and Skill Logic - Alexa Skills w/ Python and Flask-Ask Part 1 <https://pythonprogramming.net/intro-alexa-skill-flask-ask-python-tutorial/>`_
 * `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
