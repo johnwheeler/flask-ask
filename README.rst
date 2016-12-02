@@ -3,7 +3,7 @@
 
 |
 
-|Bird|_ `Follow me for updates <https://twitter.com/_johnwheeler>`_
+|Bird|_ `Follow @johnwheeler for updates <https://twitter.com/_johnwheeler>`_
 
 .. |Bird| image:: http://i.imgur.com/UUARvmc.png
 .. _Bird: https://twitter.com/_johnwheeler
