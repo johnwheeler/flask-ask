@@ -600,8 +600,6 @@ class YamlLoader(BaseLoader):
             self.path = app.root_path + os.path.sep + 'templates.yml'
             if os.path.exists(self.path):
                 pass
-            else:
-                raise IOError('Could not find templates.yaml or templates.yml')
         self.mapping = {}
         self._reload_mapping()
 
