@@ -114,7 +114,7 @@ class Ask(object):
         self._on_session_started_callback = f
 
     def launch(self, f):
-        """Decorator maps a view fucntion as the endpoint for an Alexa LaunchRequest and starts the skill.
+        """Decorator maps a view function as the endpoint for an Alexa LaunchRequest and starts the skill.
 
         @ask.launch
         def launched():
@@ -136,7 +136,7 @@ class Ask(object):
         return f
 
     def session_ended(self, f):
-        """Decorator routes Alexa SessionEndedRequest to the wrapped view fucntion to end the skill.
+        """Decorator routes Alexa SessionEndedRequest to the wrapped view function to end the skill.
 
         @ask.session_ended
         def session_ended():
