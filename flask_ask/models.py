@@ -141,6 +141,8 @@ class audio(_Response):
 
     def __init__(self, speech=''):
         super(audio, self).__init__(speech)
+        if not speech:
+            self._response = {}
         self._response['directives'] = []
 
     def play(self, stream_url, offset=0):

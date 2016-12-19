@@ -122,11 +122,10 @@ class QueueManager(object):
 
     @property
     def current_position(self):
-        return len(self._history)
+        return len(self._history) + 1
 
 
 queue = QueueManager(playlist)
-
 
 @ask.launch
 def launch():
@@ -203,21 +202,20 @@ def started(offset):
     _infodump({'queue': queue.status})
 
 
+
 @ask.on_playback_stopped()
 def stopped(offset):
     _infodump('STOPPED Audio Stream at {} ms'.format(offset))
     _infodump('Stream stopped playing from {}'.format(current_stream.url))
-
 
 @ask.intent('AMAZON.PauseIntent')
 def pause():
     msg = 'Paused the Playlist on track {}'.format(queue.current_position)
     return audio('Paused the stream.').stop().simple_card(msg)
 
-
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    msg = 'Paused the Playlist on track {}'.format(queue.current_position)
+    msg = 'Resuming the Playlist on track {}'.format(queue.current_position)
     return audio('Resuming.').resume().simple_card(msg)
 
 
@@ -228,7 +226,7 @@ def session_ended():
 
 def _infodump(obj, indent=2):
     msg = json.dumps(obj, indent=indent)
-    logger.info(msg)
+    logger.info(msg + '\n')
 
 
 if __name__ == '__main__':
