@@ -17,7 +17,7 @@ Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://d
 
 👊 `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 
-`Chat on Slack <https://slack.zappa.io/>`_ Use channel #Alexa
+`Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
 
 
 ☤ The Basics
