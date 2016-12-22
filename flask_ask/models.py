@@ -6,6 +6,8 @@ from .core import session, _stream_buffer, current_stream
 from . import logger
 import random
 
+from pprint import pprint
+
 
 class _Field(dict):
     """Container to represent Alexa Request Data.
@@ -157,7 +159,7 @@ class audio(_Response):
     def enqueue(self, stream_url, offset=0):
         """Adds stream to the queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
-        audio_item = self._audio_item(stream_url=stream_url, offset=offset)
+        audio_item = self._audio_item(stream_url=stream_url, offset=offset, push_buffer=False)
         audio_item['stream']['expectedPreviousToken'] = current_stream.token
 
         directive['audioItem'] = audio_item
@@ -185,7 +187,7 @@ class audio(_Response):
         directive['playBehavior'] = behavior
         return directive
 
-    def _audio_item(self, stream_url=None, offset=0):
+    def _audio_item(self, stream_url=None, offset=0, push_buffer=True):
         """Builds an AudioPlayer Directive's audioItem and updates current_stream"""
         audio_item = {'stream': {}}
         stream = audio_item['stream']
@@ -203,7 +205,8 @@ class audio(_Response):
             stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
-        _stream_buffer.push(stream)
+        if push_buffer:  # prevents enqueued streams from becoming current_stream
+            _stream_buffer.push(stream)
         return audio_item
 
     def stop(self):
