@@ -4,7 +4,6 @@ from flask import Flask, json, render_template
 from flask_ask import Ask, request, session, question, statement, context, audio, current_stream, logger
 
 import collections
-from pprint import pprint
 from werkzeug.local import LocalProxy
 
 
@@ -127,6 +126,7 @@ class QueueManager(object):
 
 queue = QueueManager(playlist)
 
+
 @ask.launch
 def launch():
     card_title = 'Playlist Example'
@@ -148,7 +148,9 @@ def start_playlist():
 def nearly_finished():
     if queue.up_next:
         _infodump('Alexa is now ready for a Next or Previous Intent')
+        dump_stream_info()
         next_stream = queue.up_next
+        _infodump('about to enqueue {}'.format(next_stream))
         return audio().enqueue(next_stream)
     else:
         _infodump('Nearly finished with last song in playlist')
@@ -156,9 +158,11 @@ def nearly_finished():
 
 @ask.on_playback_finished()
 def play_back_finished():
-    _infodump('FINISHED Audio stream from {}'.format(current_stream.url))
+    _infodump('Finished Audio stream from {}'.format(current_stream.url))
     if queue.up_next:
         queue.step()
+        _infodump('stepped queue forward')
+        dump_stream_info()
     else:
         return statement('You have reached the end of the playlist!')
 
@@ -170,6 +174,8 @@ def next_song():
     if queue.up_next:
         speech = 'playing next queued song'
         next_stream = queue.step()
+        _infodump('Stepped queue forward to {}'.format(next_stream))
+        dump_stream_info()
         return audio(speech).play(next_stream)
     else:
         return audio('There are no more songs in the queue')
@@ -180,6 +186,7 @@ def previous_song():
     if queue.previous:
         speech = 'playing previously played song'
         prev_stream = queue.step_back()
+        dump_stream_info()
         return audio(speech).play(prev_stream)
 
     else:
@@ -190,33 +197,43 @@ def previous_song():
 def restart_track():
     if queue.current:
         speech = 'Restarting current track'
+        dump_stream_info()
         return audio(speech).play(queue.current, offset=0)
     else:
         return statement('There is no current song')
 
 
 @ask.on_playback_started()
-def started(offset):
-    _infodump('STARTED Audio Stream at {} ms'.format(offset))
-    _infodump('STARTED Audio stream from {}'.format(current_stream.url))
-    _infodump({'queue': queue.status})
-
+def started(offset, token):
+    _infodump('Started audio stream')
+    _infodump('offset as param: {}'.format(offset))
+    _infodump('token as param: {}'.format(token))
+    dump_stream_info()
 
 
 @ask.on_playback_stopped()
-def stopped(offset):
-    _infodump('STOPPED Audio Stream at {} ms'.format(offset))
-    _infodump('Stream stopped playing from {}'.format(current_stream.url))
+def stopped(offset, token):
+    _infodump('Stopped audio stream')
+    _infodump('offset as param: {}'.format(offset))
+    _infodump('token as param: {}'.format(token))
+    dump_stream_info()
+
 
 @ask.intent('AMAZON.PauseIntent')
 def pause():
-    msg = 'Paused the Playlist on track {}'.format(queue.current_position)
-    return audio('Paused the stream.').stop().simple_card(msg)
+    msg = 'Paused the Playlist on track {}, offset at {} ms'.format(
+        queue.current_position, current_stream.offsetInMilliSeconds)
+    _infodump('Paused audio stream')
+    dump_stream_info()
+    return audio(msg).stop().simple_card(msg)
+
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    msg = 'Resuming the Playlist on track {}'.format(queue.current_position)
-    return audio('Resuming.').resume().simple_card(msg)
+    msg = 'Resuming the Playlist on track {}, token {}'.format(queue.current_position, current_stream.token)
+    _infodump('Resumed audio stream')
+    dump_stream_info()
+    return audio(msg).resume().simple_card(msg)
 
 
 @ask.session_ended
@@ -224,9 +241,17 @@ def session_ended():
     return "", 200
 
 
+def dump_stream_info():
+    status = {
+        'Current Stream Status': current_stream.__dict__,
+        # 'Queue status': queue.status
+    }
+    _infodump(status)
+
+
 def _infodump(obj, indent=2):
     msg = json.dumps(obj, indent=indent)
-    logger.info(msg + '\n')
+    logger.info(msg)
 
 
 if __name__ == '__main__':
