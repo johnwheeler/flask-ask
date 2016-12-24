@@ -48,6 +48,7 @@ class _Field(dict):
 class _Response(object):
 
     def __init__(self, speech):
+        self._speech = speech
         self._json_default = None
         self._response = {
             'outputSpeech': _output_speech(speech)
@@ -98,6 +99,9 @@ class _Response(object):
         _dbgdump(response_wrapper, **kw)
 
         return json.dumps(response_wrapper, **kw)
+
+    def __str__(self):
+        return str(self._speech)
 
 
 class statement(_Response):
