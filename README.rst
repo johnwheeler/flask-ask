@@ -34,7 +34,7 @@ A Flask-Ask application looks like this:
 
   @ask.intent('HelloIntent')
   def hello(firstname):
-      speech_text = "Hello {}".format(firstname)
+      speech_text = "Hello %s" % firstname
       return statement(speech_text).simple_card('Hello', speech_text)
 
   if __name__ == '__main__':
