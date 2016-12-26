@@ -16,10 +16,7 @@ Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that make
 
 Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 
-👊 `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
-
-`Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
-
+👊 `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_ and `chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
 
 ☤ The Basics
 ===============
@@ -65,21 +62,6 @@ above:
     
 Templates are stored in a file called `templates.yaml` located in the application root. Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
-☤ Documentation
-===============
-
-These resources will get you up and running quickly:
-
-* `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
-* `Full online documentation <https://alexatutorial.com/flask-ask/>`_
-
-Fantastic 3-part tutorial series by Harrison Kinsley
-
-* `Intro and Skill Logic - Alexa Skills w/ Python and Flask-Ask Part 1 <https://pythonprogramming.net/intro-alexa-skill-flask-ask-python-tutorial/>`_
-* `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
-* `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
-
-
 ☤ Features
 ===============
 
@@ -97,6 +79,20 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 To install Flask-Ask::
 
   pip install flask-ask
+
+☤ Documentation
+===============
+
+These resources will get you up and running quickly:
+
+* `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
+* `Full online documentation <https://alexatutorial.com/flask-ask/>`_
+
+Fantastic 3-part tutorial series by Harrison Kinsley
+
+* `Intro and Skill Logic - Alexa Skills w/ Python and Flask-Ask Part 1 <https://pythonprogramming.net/intro-alexa-skill-flask-ask-python-tutorial/>`_
+* `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
+* `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
 
 ☤ Deployment
 ===============
