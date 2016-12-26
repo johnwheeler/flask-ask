@@ -63,7 +63,7 @@ above. Templates are stored in a file called `templates.yaml` located in the app
 
     hello: Hello, {{ firstname }}
     
-Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>` to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
+Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
 ☤ Documentation
 ===============
