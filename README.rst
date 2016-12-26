@@ -8,6 +8,7 @@
 .. |Bird| image:: http://i.imgur.com/UUARvmc.png
 .. _Bird: https://twitter.com/_johnwheeler
 
+===================================
 Program the Amazon Echo with Python
 ===================================
 
@@ -21,7 +22,8 @@ Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://d
 
 
 ☤ The Basics
--------------
+===============
+
 A Flask-Ask application looks like this:
 
 .. code-block:: python
@@ -50,7 +52,7 @@ In the code above:
 More code examples are in the `samples <https://github.com/johnwheeler/flask-ask/tree/master/samples>`_ directory.
 
 Jinja Templates
-===============
+---------------
 
 Since Alexa responses are usually short phrases, you might find it convenient to put them in the same file.
 Flask-Ask has a `Jinja template loader <http://jinja.pocoo.org/docs/dev/api/#loaders>`_ that loads
@@ -64,7 +66,8 @@ above. Templates are stored in a file called `templates.yaml` located in the app
 Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>` to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
 ☤ Documentation
-----------------
+===============
+
 These resources will get you up and running quickly:
 
 * `5-minute quickstart <https://www.youtube.com/watch?v=cXL8FDUag-s>`_
@@ -78,7 +81,8 @@ Fantastic 3-part tutorial series by Harrison Kinsley
 
 
 ☤ Features
------------
+===============
+
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
 
 * Has decorators to map Alexa requests and intent slots to view functions
@@ -88,13 +92,15 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 * Verifies Alexa request signatures
 
 ☤ Installation
----------------
+===============
+
 To install Flask-Ask::
 
   pip install flask-ask
 
 ☤ Deployment
----------------
+===============
+
 You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you haven't deployed a Flask app to production, `checkout flask-live-starter <https://github.com/johnwheeler/flask-live-starter>`_.
 
 `To deploy on AWS Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
@@ -102,7 +108,8 @@ You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you have
 Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates.
 
 ☤ Thank You
-------------
+===============
+
 Thanks for checking this library out! I hope you find it useful.
 
 Of course, there's always room for improvement.
