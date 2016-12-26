@@ -33,7 +33,7 @@ def verify_signature(cert, signature, signed_data):
 
 def verify_timestamp(timestamp):
     dt = datetime.utcnow() - timestamp.replace(tzinfo=None)
-    if dt.seconds > 150:
+    if abs(dt.total_seconds()) > 150:
         raise VerificationError("Timestamp verification failed")
 
 
