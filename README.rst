@@ -26,7 +26,7 @@ A Flask-Ask application looks like this:
 
 .. code-block:: python
 
-  from flask import Flask, render_template
+  from flask import Flask
   from flask_ask import Ask, statement
 
   app = Flask(__name__)
@@ -34,8 +34,8 @@ A Flask-Ask application looks like this:
 
   @ask.intent('HelloIntent')
   def hello(firstname):
-      text = render_template('hello', firstname=firstname)
-      return statement(text).simple_card('Hello', text)
+      speech_text = "Hello {}".format(firstname)
+      return statement(speech_text).simple_card('Hello', speech_text)
 
   if __name__ == '__main__':
       app.run()
@@ -45,7 +45,6 @@ In the code above:
 #. The ``Ask`` object is created by passing in the Flask application and a route to forward Alexa requests to.
 #. The ``intent`` decorator maps ``HelloIntent`` to a view function ``hello``.
 #. The intent's ``firstname`` slot is implicitly mapped to ``hello``'s ``firstname`` parameter.
-#. Jinja templates are supported. Internally, templates are loaded from a YAML file (discussed further below).
 #. Lastly, a builder constructs a spoken response and displays a contextual card in the Alexa smartphone/tablet app.
 
 Since Alexa responses are usually short phrases, it's convenient to put them in the same file.
