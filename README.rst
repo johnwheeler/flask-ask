@@ -57,13 +57,13 @@ Jinja Templates
 Since Alexa responses are usually short phrases, you might find it convenient to put them in the same file.
 Flask-Ask has a `Jinja template loader <http://jinja.pocoo.org/docs/dev/api/#loaders>`_ that loads
 multiple templates from a single YAML file. For example, here's a template that supports the minimal voice interface
-above. Templates are stored in a file called `templates.yaml` located in the application root:
+above:
 
 .. code-block:: yaml
 
     hello: Hello, {{ firstname }}
     
-Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
+Templates are stored in a file called `templates.yaml` located in the application root. Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
 ☤ Documentation
 ===============
