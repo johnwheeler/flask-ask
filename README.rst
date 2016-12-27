@@ -6,7 +6,7 @@
 .. |Bird| image:: http://i.imgur.com/UUARvmc.png
 .. _Bird: https://twitter.com/_johnwheeler
 
-🎁 Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_ (early alpha)
+Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_ (early alpha)
 
 ===================================
 Program the Amazon Echo with Python
@@ -14,9 +14,9 @@ Program the Amazon Echo with Python
 
 Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun.
 
-Get started with the Flask-Ask quickstart on `Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
-
-👊 `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_ and `chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
+* `Flask-Ask quickstart on Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
+* `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
+* `Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
 
 ☤ The Basics
 ===============
