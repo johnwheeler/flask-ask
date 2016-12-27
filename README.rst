@@ -6,7 +6,7 @@
 .. |Bird| image:: http://i.imgur.com/UUARvmc.png
 .. _Bird: https://twitter.com/_johnwheeler
 
-Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_
+🎁 Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_ (early alpha)
 
 ===================================
 Program the Amazon Echo with Python
