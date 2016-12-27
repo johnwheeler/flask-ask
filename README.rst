@@ -1,12 +1,12 @@
 
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
-|
-
 |Bird|_ `Follow @_johnwheeler for updates <https://twitter.com/_johnwheeler>`_
 
 .. |Bird| image:: http://i.imgur.com/UUARvmc.png
 .. _Bird: https://twitter.com/_johnwheeler
+
+Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_
 
 ===================================
 Program the Amazon Echo with Python
