@@ -99,7 +99,7 @@ Fantastic 3-part tutorial series by Harrison Kinsley
 
 You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you haven't deployed a Flask app to production, `checkout flask-live-starter <https://github.com/johnwheeler/flask-live-starter>`_.
 
-`To deploy on AWS Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_.
+`To deploy on AWS Lambda, use Zappa <https://github.com/Miserlou/Zappa>`_. Here's a `12-minute video <https://www.youtube.com/watch?v=mjWV4R2P4ks>`_ that shows how to use it with Flask-Ask from scratch.
 
 Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates.
 
