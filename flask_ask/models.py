@@ -7,18 +7,18 @@ from . import logger
 import random
 
 
-class _Field(dict):
+class Field(dict):
     """Container to represent Alexa Request Data.
 
     Initialized with request_json and creates a dict object with attributes
     to be accessed via dot notation or as a dict key-value.
 
     Parameters within the request_json that contain their data as a json object
-    are also represented as a _Field object.
+    are also represented as a Field object.
 
     Example:
 
-    payload_object = _Field(alexa_josn_payload)
+    payload_object = Field(alexa_josn_payload)
 
     request_type_from_keys = payload_object['request']['type']
     request_type_from_attrs = payload_object.request.type
@@ -27,10 +27,10 @@ class _Field(dict):
     """
 
     def __init__(self, request_json={}):
-        super(_Field, self).__init__(request_json)
+        super(Field, self).__init__(request_json)
         for key, value in request_json.items():
             if isinstance(value, dict):
-                value = _Field(value)
+                value = Field(value)
             self[key] = value
 
     def __getattr__(self, attr):
@@ -43,7 +43,7 @@ class _Field(dict):
         self.__setitem__(key, value)
 
 
-class _Response(object):
+class Response(object):
 
     def __init__(self, speech):
         self._json_default = None
@@ -99,14 +99,14 @@ class _Response(object):
         return json.dumps(response_wrapper, **kw)
 
 
-class statement(_Response):
+class statement(Response):
 
     def __init__(self, speech):
         super(statement, self).__init__(speech)
         self._response['shouldEndSession'] = True
 
 
-class question(_Response):
+class question(Response):
 
     def __init__(self, speech):
         super(question, self).__init__(speech)
@@ -118,7 +118,7 @@ class question(_Response):
         return self
 
 
-class audio(_Response):
+class audio(Response):
     """Returns a response object with an Amazon AudioPlayer Directive.
 
     Responses for LaunchRequests and IntentRequests may include outputSpeech in addition to an audio directive

@@ -65,3 +65,7 @@ def confirm_no():
 @ask.intent("AMAZON.StopIntent")
 def stop():
     return statement("The flight booking service has been stopped.")
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

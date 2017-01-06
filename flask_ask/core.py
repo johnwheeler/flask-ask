@@ -22,9 +22,7 @@ convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
 current_stream = LocalProxy(lambda: current_app.ask.current_stream)
 _stream_buffer = LocalStack()
 
-# TODO: Does this import need to be behind the context locals?
-from . import models
-
+from .models import Field, Response
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -404,7 +402,7 @@ class Ask(object):
 
     @property
     def session(self):
-        return getattr(_app_ctx_stack.top, '_ask_session', models._Field())
+        return getattr(_app_ctx_stack.top, '_ask_session', Field())
 
     @session.setter
     def session(self, value):
@@ -442,8 +440,9 @@ class Ask(object):
     def state(self, value):
         _app_ctx_stack.top._ask_state = value
 
+    @property
     def current_stream(self):
-        return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
+        return getattr(_app_ctx_stack.top, '_ask_current_stream', Field())
 
     @current_stream.setter
     def current_stream(self, value):
@@ -481,7 +480,7 @@ class Ask(object):
         return alexa_request_payload
 
     def _update_stream(self):
-        fresh_stream = models._Field()
+        fresh_stream = Field()
         # keeps url attribute after stopping stream
         fresh_stream.__dict__.update(self.current_stream.__dict__)
         fresh_stream.__dict__.update(self._from_directive())
@@ -491,7 +490,7 @@ class Ask(object):
         log_json(current_stream.__dict__)
 
     def _from_context(self):
-        from_context = getattr(self.context, 'AudioPlayer', models._Field())
+        from_context = getattr(self.context, 'AudioPlayer', Field())
         if from_context:
             return from_context.__dict__
         return {}
@@ -505,23 +504,22 @@ class Ask(object):
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         log_json(ask_payload)
-        request_body = models._Field(ask_payload)
+        request_body = Field(ask_payload)
 
         self.request = request_body.request
         self.version = request_body.version
-        self.state = State(self.session)
-        self.context = getattr(request_body, 'context', models._Field())
+        self.context = getattr(request_body, 'context', Field())
         # to keep old session.attributes through AudioRequests
         self.session = getattr(request_body, 'session', self.session)
 
         if not self.session:
-            self.session = models._Field()
+            self.session = Field()
         if not self.session.attributes:
-            self.session.attributes = models._Field()
+            self.session.attributes = Field()
 
+        self.state = State(self.session)
         self._update_stream()
 
-        # TODO: Find out what's going on here
         try:
             if self.session.new and self._on_session_started_callback is not None:
                 self._on_session_started_callback()
@@ -539,12 +537,9 @@ class Ask(object):
             result = self._map_intent_to_view_func(self.request.intent)()
         elif 'AudioPlayer' in request_type:
             result = self._map_player_request_to_func(self.request.type)()
-            # routes to on_playback funcs
-            # user can also access state of content.AudioPlayer with
-            # current_stream
 
         if result is not None:
-            if isinstance(result, models._Response):
+            if isinstance(result, Response):
                 return result.render_response()
             return result
 
@@ -553,30 +548,37 @@ class Ask(object):
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""
         intent_id = intent.name, self.state.current
+
         view_func = self._intent_view_funcs[intent_id]
-        view_params = []
-        if hasattr(intent, 'slots'):
-            view_params = self._map_slots_to_view_params(
-                intent_id, intent.slots, view_func)
-
-        return partial(view_func, *view_params)
-
-    def _map_slots_to_view_params(self, intent_id, slots, view_func):
-        convert = self._intent_converts[intent_id]
-        default = self._intent_defaults[intent_id]
-        mapping = self._intent_mappings[intent_id]
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
+        arg_values = self._map_params_to_view_args(intent_id, arg_names)
 
-        slot_data = {}
-        for slot in slots:
-            slot_data[slot.name] = getattr(slot, 'value', None)
+        return partial(view_func, *arg_values)
 
-        view_params = []
+
+    def _map_params_to_view_args(self, view_name, arg_names):
+        arg_values = []
+        convert = self._intent_converts.get(view_name)
+        default = self._intent_defaults.get(view_name)
+        mapping = self._intent_mappings.get(view_name)
+
         convert_errors = {}
+
+        request_data = {}
+        intent = getattr(self.request, 'intent', None)
+        if intent is not None:
+            if intent.slots is not None:
+                for slot_key in intent.slots.keys():
+                    slot_object = getattr(intent.slots, slot_key)
+                    request_data[slot_object.name] = getattr(slot_object, 'value', None)
+        else:
+            for param_name in self.request.__dict__:
+                request_data[param_name] = getattr(self.request, param_name, None)
+
         for arg_name in arg_names:
-            slot_key = mapping.get(arg_name, arg_name)
-            arg_value = slot_data.get(slot_key)
+            param_or_slot = mapping.get(arg_name, arg_name)
+            arg_value = request_data.get(param_or_slot)
             if arg_value is None or arg_value == "":
                 if arg_name in default:
                     default_value = default[arg_name]
@@ -594,9 +596,9 @@ class Ask(object):
                     arg_value = convert_func(arg_value)
                 except Exception as e:
                     convert_errors[arg_name] = e
-            view_params.append(arg_value)
+            arg_values.append(arg_value)
         self.convert_errors = convert_errors
-        return view_params
+        return arg_values
 
     def _map_player_request_to_func(self, player_request_type):
         """Provides appropriate parameters to the on_playback functions."""

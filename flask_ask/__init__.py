@@ -12,7 +12,6 @@ def log_json(obj, indent=2, default=None, cls=None):
     logger.debug(msg)
 
 
-from models import statement, question
 from .core import (
     Ask,
     request,
