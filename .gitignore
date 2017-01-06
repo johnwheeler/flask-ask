@@ -6,6 +6,7 @@
 .DS_Store
 .vagrant
 venv
+.env
 dist
 *.cfg
 *.enc
