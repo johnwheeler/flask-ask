@@ -205,11 +205,11 @@ class Ask(object):
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         AudioPlayer Requests include:
-                offsetInMilliseconds - position in stream when request was sent
-                                     - not end of stream, often few ms after Play Directive offset
-                                     - this parameter is automatically mapped to 'offset' by default
+            offsetInMilliseconds - position in stream when request was sent
+                                 - not end of stream, often few ms after Play Directive offset
+                                 - this parameter is automatically mapped to 'offset' by default
 
-                token - token of the stream that is nearly finished.
+            token - token of the stream that is nearly finished.
 
         @ask.on_playback_started()
         def on_playback_start(token, offset):
@@ -263,9 +263,9 @@ class Ask(object):
         """Decorator routes an AudioPlayer.PlaybackStopped Request to the wrapped function.
 
         Sent when Alexa stops playing an audio stream in response to one of the following:
-            -AudioPlayer.Stop
-            -AudioPlayer.Play with a playBehavior of REPLACE_ALL.
-            -AudioPlayer.ClearQueue with a clearBehavior of CLEAR_ALL.
+            - AudioPlayer.Stop
+            - AudioPlayer.Play with a playBehavior of REPLACE_ALL.
+            - AudioPlayer.ClearQueue with a clearBehavior of CLEAR_ALL.
 
         This request is also sent if the user makes a voice request to Alexa,
         since this temporarily pauses the playback.
@@ -556,7 +556,6 @@ class Ask(object):
 
         return partial(view_func, *arg_values)
 
-
     def _map_params_to_view_args(self, view_name, arg_names):
         arg_values = []
         convert = self._intent_converts.get(view_name)
@@ -571,10 +570,12 @@ class Ask(object):
             if intent.slots is not None:
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
-                    request_data[slot_object.name] = getattr(slot_object, 'value', None)
+                    request_data[slot_object.name] = getattr(
+                        slot_object, 'value', None)
         else:
             for param_name in self.request.__dict__:
-                request_data[param_name] = getattr(self.request, param_name, None)
+                request_data[param_name] = getattr(
+                    self.request, param_name, None)
 
         for arg_name in arg_names:
             param_or_slot = mapping.get(arg_name, arg_name)

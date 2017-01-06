@@ -5,7 +5,8 @@ from flask_ask import Ask, request, session, question, statement, context, audio
 
 app = Flask(__name__)
 ask = Ask(app, "/")
-logging.getLogger('flask_ask').setLevel(logging.INFO)
+logger = logging.getLogger()
+logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
 @ask.launch
@@ -23,7 +24,6 @@ def demo():
     return audio(speech).play(stream_url, offset=93000)
 
 
-# 'ask audio_skil Play the sax
 @ask.intent('SaxIntent')
 def george_michael():
     speech = 'yeah you got it!'
@@ -40,13 +40,14 @@ def pause():
 def resume():
     return audio('Resuming.').resume()
 
+
 @ask.intent('AMAZON.StopIntent')
 def stop():
     return audio('stopping').clear_queue(stop=True)
 
 
-
 # optional callbacks
+
 @ask.on_playback_started()
 def started(offset, token):
     _infodump('STARTED Audio Stream at {} ms'.format(offset))
@@ -65,13 +66,16 @@ def stopped(offset, token):
 def nearly_finished():
     _infodump('Stream nearly finished from {}'.format(current_stream.url))
 
+
 @ask.on_playback_finished()
 def stream_finished(token):
     _infodump('Playback has finished for stream with token {}'.format(token))
 
+
 @ask.session_ended
 def session_ended():
     return "", 200
+
 
 def _infodump(obj, indent=2):
     msg = json.dumps(obj, indent=indent)

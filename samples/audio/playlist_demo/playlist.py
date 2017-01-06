@@ -1,30 +1,29 @@
 import logging
 
 from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement, context, audio, current_stream, logger
+from flask_ask import Ask, request, session, question, statement, context, audio, current_stream
 
 import collections
+import copy
 from pprint import pprint
 from werkzeug.local import LocalProxy
 
 
 app = Flask(__name__)
 ask = Ask(app, "/")
-logging.getLogger('flask_ask').setLevel(logging.INFO)
+logger = logging.getLogger()
+logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
 playlist = [
-    # 'https://www.freesound.org/data/previews/367/367142_2188-lq.mp3',
     'https://archive.org/download/mailboxbadgerdrumsamplesvolume2/Ringing.mp3',
     'https://archive.org/download/petescott20160927/20160927%20RC300-53-127.0bpm.mp3',
     'https://archive.org/download/plpl011/plpl011_05-johnny_ripper-rain.mp3',
     'https://archive.org/download/piano_by_maxmsp/beats107.mp3',
     'https://archive.org/download/petescott20160927/20160927%20RC300-58-115.1bpm.mp3',
     'https://archive.org/download/PianoScale/PianoScale.mp3',
-    # 'https://archive.org/download/FemaleVoiceSample/Female_VoiceTalent_demo.mp4',
     'https://archive.org/download/mailboxbadgerdrumsamplesvolume2/Risset%20Drum%201.mp3',
     'https://archive.org/download/mailboxbadgerdrumsamplesvolume2/Submarine.mp3',
-    # 'https://ia800203.us.archive.org/27/items/CarelessWhisper_435/CarelessWhisper.ogg'
 ]
 
 
@@ -59,7 +58,7 @@ class QueueManager(object):
     @property
     def up_next(self):
         """Returns the url at the front of the queue"""
-        qcopy = self._queued.copy()
+        qcopy = copy.copy(self._queued)
         try:
             return qcopy.popleft()
         except IndexError:
@@ -80,7 +79,7 @@ class QueueManager(object):
 
     @property
     def previous(self):
-        history = self.history.copy()
+        history = copy.copy(self.history)
         try:
             return history.pop()
         except IndexError:
@@ -127,6 +126,7 @@ class QueueManager(object):
 
 queue = QueueManager(playlist)
 
+
 @ask.launch
 def launch():
     card_title = 'Playlist Example'
@@ -143,7 +143,8 @@ def start_playlist():
 
 
 # QueueManager object is not stepped forward here.
-# This allows for Next Intents and on_playback_finished requests to trigger the step
+# This allows for Next Intents and on_playback_finished requests to
+# trigger the step
 @ask.on_playback_nearly_finished()
 def nearly_finished():
     if queue.up_next:
@@ -164,7 +165,8 @@ def play_back_finished():
 
 
 # NextIntent steps queue forward and clears enqueued streams that were already sent to Alexa
-# next_stream will match queue.up_next and enqueue Alexa with the correct subsequent stream.
+# next_stream will match queue.up_next and enqueue Alexa with the correct
+# subsequent stream.
 @ask.intent('AMAZON.NextIntent')
 def next_song():
     if queue.up_next:
@@ -202,16 +204,17 @@ def started(offset):
     _infodump({'queue': queue.status})
 
 
-
 @ask.on_playback_stopped()
 def stopped(offset):
     _infodump('STOPPED Audio Stream at {} ms'.format(offset))
     _infodump('Stream stopped playing from {}'.format(current_stream.url))
 
+
 @ask.intent('AMAZON.PauseIntent')
 def pause():
     msg = 'Paused the Playlist on track {}'.format(queue.current_position)
     return audio('Paused the stream.').stop().simple_card(msg)
+
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
