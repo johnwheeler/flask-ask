@@ -216,9 +216,9 @@ class audio(Response):
         """Clears queued streams and optionally stops current stream.
 
         Keyword Arguments:
-            stop {bool}  set True to stop current current stream and clear queued streams.
-                           set False to clear queued streams and allow current stream to finish
-                           default: {False}
+            stop {bool} set True to stop current current stream and clear queued streams.
+                        set False to clear queued streams and allow current stream to finish
+                        default: {False}
         """
 
         directive = {}
