@@ -19,5 +19,9 @@ from .core import (
     session,
     version,
     state,
+    context,
+    current_stream,
     convert_errors
 )
+
+from .models import question, statement, audio

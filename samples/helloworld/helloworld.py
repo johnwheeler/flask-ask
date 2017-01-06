@@ -30,7 +30,3 @@ def help():
 @ask.session_ended
 def session_ended():
     return "", 200
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
