@@ -18,7 +18,7 @@ Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that make
 * `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 * `Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
 
-☸ The Basics
+The Basics
 ===============
 
 A Flask-Ask application looks like this:
@@ -62,7 +62,7 @@ above:
     
 Templates are stored in a file called `templates.yaml` located in the application root. Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
-☸ Features
+Features
 ===============
 
 Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask-Ask:
@@ -73,14 +73,14 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 * Allows for the separation of code and speech through Jinja templates
 * Verifies Alexa request signatures
 
-☸ Installation
+Installation
 ===============
 
 To install Flask-Ask::
 
   pip install flask-ask
 
-☸ Documentation
+Documentation
 ===============
 
 These resources will get you up and running quickly:
@@ -94,7 +94,7 @@ Fantastic 3-part tutorial series by Harrison Kinsley
 * `Headlines Function - Alexa Skills w/ Python and Flask-Ask Part 2 <https://pythonprogramming.net/headlines-function-alexa-skill-flask-ask-python-tutorial/>`_
 * `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
 
-☸ Deployment
+Deployment
 ===============
 
 You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you haven't deployed a Flask app to production, `checkout flask-live-starter <https://github.com/johnwheeler/flask-live-starter>`_.
@@ -103,7 +103,7 @@ To deploy on AWS Lambda, use `Zappa <https://github.com/Miserlou/Zappa>`_. This 
 
 Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates, not the Lambda function's ARN.
 
-☸ Thank You
+Thank You
 ===============
 
 Thanks for checking this library out! I hope you find it useful.
