@@ -48,7 +48,7 @@ class QueueManager(object):
     def status(self):
         status = {
             'Current Position': self.current_position,
-            'Current URl': self.current,
+            'Current URL': self.current,
             'Next URL': self.up_next,
             'Previous': self.previous,
             'History': list(self.history)
@@ -148,9 +148,9 @@ def start_playlist():
 def nearly_finished():
     if queue.up_next:
         _infodump('Alexa is now ready for a Next or Previous Intent')
-        dump_stream_info()
+        # dump_stream_info()
         next_stream = queue.up_next
-        _infodump('about to enqueue {}'.format(next_stream))
+        _infodump('Enqueueing {}'.format(next_stream))
         return audio().enqueue(next_stream)
     else:
         _infodump('Nearly finished with last song in playlist')
@@ -158,7 +158,7 @@ def nearly_finished():
 
 @ask.on_playback_finished()
 def play_back_finished():
-    _infodump('Finished Audio stream from {}'.format(current_stream.url))
+    _infodump('Finished Audio stream for track {}'.format(queue.current_position))
     if queue.up_next:
         queue.step()
         _infodump('stepped queue forward')
@@ -204,34 +204,30 @@ def restart_track():
 
 
 @ask.on_playback_started()
-def started(offset, token):
-    _infodump('Started audio stream')
-    _infodump('offset as param: {}'.format(offset))
-    _infodump('token as param: {}'.format(token))
+def started(offset, token, url):
+    _infodump('Started audio stream for track {}'.format(queue.current_position))
     dump_stream_info()
 
 
 @ask.on_playback_stopped()
 def stopped(offset, token):
-    _infodump('Stopped audio stream')
-    _infodump('offset as param: {}'.format(offset))
-    _infodump('token as param: {}'.format(token))
-    dump_stream_info()
-
+    _infodump('Stopped audio stream for track {}'.format(queue.current_position))
 
 @ask.intent('AMAZON.PauseIntent')
 def pause():
-    msg = 'Paused the Playlist on track {}, offset at {} ms'.format(
-        queue.current_position, current_stream.offsetInMilliSeconds)
-    _infodump('Paused audio stream')
+    seconds = in_seconds(current_stream.offsetInMilliseconds)
+    msg = 'Paused the Playlist on track {}, offset at {} seconds'.format(
+        queue.current_position, seconds)
+    _infodump(msg)
     dump_stream_info()
     return audio(msg).stop().simple_card(msg)
 
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    msg = 'Resuming the Playlist on track {}, token {}'.format(queue.current_position, current_stream.token)
-    _infodump('Resumed audio stream')
+    seconds = in_seconds(current_stream.offsetInMilliseconds)
+    msg = 'Resuming the Playlist on track {}, offset at {} seconds'.format(queue.current_position, seconds)
+    _infodump(msg)
     dump_stream_info()
     return audio(msg).resume().simple_card(msg)
 
@@ -240,11 +236,13 @@ def resume():
 def session_ended():
     return "", 200
 
+def in_seconds(ms):
+    return ms / 1000
 
 def dump_stream_info():
     status = {
         'Current Stream Status': current_stream.__dict__,
-        # 'Queue status': queue.status
+        'Queue status': queue.status
     }
     _infodump(status)
 

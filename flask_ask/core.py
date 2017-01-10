@@ -462,21 +462,12 @@ class Ask(object):
         return alexa_request_payload
 
     def _update_stream(self):
-
         fresh_stream = models._Field()
         fresh_stream.__dict__.update(self.current_stream.__dict__)  # keeps url attribute after stopping stream
-        fresh_stream.__dict__.update(self._from_directive())
 
-        # TODO preventing overwrite of current_stream
-        # For pausing, on_playback_stopped recieved first
-        # Then the PauseIntent second
-        # on_playback_stopped causes correct offset
-        # Pauseintent overwrites offset with 0
-        if not self._from_request:  
-            fresh_stream.__dict__.update(self._from_context())
-
-        fresh_stream.__dict__.update(self._from_request())
-        
+        fresh_stream.__dict__.update(self._from_directive())  
+        fresh_stream.__dict__.update(self._from_context())
+        # fresh_stream.__dict__.update(self._from_request())
 
         self.current_stream = fresh_stream
 
@@ -485,26 +476,17 @@ class Ask(object):
     def _from_request(self):
         """Used to update current_stream from AudioPlayerRequests. Allows syncing of offset"""
         if 'AudioPlayer' in self.request['type']:
-            _dbgdump('Updating stream from AudioPlayerRequest')
             return {'offsetInMilliseconds': self.request['offsetInMilliseconds']}
         return {}
 
     def _from_context(self):
-        # Need to not update from AMAZON.PauseIntent bc it overwrites current_stream info
-        # with the stream enqueued with Alexa
-        # An on_playback_stopped request with correct info is recieved before the Pause Intent,
-        # so the stream is updated from request when playback is stopped
-
-        from_context = getattr(self.context, 'AudioPlayer', models._Field())
-        if from_context:
-            _dbgdump('Updating from context')
-            return from_context.__dict__
-        return {}
+        return getattr(self.context, 'AudioPlayer', {})
 
     def _from_directive(self):
-        _dbgdump('Updating from stream buffer')
         from_buffer = _stream_buffer.top
         if from_buffer:
+            if self.request.intent and 'PauseIntent' in self.request.intent.name:
+                return {}
             return from_buffer
         return {}
 
@@ -590,7 +572,6 @@ class Ask(object):
 
         else:
             for param_name in self.request:
-                _dbgdump('{} from Audio Request is {}'.format(param_name, self.request[param_name]))
                 request_data[param_name] = getattr(self.request, param_name, None)
 
         for arg_name in arg_names:
