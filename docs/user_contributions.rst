@@ -22,3 +22,7 @@ Have an article or video to submit? Please send it to john@johnwheeler.org
 `Testing our Skill - Alexa Skills w/ Python and Flask-Ask Part 3 <https://pythonprogramming.net/testing-deploying-alexa-skill-flask-ask-python-tutorial/>`_
 
   by Harrison Kinsley
+
+`Flask-Ask — A tutorial on a simple and easy way to build complex Alexa Skills <https://blog.craftworkz.co/flask-ask-a-tutorial-on-a-simple-and-easy-way-to-build-complex-alexa-skills-426a6b3ff8bc#.70eay9n07>`_
+
+  by Bjorn Vuylsteker

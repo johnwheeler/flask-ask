@@ -464,20 +464,11 @@ class Ask(object):
     def _update_stream(self):
         fresh_stream = models._Field()
         fresh_stream.__dict__.update(self.current_stream.__dict__)  # keeps url attribute after stopping stream
-
         fresh_stream.__dict__.update(self._from_directive())  
         fresh_stream.__dict__.update(self._from_context())
-        # fresh_stream.__dict__.update(self._from_request())
 
         self.current_stream = fresh_stream
-
         _dbgdump(current_stream.__dict__)
-
-    def _from_request(self):
-        """Used to update current_stream from AudioPlayerRequests. Allows syncing of offset"""
-        if 'AudioPlayer' in self.request['type']:
-            return {'offsetInMilliseconds': self.request['offsetInMilliseconds']}
-        return {}
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})

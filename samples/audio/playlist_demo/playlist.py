@@ -1,11 +1,7 @@
-import logging
-
-from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement, context, audio, current_stream, logger
-
 import collections
-from werkzeug.local import LocalProxy
-
+import logging
+from flask import Flask, json
+from flask_ask import Ask, question, statement, audio, current_stream, logger
 
 app = Flask(__name__)
 ask = Ask(app, "/")
@@ -215,7 +211,7 @@ def stopped(offset, token):
 
 @ask.intent('AMAZON.PauseIntent')
 def pause():
-    seconds = in_seconds(current_stream.offsetInMilliseconds)
+    seconds = current_stream.offsetInMilliseconds / 1000
     msg = 'Paused the Playlist on track {}, offset at {} seconds'.format(
         queue.current_position, seconds)
     _infodump(msg)
@@ -225,7 +221,7 @@ def pause():
 
 @ask.intent('AMAZON.ResumeIntent')
 def resume():
-    seconds = in_seconds(current_stream.offsetInMilliseconds)
+    seconds = current_stream.offsetInMilliseconds / 1000
     msg = 'Resuming the Playlist on track {}, offset at {} seconds'.format(queue.current_position, seconds)
     _infodump(msg)
     dump_stream_info()
@@ -235,9 +231,6 @@ def resume():
 @ask.session_ended
 def session_ended():
     return "", 200
-
-def in_seconds(ms):
-    return ms / 1000
 
 def dump_stream_info():
     status = {
