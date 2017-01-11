@@ -42,7 +42,7 @@ class Ask(object):
 
     """
 
-    def __init__(self, app=None, route=None):
+    def __init__(self, app=None, route=None, blueprint=None):
 
         self.app = app
         self._route = route
@@ -58,11 +58,13 @@ class Ask(object):
         self._player_converts = {}
         if app is not None:
             self.init_app(app)
+        elif blueprint is not None:
+            self.init_blueprint(blueprint)
 
     def init_app(self, app):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
 
-        The Ask instance is given the following configuration varables by calling on Flask's configuration:
+        The Ask instance is given the following configuration variables by calling on Flask's configuration:
 
         `ASK_APPLICATION_ID`:
 
@@ -97,6 +99,26 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
+
+    def init_blueprint(self, blueprint):
+        """
+        Initialize a Flask Blueprint, similar to init_app, but without the access
+        to the application config.
+        :param blueprint: Flask Blueprint instance
+        :return: None
+        """
+        if self._route is not None:
+            raise TypeError("route cannot be set when using blueprints!")
+
+        blueprint.ask = self
+
+        # TODO: refactor logic to have these looked up on the fly after blueprint registration occurs
+        self.ask_verify_requests = False
+        self.ask_verify_timestamp_debug = False
+        self.ask_application_id = None
+
+        blueprint.add_url_rule("/", view_func=self._flask_view_func, methods=['POST'])
+        blueprint.jinja_loader = ChoiceLoader([blueprint.jinja_loader, YamlLoader(blueprint)])
 
     def on_session_started(self, f):
         """Decorator to call wrapped function upon starting a session.
