@@ -12,14 +12,29 @@ from . import verifier
 from . import logger
 from .convert import to_date, to_time, to_timedelta
 import collections
-import random
 
-request = LocalProxy(lambda: current_app.ask.request)
-session = LocalProxy(lambda: current_app.ask.session)
-version = LocalProxy(lambda: current_app.ask.version)
-context = LocalProxy(lambda: current_app.ask.context)
-convert_errors = LocalProxy(lambda: current_app.ask.convert_errors)
-current_stream = LocalProxy(lambda: current_app.ask.current_stream)
+
+def find_ask():
+    """
+    Find our instance of Ask, navigating Local's and possible blueprints.
+
+    Note: This only supports returning a reference to the first instance of Ask found.
+    """
+    if hasattr(current_app, 'ask'):
+        return getattr(current_app, 'ask')
+    else:
+        if hasattr(current_app, 'blueprints'):
+            blueprints = getattr(current_app, 'blueprints')
+            for blueprint_name in blueprints:
+                if hasattr(blueprints[blueprint_name], 'ask'):
+                    return getattr(blueprints[blueprint_name], 'ask')
+
+request = LocalProxy(lambda: find_ask().request)
+session = LocalProxy(lambda: find_ask().session)
+version = LocalProxy(lambda: find_ask().version)
+context = LocalProxy(lambda: find_ask().context)
+convert_errors = LocalProxy(lambda: find_ask().convert_errors)
+current_stream = LocalProxy(lambda: find_ask().current_stream)
 _stream_buffer = LocalStack()
 
 from . import models
@@ -93,9 +108,9 @@ class Ask(object):
 
         app.ask = self
 
-        self.ask_verify_requests = app.config.get('ASK_VERIFY_REQUESTS', True)
-        self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
-        self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
+        #self.ask_verify_requests = app.config.get('ASK_VERIFY_REQUESTS', True)
+        #self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
+        #self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
@@ -110,15 +125,23 @@ class Ask(object):
         if self._route is not None:
             raise TypeError("route cannot be set when using blueprints!")
 
+        # we need to tuck our reference to this Ask instance into the blueprint object and find it later!
         blueprint.ask = self
-
-        # TODO: refactor logic to have these looked up on the fly after blueprint registration occurs
-        self.ask_verify_requests = False
-        self.ask_verify_timestamp_debug = False
-        self.ask_application_id = None
 
         blueprint.add_url_rule("/", view_func=self._flask_view_func, methods=['POST'])
         blueprint.jinja_loader = ChoiceLoader([blueprint.jinja_loader, YamlLoader(blueprint)])
+
+    @property
+    def ask_verify_requests(self):
+        current_app.config.get('ASK_VERIFY_REQUESTS', True)
+
+    @property
+    def ask_verify_timestamp_debug(self):
+        current_app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
+
+    @property
+    def ask_application_id(self):
+        current_app.config.get('ASK_APPLICATION_ID', None)
 
     def on_session_started(self, f):
         """Decorator to call wrapped function upon starting a session.
@@ -490,7 +513,7 @@ class Ask(object):
         fresh_stream.__dict__.update(self._from_context())
 
         self.current_stream = fresh_stream
-        _dbgdump(current_stream.__dict__)
+        #_dbgdump(current_stream.__dict__)
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})

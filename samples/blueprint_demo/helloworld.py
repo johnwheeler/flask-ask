@@ -1,15 +1,11 @@
 import logging
 
-from flask import Flask, Blueprint
-from flask_ask import Ask, request, session, question, statement
+from flask import Blueprint
+from flask_ask import Ask, question, statement
 
 
-app = Flask(__name__)
 blueprint = Blueprint('blueprint_api', __name__, url_prefix="/ask")
-
 ask = Ask(blueprint=blueprint)
-app.ask = blueprint.ask
-app.register_blueprint(blueprint)
 
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
@@ -36,6 +32,3 @@ def help():
 def session_ended():
     return "", 200
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
