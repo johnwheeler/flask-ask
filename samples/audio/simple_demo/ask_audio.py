@@ -5,6 +5,7 @@ from flask_ask import Ask, request, session, question, statement, context, audio
 
 app = Flask(__name__)
 ask = Ask(app, "/")
+logger = logging.getLogger()
 logging.getLogger('flask_ask').setLevel(logging.INFO)
 
 
