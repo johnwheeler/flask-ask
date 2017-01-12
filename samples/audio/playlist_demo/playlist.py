@@ -1,5 +1,7 @@
 import collections
 import logging
+from copy import copy
+
 from flask import Flask, json
 from flask_ask import Ask, question, statement, audio, current_stream, logger
 
@@ -54,7 +56,7 @@ class QueueManager(object):
     @property
     def up_next(self):
         """Returns the url at the front of the queue"""
-        qcopy = self._queued.copy()
+        qcopy = copy(self._queued)
         try:
             return qcopy.popleft()
         except IndexError:
@@ -75,7 +77,7 @@ class QueueManager(object):
 
     @property
     def previous(self):
-        history = self.history.copy()
+        history = copy(self.history)
         try:
             return history.pop()
         except IndexError:
