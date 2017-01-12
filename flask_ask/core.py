@@ -127,7 +127,7 @@ class Ask(object):
         # make sure we set the rule to "/" so the Blueprint's url_prefix works, otherwise we can
         # end up with things like "/ask/ask" when we only want "/ask"
         blueprint.add_url_rule("/", view_func=self._flask_view_func, methods=['POST'])
-        blueprint.jinja_loader = ChoiceLoader([blueprint.jinja_loader, YamlLoader(blueprint)])
+        blueprint.jinja_loader = ChoiceLoader([YamlLoader(blueprint)])
 
     @property
     def ask_verify_requests(self):
