@@ -124,9 +124,11 @@ class Ask(object):
         # we need to tuck our reference to this Ask instance into the blueprint object and find it later!
         blueprint.ask = self
 
-        # make sure we set the rule to "/" so the Blueprint's url_prefix works, otherwise we can
-        # end up with things like "/ask/ask" when we only want "/ask"
-        blueprint.add_url_rule("/", view_func=self._flask_view_func, methods=['POST'])
+        # BlueprintSetupState.add_url_rule gets called underneath the covers and
+        # concats the rule string, so we should set to an empty string to allow
+        # Blueprint('blueprint_api', __name__, url_prefix="/ask") to result in
+        # exposing the rule at "/ask" and not "/ask/".
+        blueprint.add_url_rule("", view_func=self._flask_view_func, methods=['POST'])
         blueprint.jinja_loader = ChoiceLoader([YamlLoader(blueprint)])
 
     @property
