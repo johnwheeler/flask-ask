@@ -108,10 +108,6 @@ class Ask(object):
 
         app.ask = self
 
-        #self.ask_verify_requests = app.config.get('ASK_VERIFY_REQUESTS', True)
-        #self.ask_verify_timestamp_debug = app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
-        #self.ask_application_id = app.config.get('ASK_APPLICATION_ID', None)
-
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
@@ -128,6 +124,8 @@ class Ask(object):
         # we need to tuck our reference to this Ask instance into the blueprint object and find it later!
         blueprint.ask = self
 
+        # make sure we set the rule to "/" so the Blueprint's url_prefix works, otherwise we can
+        # end up with things like "/ask/ask" when we only want "/ask"
         blueprint.add_url_rule("/", view_func=self._flask_view_func, methods=['POST'])
         blueprint.jinja_loader = ChoiceLoader([blueprint.jinja_loader, YamlLoader(blueprint)])
 
