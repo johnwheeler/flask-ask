@@ -244,7 +244,10 @@ def _copyattr(src, dest, attr, convert=None):
 
 def _output_speech(speech):
     try:
-        xmldoc = ElementTree.fromstring(speech)
+        etree_string = speech
+        if isinstance(etree_string, unicode):
+            etree_string = etree_string.encode('utf-8')
+        xmldoc = ElementTree.fromstring(etree_string)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
     except ElementTree.ParseError as e:
@@ -255,3 +258,4 @@ def _output_speech(speech):
 def _dbgdump(obj, indent=2, default=None, cls=None):
     msg = json.dumps(obj, indent=indent, default=default, cls=cls)
     logger.debug(msg)
+
