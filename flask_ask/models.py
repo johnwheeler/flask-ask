@@ -26,8 +26,6 @@ class _Field(dict):
     request_type_from_attrs = payload_object.request.type
 
     assert request_type_from_keys == request_type_from_attrs
-
-
     """
 
     def __init__(self, request_json={}):
@@ -219,8 +217,8 @@ class audio(_Response):
 
         Keyword Arguments:
             stop {bool}  set True to stop current current stream and clear queued streams.
-                           set False to clear queued streams and allow current stream to finish
-                           default: {False}
+                set False to clear queued streams and allow current stream to finish
+                default: {False}
         """
 
         directive = {}
