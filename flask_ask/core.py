@@ -15,8 +15,7 @@ import collections
 
 
 def find_ask():
-    """
-    Find our instance of Ask, navigating Local's and possible blueprints.
+    """Find our instance of Ask, navigating Local's and possible blueprints.
 
     Note: This only supports returning a reference to the first instance of Ask found.
     """
@@ -52,8 +51,8 @@ class Ask(object):
     Route provides the entry point for the skill, and must be provided if an app is given.
 
     Keyword Arguments:
-            app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
-            route {str} -- entry point to which initial Alexa Requests are forwarded (default: {None})
+        app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
+        route {str} -- entry point to which initial Alexa Requests are forwarded (default: {None})
 
     """
 
@@ -83,11 +82,11 @@ class Ask(object):
 
         `ASK_APPLICATION_ID`:
 
-             Turn on application ID verification by setting this variable to an application ID or a
-             list of allowed application IDs. By default, application ID verification is disabled and a
-             warning is logged. This variable should be set in production to ensure
-             requests are being sent by the applications you specify.
-             Default: None
+            Turn on application ID verification by setting this variable to an application ID or a
+            list of allowed application IDs. By default, application ID verification is disabled and a
+            warning is logged. This variable should be set in production to ensure
+            requests are being sent by the applications you specify.
+            Default: None
 
         `ASK_VERIFY_REQUESTS`:
 
@@ -112,8 +111,7 @@ class Ask(object):
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
 
     def init_blueprint(self, blueprint):
-        """
-        Initialize a Flask Blueprint, similar to init_app, but without the access
+        """Initialize a Flask Blueprint, similar to init_app, but without the access
         to the application config.
         :param blueprint: Flask Blueprint instance
         :return: None
@@ -215,14 +213,14 @@ class Ask(object):
 
         Keyword Arguments:
             mapping {dict} -- Maps parameters to intent slots of a different name
-                                default: {}
+                default: {}
 
             convert {dict} -- Converts slot values to data types before assignment to parameters
-                                default: {}
+                default: {}
 
             default {dict} --  Provides default values for Intent slots if Alexa reuqest
-                                returns no corresponding slot, or a slot with an empty value
-                                default: {}
+                returns no corresponding slot, or a slot with an empty value
+                default: {}
         """
         def decorator(f):
             self._intent_view_funcs[intent_name] = f
@@ -246,11 +244,11 @@ class Ask(object):
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         AudioPlayer Requests include:
-                offsetInMilliseconds - position in stream when request was sent
-                                     - not end of stream, often few ms after Play Directive offset
-                                     - this parameter is automatically mapped to 'offset' by default
+            offsetInMilliseconds - Position in stream when request was sent.
+                Not end of stream, often few ms after Play Directive offset.
+                This parameter is automatically mapped to 'offset' by default
 
-                token - token of the stream that is nearly finished.
+            token - token of the stream that is nearly finished.
 
         @ask.on_playback_started()
         def on_playback_start(token, offset):
@@ -280,9 +278,9 @@ class Ask(object):
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         AudioPlayer Requests include:
-                offsetInMilliseconds - position in stream when request was sent
-                                     - not end of stream, often few ms after Play Directive offset
-                                     - this parameter is automatically mapped to 'offset' by default
+            offsetInMilliseconds - Position in stream when request was sent.
+                Not end of stream, often few ms after Play Directive offset.
+                This parameter is automatically mapped to 'offset' by default.
 
                 token - token of the stream that is nearly finished.
 
@@ -318,14 +316,13 @@ class Ask(object):
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         AudioPlayer Requests include:
-                offsetInMilliseconds - position in stream when request was sent
-                                     - not end of stream, often few ms after Play Directive offset
-                                     - this parameter is automatically mapped to 'offset' by default
+            offsetInMilliseconds - Position in stream when request was sent.
+                Not end of stream, often few ms after Play Directive offset.
+                This parameter is automatically mapped to 'offset' by default.
 
                 token - token of the stream that is nearly finished.
 
         Audioplayer Requests do not include the stream URL, it must be accessed from current_stream.url
-
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStopped'] = f
@@ -349,13 +346,13 @@ class Ask(object):
         necessarily when the stream's offset is near the end.
         The request may be sent by Alexa immediately after your skill sends a Play Directive.
 
-
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         This AudioPlayer Request includes:
-                offsetInMilliseconds - position in stream when request was sent
-                                     - not end of stream, often few ms after Play Directive offset
-                                     - this parameter is automatically mapped to 'offset' by default
+        AudioPlayer Requests include:
+            offsetInMilliseconds - Position in stream when request was sent.
+                Not end of stream, often few ms after Play Directive offset.
+                This parameter is automatically mapped to 'offset' by default.
 
                 token - token of the stream that is nearly finished.
 
@@ -368,7 +365,7 @@ class Ask(object):
             audio().enqueue(my_next_song)
 
         # offsetInMilliseconds is mapped to offset by default for convenience
-        @ask.on_playback_nearly_finished()      
+        @ask.on_playback_nearly_finished()
         def show_request_feedback(offset, token):
             logging.info('Nearly Finished')
             logging.info('Stream at {} ms when Playback Request sent'.format(offset))
@@ -402,22 +399,21 @@ class Ask(object):
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
         PlayBackFailed Requests include:
-                error - Contains error info under parameters type and message
+            error - Contains error info under parameters type and message
 
+            token - represents the stream that failed to play.
 
-                token - represents the stream that failed to play.
+            currentPlaybackState - Details about the playback activity occurring at the time of the error
+                Contains the following parameters:
 
-                currentPlaybackState -details about the playback activity occurring at the time of the error
-                                    - contains the following parameters
+            token - represents the audio stream currently playing when the error occurred.
+                Note that this may be different from the value of the request.token property.
 
-                        token - represents the audio stream currently playing when the error occurred.
-                                Note that this may be different from the value of the request.token property.
+            offsetInMilliseconds - Position in stream when request was sent.
+                Not end of stream, often few ms after Play Directive offset.
+                This parameter is automatically mapped to 'offset' by default.
 
-                        offsetInMilliseconds - position in current stream when error occured
-                                         - not end of stream, often few ms after Play Directive offset
-                                         - this parameter is automatically mapped to 'offset' by default
-
-                        playerActivity - player state when the error occurred
+            playerActivity - player state when the error occurred
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStarted'] = f
@@ -509,7 +505,7 @@ class Ask(object):
     def _update_stream(self):
         fresh_stream = models._Field()
         fresh_stream.__dict__.update(self.current_stream.__dict__)  # keeps url attribute after stopping stream
-        fresh_stream.__dict__.update(self._from_directive())  
+        fresh_stream.__dict__.update(self._from_directive())
         fresh_stream.__dict__.update(self._from_context())
 
         self.current_stream = fresh_stream
