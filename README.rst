@@ -12,7 +12,7 @@ Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/fl
 Program the Amazon Echo with Python
 ===================================
 
-Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun.
+Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun. Python 2 and 3 are supported.
 
 * `Flask-Ask quickstart on Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 * `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
