@@ -131,15 +131,15 @@ class Ask(object):
 
     @property
     def ask_verify_requests(self):
-        current_app.config.get('ASK_VERIFY_REQUESTS', True)
+        return current_app.config.get('ASK_VERIFY_REQUESTS', True)
 
     @property
     def ask_verify_timestamp_debug(self):
-        current_app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
+        return current_app.config.get('ASK_VERIFY_TIMESTAMP_DEBUG', False)
 
     @property
     def ask_application_id(self):
-        current_app.config.get('ASK_APPLICATION_ID', None)
+        return current_app.config.get('ASK_APPLICATION_ID', None)
 
     def on_session_started(self, f):
         """Decorator to call wrapped function upon starting a session.
