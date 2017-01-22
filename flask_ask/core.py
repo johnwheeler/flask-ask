@@ -11,6 +11,8 @@ from flask import current_app, json, request as flask_request, _app_ctx_stack
 from . import verifier
 from . import logger
 from .convert import to_date, to_time, to_timedelta
+from verifier import VerificationError
+
 import collections
 
 
@@ -480,8 +482,11 @@ class Ask(object):
         alexa_request_payload = json.loads(raw_body)
 
         if verify:
-            cert_url = flask_request.headers['Signaturecertchainurl']
-            signature = flask_request.headers['Signature']
+            cert_url = flask_request.headers.get('Signaturecertchainurl', None)
+            signature = flask_request.headers.get('Signature', None)
+
+            if cert_url is None or signature is None:
+                raise VerificationError("Missing Signature or Signature Url")
 
             # load certificate - this verifies a the certificate url and format under the hood
             cert = verifier.load_certificate(cert_url)
