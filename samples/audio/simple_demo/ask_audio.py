@@ -72,7 +72,7 @@ def stream_finished(token):
 
 @ask.session_ended
 def session_ended():
-    return "", 200
+    return statement('')
 
 def _infodump(obj, indent=2):
     msg = json.dumps(obj, indent=indent)
