@@ -123,7 +123,7 @@ Properly handle all verification errors by returning `400` status code like this
 
   @app.errorhandler(VerificationError)
   def failed_verification(error):
-    return str(error), 400
+      return str(error), 400
 
   if __name__ == '__main__':
       app.run()
