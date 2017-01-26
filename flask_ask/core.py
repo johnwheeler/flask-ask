@@ -506,7 +506,10 @@ class Ask(object):
         fresh_stream = models._Field()
         fresh_stream.__dict__.update(self.current_stream.__dict__)  # keeps url attribute after stopping stream
         fresh_stream.__dict__.update(self._from_directive())
-        fresh_stream.__dict__.update(self._from_context())
+        
+        context_info = self._from_context()
+        if context_info != None:
+            fresh_stream.__dict__.update(context_info)
 
         self.current_stream = fresh_stream
         _dbgdump(current_stream.__dict__)
