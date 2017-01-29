@@ -16,7 +16,7 @@ Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that make
 
 * `Flask-Ask quickstart on Amazon's Developer Blog <https://developer.amazon.com/public/community/post/Tx14R0IYYGH3SKT/Flask-Ask-A-New-Python-Framework-for-Rapid-Alexa-Skills-Kit-Development>`_.
 * `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
-* `Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_ 
+* `Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_
 
 The Basics
 ===============
@@ -59,7 +59,7 @@ above:
 .. code-block:: yaml
 
     hello: Hello, {{ firstname }}
-    
+
 Templates are stored in a file called `templates.yaml` located in the application root. Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
 Features
@@ -102,6 +102,31 @@ You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you have
 To deploy on AWS Lambda, use `Zappa <https://github.com/Miserlou/Zappa>`_. This `12-minute video <https://www.youtube.com/watch?v=mjWV4R2P4ks>`_ shows how to deploy Flask-Ask with Zappa from scratch.
 
 Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates, not the Lambda function's ARN.
+
+Set your Flask config value for `ASK_APPLICATION_ID` to your Alexa Skill Id.
+
+Properly handle all verification errors by returning `400` status code like this:
+
+.. code-block:: python
+
+  from flask import Flask
+  from flask_ask import Ask, statement
+  from flask_ask.verifier import VerificationError
+
+  app = Flask(__name__)
+  ask = Ask(app, '/')
+
+  @ask.intent('HelloIntent')
+  def hello(firstname):
+      speech_text = "Hello %s" % firstname
+      return statement(speech_text).simple_card('Hello', speech_text)
+
+  @app.errorhandler(VerificationError)
+  def failed_verification(error):
+      return str(error), 400
+
+  if __name__ == '__main__':
+      app.run()
 
 Thank You
 ===============
