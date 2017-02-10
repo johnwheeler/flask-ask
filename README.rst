@@ -6,8 +6,6 @@
 .. |Bird| image:: http://i.imgur.com/UUARvmc.png
 .. _Bird: https://twitter.com/_johnwheeler
 
-Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_ (early alpha)
-
 ===================================
 Program the Amazon Echo with Python
 ===================================
@@ -102,6 +100,15 @@ You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you have
 To deploy on AWS Lambda, use `Zappa <https://github.com/Miserlou/Zappa>`_. This `12-minute video <https://www.youtube.com/watch?v=mjWV4R2P4ks>`_ shows how to deploy Flask-Ask with Zappa from scratch.
 
 Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates, not the Lambda function's ARN.
+
+
+Related projects
+===============
+
+`cookiecutter-flask-ask <https://github.com/chrisvoncsefalvay/cookiecutter-flask-ask>`_ is a Cookiecutter to easily bootstrap a Flask-Ask project, including documentation, speech assets and basic built-in intents.
+
+Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/flask-assistant>`_ (early alpha)
+
 
 Thank You
 ===============
