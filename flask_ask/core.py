@@ -391,8 +391,8 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_failed(self, mapping={}, convert={}, default={}):
-        """Decorator routes an AudioPlayer.PlaybackNearlyFinished Request to the wrapped function.
+    def on_playback_failed(self, mapping={'offset': 'offsetInMilliseconds', 'error': 'error', 'playerActivity': 'activity'}, convert={}, default={}):
+        """Decorator routes an AudioPlayer.PlaybackFailed Request to the wrapped function.
 
         This AudioPlayer Request sent when Alexa encounters an error when attempting to play a stream.
 
@@ -416,10 +416,10 @@ class Ask(object):
             playerActivity - player state when the error occurred
         """
         def decorator(f):
-            self._intent_view_funcs['AudioPlayer.PlaybackStarted'] = f
-            self._intent_mappings['AudioPlayer.PlaybackStarted'] = mapping
-            self._intent_converts['AudioPlayer.PlaybackStarted'] = convert
-            self._intent_defaults['AudioPlayer.PlaybackStarted'] = default
+            self._intent_view_funcs['AudioPlayer.PlaybackFailed'] = f
+            self._intent_mappings['AudioPlayer.PlaybackFailed'] = mapping
+            self._intent_converts['AudioPlayer.PlaybackFailed'] = convert
+            self._intent_defaults['AudioPlayer.PlaybackFailed'] = default
 
             @wraps(f)
             def wrapper(*args, **kwargs):
@@ -506,7 +506,7 @@ class Ask(object):
         fresh_stream = models._Field()
         fresh_stream.__dict__.update(self.current_stream.__dict__)  # keeps url attribute after stopping stream
         fresh_stream.__dict__.update(self._from_directive())
-        
+
         context_info = self._from_context()
         if context_info != None:
             fresh_stream.__dict__.update(context_info)
