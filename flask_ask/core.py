@@ -391,13 +391,14 @@ class Ask(object):
             return f
         return decorator
 
-    def on_playback_failed(self, mapping={'offset': 'offsetInMilliseconds', 'error': 'error', 'playerActivity': 'activity'}, convert={}, default={}):
+    def on_playback_failed(self, mapping={}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackFailed Request to the wrapped function.
 
         This AudioPlayer Request sent when Alexa encounters an error when attempting to play a stream.
 
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
+        
         PlayBackFailed Requests include:
             error - Contains error info under parameters type and message
 
@@ -406,14 +407,14 @@ class Ask(object):
             currentPlaybackState - Details about the playback activity occurring at the time of the error
                 Contains the following parameters:
 
-            token - represents the audio stream currently playing when the error occurred.
-                Note that this may be different from the value of the request.token property.
+                    token - represents the audio stream currently playing when the error occurred.
+                        Note that this may be different from the value of the request.token property.
 
-            offsetInMilliseconds - Position in stream when request was sent.
-                Not end of stream, often few ms after Play Directive offset.
-                This parameter is automatically mapped to 'offset' by default.
+                    offsetInMilliseconds - Position in stream when request was sent.
+                        Not end of stream, often few ms after Play Directive offset.
+                        This parameter is automatically mapped to 'offset' by default.
 
-            playerActivity - player state when the error occurred
+                    playerActivity - player state when the error occurred
         """
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackFailed'] = f
