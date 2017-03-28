@@ -56,7 +56,7 @@ class Ask(object):
 
     """
 
-    def __init__(self, app=None, route=None, blueprint=None):
+    def __init__(self, app=None, route=None, blueprint=None, path=None):
 
         self.app = app
         self._route = route
@@ -71,11 +71,11 @@ class Ask(object):
         self._player_mappings = {}
         self._player_converts = {}
         if app is not None:
-            self.init_app(app)
+            self.init_app(app, path)
         elif blueprint is not None:
             self.init_blueprint(blueprint)
 
-    def init_app(self, app):
+    def init_app(self, app, path):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
 
         The Ask instance is given the following configuration variables by calling on Flask's configuration:
@@ -108,7 +108,7 @@ class Ask(object):
         app.ask = self
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
-        app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app)])
+        app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app, path)])
 
     def init_blueprint(self, blueprint):
         """Initialize a Flask Blueprint, similar to init_app, but without the access
