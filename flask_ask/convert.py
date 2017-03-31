@@ -37,6 +37,14 @@ def to_time(amazon_time):
         return time(hour=0)
     if amazon_time == "PM":
         return time(hour=12)
+    if amazon_time == "MO":
+        return time(hour=5)
+    if amazon_time == "AF":
+        return time(hour=12)
+    if amazon_time == "EV":
+        return time(hour=17)
+    if amazon_time == "NI":
+        return time(hour=21)
     try:
         return aniso8601.parse_time(amazon_time)
     except ValueError as e:
