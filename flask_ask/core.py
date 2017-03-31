@@ -56,7 +56,7 @@ class Ask(object):
 
     """
 
-    def __init__(self, app=None, route=None, blueprint=None, path=None):
+    def __init__(self, app=None, route=None, blueprint=None, path='templates.yaml'):
 
         self.app = app
         self._route = route
@@ -637,7 +637,7 @@ class Ask(object):
 
 class YamlLoader(BaseLoader):
 
-    def __init__(self, app, path='templates.yaml'):
+    def __init__(self, app, path):
         self.path = app.root_path + os.path.sep + path
         self.mapping = {}
         self._reload_mapping()
