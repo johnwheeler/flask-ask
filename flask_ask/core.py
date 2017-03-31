@@ -73,7 +73,7 @@ class Ask(object):
         if app is not None:
             self.init_app(app, path)
         elif blueprint is not None:
-            self.init_blueprint(blueprint)
+            self.init_blueprint(blueprint, path)
 
     def init_app(self, app, path):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
@@ -110,7 +110,7 @@ class Ask(object):
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app, path)])
 
-    def init_blueprint(self, blueprint):
+    def init_blueprint(self, blueprint, path):
         """Initialize a Flask Blueprint, similar to init_app, but without the access
         to the application config.
         :param blueprint: Flask Blueprint instance
@@ -127,7 +127,7 @@ class Ask(object):
         # Blueprint('blueprint_api', __name__, url_prefix="/ask") to result in
         # exposing the rule at "/ask" and not "/ask/".
         blueprint.add_url_rule("", view_func=self._flask_view_func, methods=['POST'])
-        blueprint.jinja_loader = ChoiceLoader([YamlLoader(blueprint)])
+        blueprint.jinja_loader = ChoiceLoader([YamlLoader(blueprint, path)])
 
     @property
     def ask_verify_requests(self):
