@@ -133,3 +133,7 @@ You can also use Jinja templates. Define them in a YAML file named `templates.ya
             Enjoy the sounds of the ocean.
             <audio src='https://s3.amazonaws.com/ask-storage/tidePooler/OceanWaves.mp3'/>
         </speak>
+
+You can also use a custom templates file passed into the Ask object::
+
+  ask = Ask(app, '/', None, 'custom-templates.yml')
