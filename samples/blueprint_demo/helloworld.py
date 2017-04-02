@@ -30,5 +30,4 @@ def help():
 
 @ask.session_ended
 def session_ended():
-    return "", 200
-
+    return statement('')

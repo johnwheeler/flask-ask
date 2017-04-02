@@ -183,7 +183,7 @@ class Ask(object):
 
         @ask.session_ended
         def session_ended():
-            return "", 200
+            return statement('')
 
         The wrapped function is registered as the session_ended view function
         and renders the response for requests to the end of the session.
