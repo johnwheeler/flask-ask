@@ -1,6 +1,6 @@
 import inspect
 from flask import json
-from xml.etree import ElementTree
+from lxml import etree
 import aniso8601
 from .core import session, _stream_buffer, current_stream
 from . import logger
@@ -242,7 +242,8 @@ def _copyattr(src, dest, attr, convert=None):
 
 def _output_speech(speech):
     try:
-        xmldoc = ElementTree.fromstring(speech)
+        parser = etree.XMLParser(recover=True)
+        xmldoc = etree.fromstring(speech, parser=parser)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
     except ElementTree.ParseError as e:

@@ -26,6 +26,7 @@ setup(
         'PyYAML',
         'aniso8601',
         'six',
+        'lxml'
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
