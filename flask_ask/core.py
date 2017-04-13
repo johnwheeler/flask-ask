@@ -183,7 +183,7 @@ class Ask(object):
 
         @ask.session_ended
         def session_ended():
-            return "", 200
+            return "{}", 200
 
         The wrapped function is registered as the session_ended view function
         and renders the response for requests to the end of the session.
@@ -398,7 +398,7 @@ class Ask(object):
 
         The wrapped view function may accept parameters from the AudioPlayer Request.
         In addition to locale, requestId, timestamp, and type
-        
+
         PlayBackFailed Requests include:
             error - Contains error info under parameters type and message
 
@@ -554,8 +554,11 @@ class Ask(object):
 
         if request_type == 'LaunchRequest' and self._launch_view_func:
             result = self._launch_view_func()
-        elif request_type == 'SessionEndedRequest' and self._session_ended_view_func:
-            result = self._session_ended_view_func()
+        elif request_type == 'SessionEndedRequest':
+            if self._session_ended_view_func:
+                result = self._session_ended_view_func()
+            else:
+                result = "{}", 200
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
         elif 'AudioPlayer' in request_type:

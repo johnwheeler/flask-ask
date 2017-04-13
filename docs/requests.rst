@@ -62,7 +62,7 @@ The ``session_ended`` decorator is for the session ended request::
 
     @ask.session_ended
     def session_ended():
-        return "", 200
+        return "{}", 200
 
 Launch and intent requests can both start sessions. Avoid duplicate code with the ``on_session_started`` callback::
 

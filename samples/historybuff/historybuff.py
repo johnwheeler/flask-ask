@@ -99,7 +99,7 @@ def cancel():
 
 @ask.session_ended
 def session_ended():
-    return "", 200
+    return "{}", 200
 
 
 def _get_json_events_from_wikipedia(month, date):
