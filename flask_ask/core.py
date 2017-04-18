@@ -518,15 +518,17 @@ class Ask(object):
         if user:
             stream = top_stream(user)
             if stream:
-                return stream
+                current = models._Field()
+                current.__dict__.update(stream)
+                return current
         return models._Field()
 
     @current_stream.setter
     def current_stream(self, value):
-        #_app_ctx_stack.top._ask_current_stream = value
+        # assumption is we get a models._Field as value
         user = self._get_user()
         if user:
-            push_stream(user, value)
+            push_stream(user, value.__dict__)
 
     def _get_user(self):
         if self.context:

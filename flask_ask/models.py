@@ -20,7 +20,7 @@ class _Field(dict):
 
     Example:
 
-    payload_object = _Field(alexa_josn_payload)
+    payload_object = _Field(alexa_json_payload)
 
     request_type_from_keys = payload_object['request']['type']
     request_type_from_attrs = payload_object.request.type
