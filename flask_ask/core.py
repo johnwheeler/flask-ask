@@ -505,15 +505,25 @@ class Ask(object):
     @property
     def current_stream(self):
         #return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
-        stream = top_stream(self.context['System']['user'])
-        if stream:
-            return stream
+        user = self._get_user()
+        if user:
+            stream = top_stream(user)
+            if stream:
+                return stream
         return models._Field()
 
     @current_stream.setter
     def current_stream(self, value):
         #_app_ctx_stack.top._ask_current_stream = value
-        push_stream(self.context['System']['user'], value)
+        user = self._get_user()
+        if user:
+            push_stream(user, value)
+
+    def _get_user(self):
+        if self.context:
+            return self.context.get('System', {}).get('user', None)
+        return None
+                
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
