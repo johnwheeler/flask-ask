@@ -4,7 +4,7 @@ from xml.etree import ElementTree
 import aniso8601
 from .core import session, _stream_buffer, current_stream
 from . import logger
-import random
+import uuid
 
 from pprint import pprint
 
@@ -200,7 +200,7 @@ class audio(_Response):
         # new stream
         else:
             stream['url'] = stream_url
-            stream['token'] = str(random.randint(10000, 100000))
+            stream['token'] = str(uuid.uuid4())
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
