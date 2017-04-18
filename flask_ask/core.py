@@ -39,11 +39,20 @@ _stream_cache = LocalProxy(lambda: find_ask().stream_cache)
 
 
 def push_stream(user_id, stream):
+    """
+    Push a stream onto the stream stack in cache.
+    user_id: id of user, used as key in cache
+    stream: stream object to push onto stack
+    returns: True on successful update, False if failed to update, and None if invalid
+    input was given (e.g. stream is None)
+    """
     stack = _stream_cache.get(user_id)
     if stack is None:
         stack = []
-    stack.append(stream)
-    return _stream_cache.set(user_id, stack, timeout=60*60)
+    if stream: 
+        stack.append(stream)
+        return _stream_cache.set(user_id, stack, timeout=60*60)
+    return None
 
 
 def pop_stream(user_id):

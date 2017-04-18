@@ -33,6 +33,9 @@ class CacheTests(unittest.TestCase):
         self.assertEqual('junk', pop_stream(self.user_id))
         self.assertIsNone(pop_stream(self.user_id))
 
+    def test_cannot_push_nones_into_stack(self):
+        self.assertIsNone(push_stream(self.user_id, None))
+
 
 if __name__ == '__main__':
     unittest.main()
