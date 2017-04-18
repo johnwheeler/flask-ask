@@ -117,6 +117,8 @@ class Ask(object):
             self.init_blueprint(blueprint, path)
         if stream_cache is None:
             self.stream_cache = SimpleCache()
+        else:
+            self.stream_cache = stream_cache
 
     def init_app(self, app, path):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
