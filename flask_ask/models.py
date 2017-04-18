@@ -204,7 +204,7 @@ class audio(_Response):
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            push_stream(context['System']['userId'], stream)
+            push_stream(context['System']['user']['userId'], stream)
         return audio_item
 
     def stop(self):

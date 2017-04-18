@@ -521,7 +521,7 @@ class Ask(object):
 
     def _get_user(self):
         if self.context:
-            return self.context.get('System', {}).get('userId', None)
+            return self.context.get('System', {}).get('user', {}).get('userId')
         return None
                 
 
