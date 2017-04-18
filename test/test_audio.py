@@ -27,11 +27,14 @@ class AskStreamHandlingTests(unittest.TestCase):
 
     def setUp(self):
         fake_context = {'System': {'userId': 'dave'}}
-        self.patcher = patch.object(Ask, 'context', return_value=fake_context)
-        self.patcher.start()
+        self.context_patcher = patch.object(Ask, 'context', return_value=fake_context)
+        self.context_patcher.start()
+        self.request_patcher = patch.object(Ask, 'request', return_value=MagicMock())
+        self.request_patcher.start()
 
     def tearDown(self):
-        self.patcher.stop()
+        self.context_patcher.stop()
+        self.request_patcher.stop()
 
     def test_setting_and_getting_current_stream(self):
         ask = Ask()
@@ -43,6 +46,12 @@ class AskStreamHandlingTests(unittest.TestCase):
 
             self.assertEqual(stream, ask.current_stream)
 
+    def test_from_directive_call(self):
+        ask = Ask()
+        fake_stream = {'token':'fake'}
+        with patch('flask_ask.core.top_stream', return_value=fake_stream):
+            from_buffer = ask._from_directive()
+            self.assertEqual(fake_stream, from_buffer)
 
 
 if __name__ == '__main__':

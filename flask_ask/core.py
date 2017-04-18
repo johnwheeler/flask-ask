@@ -568,7 +568,7 @@ class Ask(object):
         return getattr(self.context, 'AudioPlayer', {})
 
     def _from_directive(self):
-        from_buffer = _stream_buffer.top
+        from_buffer = top_stream(self._get_user())
         if from_buffer:
             if self.request.intent and 'PauseIntent' in self.request.intent.name:
                 return {}
