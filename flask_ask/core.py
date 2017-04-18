@@ -4,6 +4,7 @@ import inspect
 from functools import wraps, partial
 
 import aniso8601
+from werkzeug.contrib.cache import SimpleCache
 from werkzeug.local import LocalProxy, LocalStack
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
@@ -34,7 +35,38 @@ version = LocalProxy(lambda: find_ask().version)
 context = LocalProxy(lambda: find_ask().context)
 convert_errors = LocalProxy(lambda: find_ask().convert_errors)
 current_stream = LocalProxy(lambda: find_ask().current_stream)
-_stream_buffer = LocalStack()
+_stream_cache = LocalProxy(lambda: find_ask().stream_cache)
+
+
+def push_stream(user_id, stream):
+    stack = _stream_cache.get(user_id)
+    if stack is None:
+        stack = []
+    stack.append(stream)
+    return _stream_cache.set(user_id, stack, timeout=60*60)
+
+
+def pop_stream(user_id):
+    stack = _stream_cache.get(user_id)
+    if stack is None:
+        return None
+
+    token = stack.pop()
+    
+    if len(stack) == 0:
+        _stream_cache.delete(user_id)
+    else:
+        _stream_cache.set(user_id, stack)
+    
+    return token
+
+
+def top_stream(user_id):
+    stack = _stream_cache.get(user_id)
+    if stack is None:
+        return None
+    return stack.pop()
+
 
 from . import models
 
@@ -56,7 +88,7 @@ class Ask(object):
 
     """
 
-    def __init__(self, app=None, route=None, blueprint=None, path='templates.yaml'):
+    def __init__(self, app=None, route=None, blueprint=None, stream_cache=None, path='templates.yaml'):
 
         self.app = app
         self._route = route
@@ -74,6 +106,8 @@ class Ask(object):
             self.init_app(app, path)
         elif blueprint is not None:
             self.init_blueprint(blueprint, path)
+        if stream_cache is None:
+            self.stream_cache = SimpleCache()
 
     def init_app(self, app, path):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
@@ -470,11 +504,16 @@ class Ask(object):
 
     @property
     def current_stream(self):
-        return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
+        #return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
+        stream = top_stream(self.context['System']['user'])
+        if stream:
+            return stream
+        return models._Field()
 
     @current_stream.setter
     def current_stream(self, value):
-        _app_ctx_stack.top._ask_current_stream = value
+        #_app_ctx_stack.top._ask_current_stream = value
+        push_stream(self.context['System']['user'], value)
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
