@@ -26,7 +26,7 @@ class AudioUnitTests(unittest.TestCase):
 class AskStreamHandlingTests(unittest.TestCase):
 
     def setUp(self):
-        fake_context = {'System': {'user': 'dave'}}
+        fake_context = {'System': {'userId': 'dave'}}
         self.patcher = patch.object(Ask, 'context', return_value=fake_context)
         self.patcher.start()
 
