@@ -61,7 +61,6 @@ launch = {
 }
 
 
-
 flask_ask_path = os.path.abspath(os.path.join(__file__, '../..'))
 
 
@@ -72,25 +71,35 @@ class SmokeTestUsingSamples(unittest.TestCase):
 
     def setUp(self):
         self.python = sys.executable
-        self.env = {'PYTHONPATH': flask_ask_path, 'ASK_VERIFY_REQUESTS': 'false'}
+        self.env = {'PYTHONPATH': flask_ask_path,
+                    'ASK_VERIFY_REQUESTS': 'false'}
 
-    def _launch(self, path):
-        return subprocess.Popen([self.python, path], env=self.env)
+    def _launch(self, sample):
+        prefix = '/Users/dave/src/vpr/flask-ask/samples/'
+        path = prefix + sample
+        process = subprocess.Popen([self.python, path], env=self.env)
+        time.sleep(2)
+        self.assertIsNone(process.poll())
+        self.process = process
 
-    def test_helloworld(self):
+    def tearDown(self):
         try:
-            process = self._launch('/Users/dave/src/vpr/flask-ask/samples/helloworld/helloworld.py')
-            self.assertIsNone(process.poll())
-            time.sleep(3)
-            response = post('http://127.0.0.1:5000', json=launch)
-            print('response: %s' % str(response))
-            process.send_signal(SIGINT)
-            process.wait(timeout=5)
-            self.assertIsNotNone(process.returncode)
-
-            
-        finally:
+            self.process.terminate()
+            self.process.communicate(timeout=2)
+        except Exception as e:
             try:
-                process.kill()
+                self.process.kill()
             except Exception as e:
                 pass
+
+    def test_helloworld(self):
+        self._launch('helloworld/helloworld.py')
+        response = post('http://127.0.0.1:5000', json=launch)
+        print('response: %s' % str(response))
+        self.assertEqual(200, response.status_code)
+
+    def test_session_sample(self):
+        self._launch('session/session.py')
+        response = post('http://127.0.0.1:5000', json=launch)
+        print('response: %s' % str(response))
+        self.assertEqual(200, response.status_code)
