@@ -59,11 +59,12 @@ class Ask(object):
     Keyword Arguments:
         app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
         route {str} -- entry point to which initial Alexa Requests are forwarded (default: {None})
-
+        blueprint {Flask blueprint} -- Flask Blueprint instance to use instead of Flask App (default: {None})
+        stream_cache {Werkzeug BasicCache} -- BasicCache-like object for storing Audio stream data (default: {SimpleCache})
+        path {str} -- path to templates yaml file for VUI dialog (default: {'templates.yaml'})
     """
 
     def __init__(self, app=None, route=None, blueprint=None, stream_cache=None, path='templates.yaml'):
-
         self.app = app
         self._route = route
         self._intent_view_funcs = {}
@@ -85,7 +86,7 @@ class Ask(object):
         else:
             self.stream_cache = stream_cache
 
-    def init_app(self, app, path):
+    def init_app(self, app, path='templates.yaml'):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
 
         The Ask instance is given the following configuration variables by calling on Flask's configuration:
@@ -120,11 +121,13 @@ class Ask(object):
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app, path)])
 
-    def init_blueprint(self, blueprint, path):
+    def init_blueprint(self, blueprint, path='templates.yaml'):
         """Initialize a Flask Blueprint, similar to init_app, but without the access
         to the application config.
-        :param blueprint: Flask Blueprint instance
-        :return: None
+
+        Keyword Arguments:
+            blueprint {Flask Blueprint} -- Flask Blueprint instance to initialize (Default: {None})
+            path {str} -- path to templates yaml file, relative to Blueprint (Default: {'templates.yaml'})
         """
         if self._route is not None:
             raise TypeError("route cannot be set when using blueprints!")
