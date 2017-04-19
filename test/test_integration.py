@@ -84,3 +84,6 @@ class AudioIntegrationTests(unittest.TestCase):
         self.assertEqual(self.stream_url, stream['url'])
         self.assertEqual(0, stream['offsetInMilliseconds'])
 
+
+if __name__ == '__main__':
+    unittest.main()

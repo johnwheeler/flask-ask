@@ -2,7 +2,8 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, context, current_stream, push_stream
+from .core import session, context, current_stream, stream_cache
+from .cache import push_stream
 from . import logger
 import uuid
 
@@ -204,7 +205,7 @@ class audio(_Response):
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            push_stream(context['System']['user']['userId'], stream)
+            push_stream(stream_cache, context['System']['user']['userId'], stream)
         return audio_item
 
     def stop(self):

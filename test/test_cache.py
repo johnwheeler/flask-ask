@@ -1,6 +1,8 @@
 import unittest
 from mock import patch
-from flask_ask.core import Ask, push_stream, pop_stream, top_stream, set_stream
+from werkzeug.contrib.cache import SimpleCache
+from flask_ask.core import Ask
+from flask_ask.cache import push_stream, pop_stream, top_stream, set_stream
 
 
 class CacheTests(unittest.TestCase):
@@ -10,40 +12,41 @@ class CacheTests(unittest.TestCase):
         self.ask = self.patcher.start()
         self.user_id = 'dave'
         self.token = '123-abc'
+        self.cache = SimpleCache()
 
     def tearDown(self):
         self.patcher.stop()
 
     def test_adding_removing_stream(self):
-        self.assertTrue(push_stream(self.user_id, self.token))
+        self.assertTrue(push_stream(self.cache, self.user_id, self.token))
 
         # peak at the top
-        self.assertEqual(self.token, top_stream(self.user_id))
-        self.assertIsNone(top_stream('not dave'))
+        self.assertEqual(self.token, top_stream(self.cache, self.user_id))
+        self.assertIsNone(top_stream(self.cache, 'not dave'))
 
         # pop it off
-        self.assertEqual(self.token, pop_stream(self.user_id))
-        self.assertIsNone(top_stream(self.user_id))
+        self.assertEqual(self.token, pop_stream(self.cache, self.user_id))
+        self.assertIsNone(top_stream(self.cache, self.user_id))
 
     def test_pushing_works_like_a_stack(self):
-        push_stream(self.user_id, 'junk')
-        push_stream(self.user_id, self.token)
+        push_stream(self.cache, self.user_id, 'junk')
+        push_stream(self.cache, self.user_id, self.token)
 
-        self.assertEqual(self.token, pop_stream(self.user_id))
-        self.assertEqual('junk', pop_stream(self.user_id))
-        self.assertIsNone(pop_stream(self.user_id))
+        self.assertEqual(self.token, pop_stream(self.cache, self.user_id))
+        self.assertEqual('junk', pop_stream(self.cache, self.user_id))
+        self.assertIsNone(pop_stream(self.cache, self.user_id))
 
     def test_cannot_push_nones_into_stack(self):
-        self.assertIsNone(push_stream(self.user_id, None))
+        self.assertIsNone(push_stream(self.cache, self.user_id, None))
 
     def test_set_overrides_stack(self):
-        push_stream(self.user_id, '1')
-        push_stream(self.user_id, '2')
-        self.assertEqual('2', top_stream(self.user_id))
+        push_stream(self.cache, self.user_id, '1')
+        push_stream(self.cache, self.user_id, '2')
+        self.assertEqual('2', top_stream(self.cache, self.user_id))
 
-        set_stream(self.user_id, '3')
-        self.assertEqual('3', pop_stream(self.user_id))
-        self.assertIsNone(pop_stream(self.user_id))
+        set_stream(self.cache, self.user_id, '3')
+        self.assertEqual('3', pop_stream(self.cache, self.user_id))
+        self.assertIsNone(pop_stream(self.cache, self.user_id))
 
 
 if __name__ == '__main__':

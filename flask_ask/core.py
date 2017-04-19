@@ -9,16 +9,18 @@ from werkzeug.local import LocalProxy, LocalStack
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
 
-from . import verifier
-from . import logger
+from . import verifier, logger
 from .convert import to_date, to_time, to_timedelta
+from .cache import top_stream, set_stream
 import collections
 
 
 def find_ask():
-    """Find our instance of Ask, navigating Local's and possible blueprints.
+    """
+    Find our instance of Ask, navigating Local's and possible blueprints.
 
-    Note: This only supports returning a reference to the first instance of Ask found.
+    Note: This only supports returning a reference to the first instance
+    of Ask found.
     """
     if hasattr(current_app, 'ask'):
         return getattr(current_app, 'ask')
@@ -29,60 +31,18 @@ def find_ask():
                 if hasattr(blueprints[blueprint_name], 'ask'):
                     return getattr(blueprints[blueprint_name], 'ask')
 
+
+
 request = LocalProxy(lambda: find_ask().request)
 session = LocalProxy(lambda: find_ask().session)
 version = LocalProxy(lambda: find_ask().version)
 context = LocalProxy(lambda: find_ask().context)
 convert_errors = LocalProxy(lambda: find_ask().convert_errors)
 current_stream = LocalProxy(lambda: find_ask().current_stream)
-_stream_cache = LocalProxy(lambda: find_ask().stream_cache)
-
-
-def push_stream(user_id, stream):
-    """
-    Push a stream onto the stream stack in cache.
-    user_id: id of user, used as key in cache
-    stream: stream object to push onto stack
-    returns: True on successful update, False if failed to update, and None if invalid
-    input was given (e.g. stream is None)
-    """
-    stack = _stream_cache.get(user_id)
-    if stack is None:
-        stack = []
-    if stream: 
-        stack.append(stream)
-        return _stream_cache.set(user_id, stack)
-    return None
-
-
-def pop_stream(user_id):
-    stack = _stream_cache.get(user_id)
-    if stack is None:
-        return None
-
-    token = stack.pop()
-    
-    if len(stack) == 0:
-        _stream_cache.delete(user_id)
-    else:
-        _stream_cache.set(user_id, stack)
-    
-    return token
-
-
-def set_stream(user_id, stream):
-    if stream:
-        return _stream_cache.set(user_id, [stream])
-
-
-def top_stream(user_id):
-    stack = _stream_cache.get(user_id)
-    if stack is None:
-        return None
-    return stack.pop()
-
+stream_cache = LocalProxy(lambda: find_ask().stream_cache)
 
 from . import models
+
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -523,7 +483,7 @@ class Ask(object):
         #return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
         user = self._get_user()
         if user:
-            stream = top_stream(user)
+            stream = top_stream(self.stream_cache, user)
             if stream:
                 current = models._Field()
                 current.__dict__.update(stream)
@@ -536,7 +496,7 @@ class Ask(object):
         # assumption 2 is if someone sets a value, it's resetting the stack
         user = self._get_user()
         if user:
-            set_stream(user, value.__dict__)
+            set_stream(self.stream_cache, user, value.__dict__)
 
     def _get_user(self):
         if self.context:
@@ -587,7 +547,7 @@ class Ask(object):
         return getattr(self.context, 'AudioPlayer', {})
 
     def _from_directive(self):
-        from_buffer = top_stream(self._get_user())
+        from_buffer = top_stream(self.stream_cache, self._get_user())
         if from_buffer:
             if self.request.intent and 'PauseIntent' in self.request.intent.name:
                 return {}
