@@ -51,7 +51,7 @@ def push_stream(user_id, stream):
         stack = []
     if stream: 
         stack.append(stream)
-        return _stream_cache.set(user_id, stack, timeout=60*60)
+        return _stream_cache.set(user_id, stack)
     return None
 
 
@@ -68,6 +68,11 @@ def pop_stream(user_id):
         _stream_cache.set(user_id, stack)
     
     return token
+
+
+def set_stream(user_id, stream):
+    if stream:
+        return _stream_cache.set(user_id, [stream])
 
 
 def top_stream(user_id):
@@ -527,10 +532,11 @@ class Ask(object):
 
     @current_stream.setter
     def current_stream(self, value):
-        # assumption is we get a models._Field as value
+        # assumption 1 is we get a models._Field as value
+        # assumption 2 is if someone sets a value, it's resetting the stack
         user = self._get_user()
         if user:
-            push_stream(user, value.__dict__)
+            set_stream(user, value.__dict__)
 
     def _get_user(self):
         if self.context:
