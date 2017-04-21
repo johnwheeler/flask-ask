@@ -5,7 +5,7 @@ Flask-Ask
 Easy Alexa Skills Kit integration for Flask
 """
 from setuptools import setup
-
+from pip.req import parse_requirements
 
 setup(
     name='Flask-Ask',
@@ -21,12 +21,14 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'Flask',
-        'pyOpenSSL',
-        'PyYAML',
-        'aniso8601',
-        'six',
+        str(item.req) for item in
+        parse_requirements('requirements.txt', session=False)
     ],
+    test_requires=[
+        'mock',
+        'requests'
+    ],
+    test_suite='tests',
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
         'Framework :: Flask',
