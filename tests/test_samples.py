@@ -7,13 +7,11 @@ import os
 import sys
 import time
 import subprocess
-from signal import SIGINT
+
 from requests import post
 
+import flask_ask
 
-samples = {
-    'helloworld/helloworld.py': ['HelloWorldIntent', 'AMAZON.HelpIntent'],
-}
 
 launch = {
   "version": "1.0",
@@ -61,26 +59,42 @@ launch = {
 }
 
 
-flask_ask_path = os.path.abspath(os.path.join(__file__, '../..'))
+project_root = os.path.abspath(os.path.join(flask_ask.__file__, '../..'))
 
 
 class SmokeTestUsingSamples(unittest.TestCase):
-    """
-    Try launching each sample and sending some requests to them.
-    """
+    """ Try launching each sample and sending some requests to them. """
 
     def setUp(self):
         self.python = sys.executable
-        self.env = {'PYTHONPATH': flask_ask_path,
+        self.env = {'PYTHONPATH': project_root,
                     'ASK_VERIFY_REQUESTS': 'false'}
 
     def _launch(self, sample):
-        prefix = '/Users/dave/src/vpr/flask-ask/samples/'
+        prefix = os.path.join(project_root, 'samples/')
         path = prefix + sample
         process = subprocess.Popen([self.python, path], env=self.env)
-        time.sleep(2)
-        self.assertIsNone(process.poll())
+        time.sleep(1)
+        self.assertIsNone(process.poll(),
+                          msg='If this fails, there was a problem launching the sample.')
         self.process = process
+
+    def _post(self, route='/', data={}):
+        url = 'http://127.0.0.1:5000' + str(route)
+        print('POSTing to %s' % url)
+        response = post(url, json=data)
+        self.assertEqual(200, response.status_code)
+        return response
+
+    @staticmethod
+    def _get_text(http_response):
+        data = http_response.json()
+        return data.get('response', {}).get('outputSpeech', {}).get('text', None)
+
+    @staticmethod
+    def _get_reprompt(http_response):
+        data = http_response.json()
+        return data.get('response', {}).get('reprompt', {}).get('outputSpeech', {}).get('text', None)
 
     def tearDown(self):
         try:
@@ -93,13 +107,51 @@ class SmokeTestUsingSamples(unittest.TestCase):
                 pass
 
     def test_helloworld(self):
+        """ Test the HelloWorld sample project """
         self._launch('helloworld/helloworld.py')
-        response = post('http://127.0.0.1:5000', json=launch)
-        print('response: %s' % str(response))
-        self.assertEqual(200, response.status_code)
+        response = self._post(data=launch)        
+        self.assertTrue('hello' in self._get_text(response))
 
     def test_session_sample(self):
+        """ Test the Session sample project """
         self._launch('session/session.py')
-        response = post('http://127.0.0.1:5000', json=launch)
-        print('response: %s' % str(response))
-        self.assertEqual(200, response.status_code)
+        response = self._post(data=launch)
+        self.assertTrue('favorite color' in self._get_text(response))
+
+    def test_audio_simple_demo(self):
+        """ Test the SimpleDemo Audio sample project """
+        self._launch('audio/simple_demo/ask_audio.py')
+        response = self._post(data=launch)
+        self.assertTrue('audio example' in self._get_text(response))
+
+    def test_audio_playlist_demo(self):
+        """ Test the Playlist Audio sample project """
+        self._launch('audio/playlist_demo/playlist.py')
+        response = self._post(data=launch)
+        self.assertTrue('playlist' in self._get_text(response))
+
+    def test_blueprints_demo(self):
+        """ Test the sample project using Flask Blueprints """
+        self._launch('blueprint_demo/demo.py')
+        response = self._post(route='/ask', data=launch)
+        self.assertTrue('hello' in self._get_text(response))
+
+    def test_history_buff(self):
+        """ Test the History Buff sample """
+        self._launch('historybuff/historybuff.py')
+        response = self._post(data=launch)
+        self.assertTrue('History buff' in self._get_text(response))
+
+    def test_spacegeek(self):
+        """ Test the Spacegeek sample """
+        self._launch('spacegeek/spacegeek.py')
+        response = self._post(data=launch)
+        # response is random
+        self.assertTrue(len(self._get_text(response)) > 1)
+
+    def test_tidepooler(self):
+        """ Test the Tide Pooler sample """
+        self._launch('tidepooler/tidepooler.py')
+        response = self._post(data=launch)
+        self.assertTrue('Which city' in self._get_reprompt(response))
+

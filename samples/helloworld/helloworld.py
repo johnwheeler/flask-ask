@@ -1,5 +1,6 @@
 import logging
 import os
+
 from flask import Flask
 from flask_ask import Ask, request, session, question, statement
 
@@ -31,9 +32,6 @@ def help():
 def session_ended():
     return "{}", 200
 
-
-def main():
-    app.run(debug=True)
 
 if __name__ == '__main__':
     if 'ASK_VERIFY_REQUESTS' in os.environ:
