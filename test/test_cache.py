@@ -1,5 +1,5 @@
 import unittest
-from mock import patch
+from mock import patch, Mock
 from werkzeug.contrib.cache import SimpleCache
 from flask_ask.core import Ask
 from flask_ask.cache import push_stream, pop_stream, top_stream, set_stream
@@ -47,6 +47,13 @@ class CacheTests(unittest.TestCase):
         set_stream(self.cache, self.user_id, '3')
         self.assertEqual('3', pop_stream(self.cache, self.user_id))
         self.assertIsNone(pop_stream(self.cache, self.user_id))
+
+    def test_calls_to_top_with_no_user_return_none(self):
+        """ RedisCache implementation doesn't like None key values. """
+        mock = Mock()
+        result = top_stream(mock, None)
+        self.assertFalse(mock.get.called)
+        self.assertIsNone(result)
 
 
 if __name__ == '__main__':

@@ -71,6 +71,9 @@ def top_stream(cache, user_id):
 
     :return: top item in user's cached stack, otherwise None
     """
+    if not user_id:
+        return None
+    
     stack = cache.get(user_id)
     if stack is None:
         return None
