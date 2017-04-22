@@ -4,20 +4,23 @@ import inspect
 from functools import wraps, partial
 
 import aniso8601
+from werkzeug.contrib.cache import SimpleCache
 from werkzeug.local import LocalProxy, LocalStack
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
 
-from . import verifier
-from . import logger
+from . import verifier, logger
 from .convert import to_date, to_time, to_timedelta
+from .cache import top_stream, set_stream
 import collections
 
 
 def find_ask():
-    """Find our instance of Ask, navigating Local's and possible blueprints.
+    """
+    Find our instance of Ask, navigating Local's and possible blueprints.
 
-    Note: This only supports returning a reference to the first instance of Ask found.
+    Note: This only supports returning a reference to the first instance
+    of Ask found.
     """
     if hasattr(current_app, 'ask'):
         return getattr(current_app, 'ask')
@@ -28,15 +31,18 @@ def find_ask():
                 if hasattr(blueprints[blueprint_name], 'ask'):
                     return getattr(blueprints[blueprint_name], 'ask')
 
+
+
 request = LocalProxy(lambda: find_ask().request)
 session = LocalProxy(lambda: find_ask().session)
 version = LocalProxy(lambda: find_ask().version)
 context = LocalProxy(lambda: find_ask().context)
 convert_errors = LocalProxy(lambda: find_ask().convert_errors)
 current_stream = LocalProxy(lambda: find_ask().current_stream)
-_stream_buffer = LocalStack()
+stream_cache = LocalProxy(lambda: find_ask().stream_cache)
 
 from . import models
+
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -53,11 +59,12 @@ class Ask(object):
     Keyword Arguments:
         app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
         route {str} -- entry point to which initial Alexa Requests are forwarded (default: {None})
-
+        blueprint {Flask blueprint} -- Flask Blueprint instance to use instead of Flask App (default: {None})
+        stream_cache {Werkzeug BasicCache} -- BasicCache-like object for storing Audio stream data (default: {SimpleCache})
+        path {str} -- path to templates yaml file for VUI dialog (default: {'templates.yaml'})
     """
 
-    def __init__(self, app=None, route=None, blueprint=None, path='templates.yaml'):
-
+    def __init__(self, app=None, route=None, blueprint=None, stream_cache=None, path='templates.yaml'):
         self.app = app
         self._route = route
         self._intent_view_funcs = {}
@@ -74,8 +81,12 @@ class Ask(object):
             self.init_app(app, path)
         elif blueprint is not None:
             self.init_blueprint(blueprint, path)
+        if stream_cache is None:
+            self.stream_cache = SimpleCache()
+        else:
+            self.stream_cache = stream_cache
 
-    def init_app(self, app, path):
+    def init_app(self, app, path='templates.yaml'):
         """Initializes Ask app by setting configuration variables, loading templates, and maps Ask route to a flask view.
 
         The Ask instance is given the following configuration variables by calling on Flask's configuration:
@@ -110,11 +121,13 @@ class Ask(object):
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app, path)])
 
-    def init_blueprint(self, blueprint, path):
+    def init_blueprint(self, blueprint, path='templates.yaml'):
         """Initialize a Flask Blueprint, similar to init_app, but without the access
         to the application config.
-        :param blueprint: Flask Blueprint instance
-        :return: None
+
+        Keyword Arguments:
+            blueprint {Flask Blueprint} -- Flask Blueprint instance to initialize (Default: {None})
+            path {str} -- path to templates yaml file, relative to Blueprint (Default: {'templates.yaml'})
         """
         if self._route is not None:
             raise TypeError("route cannot be set when using blueprints!")
@@ -470,11 +483,29 @@ class Ask(object):
 
     @property
     def current_stream(self):
-        return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
+        #return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
+        user = self._get_user()
+        if user:
+            stream = top_stream(self.stream_cache, user)
+            if stream:
+                current = models._Field()
+                current.__dict__.update(stream)
+                return current
+        return models._Field()
 
     @current_stream.setter
     def current_stream(self, value):
-        _app_ctx_stack.top._ask_current_stream = value
+        # assumption 1 is we get a models._Field as value
+        # assumption 2 is if someone sets a value, it's resetting the stack
+        user = self._get_user()
+        if user:
+            set_stream(self.stream_cache, user, value.__dict__)
+
+    def _get_user(self):
+        if self.context:
+            return self.context.get('System', {}).get('user', {}).get('userId')
+        return None
+                
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
@@ -519,7 +550,7 @@ class Ask(object):
         return getattr(self.context, 'AudioPlayer', {})
 
     def _from_directive(self):
-        from_buffer = _stream_buffer.top
+        from_buffer = top_stream(self.stream_cache, self._get_user())
         if from_buffer:
             if self.request.intent and 'PauseIntent' in self.request.intent.name:
                 return {}
