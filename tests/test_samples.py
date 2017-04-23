@@ -4,6 +4,7 @@ Smoke test using the samples.
 
 import unittest
 import os
+import six
 import sys
 import time
 import subprocess
@@ -62,6 +63,7 @@ launch = {
 project_root = os.path.abspath(os.path.join(flask_ask.__file__, '../..'))
 
 
+@unittest.skipIf(six.PY2, "Not yet supported on Python 2.x")
 class SmokeTestUsingSamples(unittest.TestCase):
     """ Try launching each sample and sending some requests to them. """
 
@@ -76,7 +78,8 @@ class SmokeTestUsingSamples(unittest.TestCase):
         process = subprocess.Popen([self.python, path], env=self.env)
         time.sleep(1)
         self.assertIsNone(process.poll(),
-                          msg='If this fails, there was a problem launching the sample.')
+                          msg='Poll should work,'
+                          'otherwise we failed to launch')
         self.process = process
 
     def _post(self, route='/', data={}):
@@ -89,27 +92,36 @@ class SmokeTestUsingSamples(unittest.TestCase):
     @staticmethod
     def _get_text(http_response):
         data = http_response.json()
-        return data.get('response', {}).get('outputSpeech', {}).get('text', None)
+        return data.get('response', {})\
+                   .get('outputSpeech', {})\
+                   .get('text', None)
 
     @staticmethod
     def _get_reprompt(http_response):
         data = http_response.json()
-        return data.get('response', {}).get('reprompt', {}).get('outputSpeech', {}).get('text', None)
+        return data.get('response', {})\
+                   .get('reprompt', {})\
+                   .get('outputSpeech', {})\
+                   .get('text', None)
 
     def tearDown(self):
         try:
             self.process.terminate()
-            self.process.communicate(timeout=2)
+            self.process.communicate(timeout=1)
         except Exception as e:
             try:
+                print('[%s]...trying to kill.' % str(e))
                 self.process.kill()
+                self.process.communicate(timeout=1)
             except Exception as e:
-                pass
+                print('Error killing test python process: %s' % str(e))
+                print('*** it is recommended you manually kill with PID %s',
+                      self.process.pid)
 
     def test_helloworld(self):
         """ Test the HelloWorld sample project """
         self._launch('helloworld/helloworld.py')
-        response = self._post(data=launch)        
+        response = self._post(data=launch)
         self.assertTrue('hello' in self._get_text(response))
 
     def test_session_sample(self):
@@ -154,4 +166,3 @@ class SmokeTestUsingSamples(unittest.TestCase):
         self._launch('tidepooler/tidepooler.py')
         response = self._post(data=launch)
         self.assertTrue('Which city' in self._get_reprompt(response))
-
