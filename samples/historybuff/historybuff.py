@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 from six.moves.urllib.request import urlopen
 
@@ -137,9 +136,4 @@ def _parse_json(text):
 
 
 if __name__ == '__main__':
-    if 'ASK_VERIFY_REQUESTS' in os.environ:
-        verify = str(os.environ.get('ASK_VERIFY_REQUESTS', '')).lower()
-        if verify == 'false':
-            app.config['ASK_VERIFY_REQUESTS'] = False
     app.run(debug=True)
-

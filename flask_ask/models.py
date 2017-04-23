@@ -2,10 +2,9 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, context, current_stream, stream_cache
-from .cache import push_stream
+from .core import session, _stream_buffer, current_stream
 from . import logger
-import uuid
+import random
 
 from pprint import pprint
 
@@ -21,7 +20,7 @@ class _Field(dict):
 
     Example:
 
-    payload_object = _Field(alexa_json_payload)
+    payload_object = _Field(alexa_josn_payload)
 
     request_type_from_keys = payload_object['request']['type']
     request_type_from_attrs = payload_object.request.type
@@ -201,11 +200,11 @@ class audio(_Response):
         # new stream
         else:
             stream['url'] = stream_url
-            stream['token'] = str(uuid.uuid4())
+            stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            push_stream(stream_cache, context['System']['user']['userId'], stream)
+            _stream_buffer.push(stream)
         return audio_item
 
     def stop(self):

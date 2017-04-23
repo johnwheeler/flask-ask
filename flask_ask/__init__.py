@@ -5,7 +5,6 @@ logger.addHandler(logging.StreamHandler())
 if logger.level == logging.NOTSET:
     logger.setLevel(logging.WARN)
 
-
 from .core import (
     Ask,
     request,

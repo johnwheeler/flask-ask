@@ -1,6 +1,5 @@
 import collections
 import logging
-import os
 from copy import copy
 
 from flask import Flask, json
@@ -249,8 +248,4 @@ def _infodump(obj, indent=2):
 
 
 if __name__ == '__main__':
-    if 'ASK_VERIFY_REQUESTS' in os.environ:
-        verify = str(os.environ.get('ASK_VERIFY_REQUESTS', '')).lower()
-        if verify == 'false':
-            app.config['ASK_VERIFY_REQUESTS'] = False
     app.run(debug=True)
