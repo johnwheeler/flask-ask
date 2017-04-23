@@ -1,6 +1,6 @@
-Flask
-pyOpenSSL
-PyYAML
-aniso8601
-six
+aniso8601==1.2.0
+Flask==0.12.1
+pyOpenSSL==17.0.0
+PyYAML==3.12
+six==1.10.0
 
