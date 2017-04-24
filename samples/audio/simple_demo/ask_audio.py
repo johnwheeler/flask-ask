@@ -1,4 +1,5 @@
 import logging
+import os
 
 from flask import Flask, json, render_template
 from flask_ask import Ask, request, session, question, statement, context, audio, current_stream
@@ -80,4 +81,9 @@ def _infodump(obj, indent=2):
 
 
 if __name__ == '__main__':
+    if 'ASK_VERIFY_REQUESTS' in os.environ:
+        verify = str(os.environ.get('ASK_VERIFY_REQUESTS', '')).lower()
+        if verify == 'false':
+            app.config['ASK_VERIFY_REQUESTS'] = False
     app.run(debug=True)
+

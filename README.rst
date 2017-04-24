@@ -101,6 +101,26 @@ To deploy on AWS Lambda, use `Zappa <https://github.com/Miserlou/Zappa>`_. This 
 
 Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates, not the Lambda function's ARN.
 
+Development
+===============
+
+If you'd like to work from the Flask-Ask source, clone the project and run::
+
+  pip install -r requirements-dev.txt
+
+This will install all base requirements from `requirements.txt` as well as requirements needed for running tests from the `tests` directory.
+
+Tests can be run with::
+
+  python setup.py test
+
+Or::
+
+  python -m unittest
+
+To install from your local clone or fork of the project, run::
+
+  python setup.py install
 
 Related projects
 ===============
