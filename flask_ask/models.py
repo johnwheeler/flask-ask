@@ -84,6 +84,14 @@ class _Response(object):
         card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
+        
+    def consent_card(self, permissions):
+        card = {
+            'type': 'AskForPermissionsConsent',
+            'permissions': [permissions]
+        }
+        self._response['card'] = card
+        return self
 
     def render_response(self):
         response_wrapper = {
