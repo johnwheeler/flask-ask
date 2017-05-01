@@ -91,7 +91,7 @@ class _Response(object):
             'permissions': [permissions]
         }
         self._response['card'] = card
-        return sel
+        return self
 
     def render_response(self):
         response_wrapper = {
