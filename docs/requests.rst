@@ -223,20 +223,20 @@ or::
 
 
 
-``request``, ``session``, and ``version`` Context Locals
---------------------------------------------------------
+``session``, ``context``, ``request`` and ``version`` Context Locals
+---------------------------------------------------------------------
 An Alexa
 `request payload <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference#Request%20Format>`_
-has three top-level elements: ``request``, ``session``, and ``version``. Like Flask, Flask-Ask provides `context
+has four top-level elements: ``session``, ``context``, ``request`` and ``version``. Like Flask, Flask-Ask provides `context
 locals <http://werkzeug.pocoo.org/docs/0.11/local/>`_ that spare you from having to add these as extra parameters to
 your functions. However, the ``request`` and ``session`` objects are distinct from Flask's ``request`` and ``session``.
-Flask-Ask's ``request`` and ``session`` correspond to the Alexa request payload components while Flask's correspond
+Flask-Ask's ``request``, ``context`` and ``session`` correspond to the Alexa request payload components while Flask's correspond
 to lower-level HTTP constructs.
 
 To use Flask-Ask's context locals, just import them::
 
     from flask import App
-    from flask_ask import Ask, request, session, version
+    from flask_ask import Ask, request, context, session, version
 
     app = Flask(__name__)
     ask = Ask(app)
@@ -250,6 +250,8 @@ To use Flask-Ask's context locals, just import them::
         log.info("Session New?: {}".format(session.new))
         log.info("User ID: {}".format(session.user.userId))
         log.info("Alexa Version: {}".format(version))
+        log.info("Device ID: {}".format(context.System.device.deviceId))
+        log.info("Consent Token: {}".format(context.System.user.permissions.consentToken))
         ...
 
 If you want to use both Flask and Flask-Ask context locals in the same module, use ``import as``::
@@ -262,6 +264,6 @@ If you want to use both Flask and Flask-Ask context locals in the same module, u
         version
     )
 
-For a complete reference on ``request`` and ``session`` fields, see the
+For a complete reference on ``request``, ``context`` and ``session`` fields, see the
 `JSON Interface Reference for Custom Skills <https://developer.amazon.com/public/solutions/alexa/alexa-skills-kit/docs/alexa-skills-kit-interface-reference>`_
 in the Alexa Skills Kit documentation.
