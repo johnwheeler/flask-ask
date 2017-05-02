@@ -112,6 +112,13 @@ Standard cards are like simple cards but they also support small and large image
                          small_image_url='https://example.com/small.png',
                          large_image_url='https://example.com/large.png')
 
+Consent cards ask for the permission to access the device's address. You can either ask for the country and postal code (`read::alexa:device:all:address:country_and_postal_code`) or for the full address (`read::alexa:device:all:address`). The permission you ask for has to match what you've specified in the amazon skill developer portal:: 
+
+  @ask.intent('AllYourBaseIntent')
+  def all_your_base():
+      return statement('Please allow access to your location') \
+      .consent_card("read::alexa:device:all:address")
+
 
 Jinja Templates
 ---------------
