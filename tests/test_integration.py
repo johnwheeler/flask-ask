@@ -84,6 +84,13 @@ class AudioIntegrationTests(unittest.TestCase):
         self.assertEqual(self.stream_url, stream['url'])
         self.assertEqual(0, stream['offsetInMilliseconds'])
 
+    def test_play_without_context(self):
+        """ Test if we can play even without a Context being provided. """
+        request = play_request.copy()
+        del request['context']
+        response = self.client.post('/ask', data=json.dumps(request))
+        self.assertEqual(200, response.status_code)
+
 
 if __name__ == '__main__':
     unittest.main()
