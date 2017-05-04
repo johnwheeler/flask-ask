@@ -9,6 +9,7 @@ import sys
 import time
 import subprocess
 
+from copy import deepcopy
 from requests import post
 
 import flask_ask
@@ -104,6 +105,11 @@ class SmokeTestUsingSamples(unittest.TestCase):
                    .get('outputSpeech', {})\
                    .get('text', None)
 
+    @staticmethod
+    def _get_directives(http_response):
+        data = http_response.json()
+        return data.get('response', {}).get('directives', [])
+
     def tearDown(self):
         try:
             self.process.terminate()
@@ -135,6 +141,20 @@ class SmokeTestUsingSamples(unittest.TestCase):
         self._launch('audio/simple_demo/ask_audio.py')
         response = self._post(data=launch)
         self.assertTrue('audio example' in self._get_text(response))
+
+        # test first with context
+        play = deepcopy(launch)
+        play['request']['type'] = 'IntentRequest'
+        play['request']['intent'] = {'name': 'SaxIntent', 'slots': {}}
+
+        response = self._post(data=play)
+        self.assertTrue('yeah you got it!' in self._get_text(response))
+        assert 'AudioPlayer.Play' in self._get_directives(response)[0]['type']
+
+        # then one more time without
+        del play['context']
+        response = self._post(data=play)
+        assert 'AudioPlayer.Play' in self._get_directives(response)[0]['type']
 
     def test_audio_playlist_demo(self):
         """ Test the Playlist Audio sample project """

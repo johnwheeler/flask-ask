@@ -221,7 +221,7 @@ class audio(_Response):
             if context:
                 key = context.get('System', {}).get('user', {}).get('userId', ANONYMOUS_KEY)
             else:
-                logger.warning('Anonymous key being used due to missing Context.')
+                logger.warning('Anonymous key being used due to missing Context!')
                 key = ANONYMOUS_KEY
 
             push_stream(stream_cache, key, stream)
