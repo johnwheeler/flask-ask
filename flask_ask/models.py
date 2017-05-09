@@ -111,21 +111,33 @@ class _Response(object):
 
 class statement(_Response):
 
-    def __init__(self, speech):
-        super(statement, self).__init__(speech)
-        self._response['shouldEndSession'] = True
-
+    def __init__(self, speech=""):
+        if len(speech)!=0:
+            super(statement, self).__init__(speech)
+            self._response['shouldEndSession'] = True
+        else:
+            super(statement, self).__init__("Error: Please add text to statement message.");
+            self._response['shouldEndSession'] = True
 
 class question(_Response):
 
-    def __init__(self, speech):
-        super(question, self).__init__(speech)
-        self._response['shouldEndSession'] = False
+    def __init__(self, speech=""):
+        if len(speech)!=0 :
+            super(question, self).__init__(speech)
+            self._response['shouldEndSession'] = False
+        else:
+            super(question, self).__init__("Error: Please add text to question message.")
+            self._response['shouldEndSession'] = False
 
-    def reprompt(self, reprompt):
-        reprompt = {'outputSpeech': _output_speech(reprompt)}
-        self._response['reprompt'] = reprompt
-        return self
+    def reprompt(self, reprompt=""):
+        if len(reprompt)!=0:
+            reprompt = {'outputSpeech': _output_speech(reprompt)}
+            self._response['reprompt'] = reprompt
+            return self
+        else:
+            print("Error: Please add text to reprompt to run correct the skill.")
+            self._response['shouldEndSession'] = True
+            exit()
 
 
 class audio(_Response):
