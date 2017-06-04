@@ -1,8 +1,7 @@
 import logging
-
 from flask import Blueprint, render_template
-from flask_ask import Ask, question, statement
 
+from flask_ask import Ask, question, statement
 
 blueprint = Blueprint('blueprint_api', __name__, url_prefix="/ask")
 ask = Ask(blueprint=blueprint)
@@ -31,4 +30,3 @@ def help():
 @ask.session_ended
 def session_ended():
     return "{}", 200
-

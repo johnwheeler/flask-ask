@@ -1,10 +1,9 @@
 import base64
 import posixpath
+from OpenSSL import crypto
 from datetime import datetime
 from six.moves.urllib.parse import urlparse
 from six.moves.urllib.request import urlopen
-
-from OpenSSL import crypto
 
 
 class VerificationError(Exception): pass

@@ -2,14 +2,13 @@ import collections
 import logging
 import os
 from copy import copy
-
 from flask import Flask, json
+
 from flask_ask import Ask, question, statement, audio, current_stream, logger
 
 app = Flask(__name__)
 ask = Ask(app, "/")
 logging.getLogger('flask_ask').setLevel(logging.INFO)
-
 
 playlist = [
     # 'https://www.freesound.org/data/previews/367/367142_2188-lq.mp3',
@@ -212,6 +211,7 @@ def started(offset, token, url):
 def stopped(offset, token):
     _infodump('Stopped audio stream for track {}'.format(queue.current_position))
 
+
 @ask.intent('AMAZON.PauseIntent')
 def pause():
     seconds = current_stream.offsetInMilliseconds / 1000
@@ -234,6 +234,7 @@ def resume():
 @ask.session_ended
 def session_ended():
     return "{}", 200
+
 
 def dump_stream_info():
     status = {

@@ -1,14 +1,12 @@
 import logging
 import os
+from flask import Flask, render_template
 
-from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement
-
+from flask_ask import Ask, session, question, statement
 
 app = Flask(__name__)
 ask = Ask(app, "/")
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
-
 
 COLOR_KEY = "COLOR"
 
@@ -57,4 +55,3 @@ if __name__ == '__main__':
         if verify == 'false':
             app.config['ASK_VERIFY_REQUESTS'] = False
     app.run(debug=True)
-

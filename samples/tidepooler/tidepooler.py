@@ -1,15 +1,14 @@
-import os
-import logging
-import datetime
-import math
-import re
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.parse import urlencode
-
 import aniso8601
+import datetime
+import logging
+import math
+import os
+import re
 from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
 
+from flask_ask import Ask, session, question, statement
 
 ENDPOINT = "http://tidesandcurrents.noaa.gov/api/datagetter"
 SESSION_CITY = "city"
@@ -34,23 +33,22 @@ STATION_CODE_NEW_ORLEANS = "8761927"
 STATION_CODE_GALVESTON = "8771341"
 
 STATIONS = {}
-STATIONS["seattle"] =  STATION_CODE_SEATTLE
-STATIONS["san francisco"] =  STATION_CODE_SAN_FRANCISCO
-STATIONS["monterey"] =  STATION_CODE_MONTEREY
-STATIONS["los angeles"] =  STATION_CODE_LOS_ANGELES
-STATIONS["san diego"] =  STATION_CODE_SAN_DIEGO
-STATIONS["boston"] =  STATION_CODE_BOSTON
-STATIONS["new york"] =  STATION_CODE_NEW_YORK
-STATIONS["virginia beach"] =  STATION_CODE_VIRGINIA_BEACH
-STATIONS["wilmington"] =  STATION_CODE_WILMINGTON
-STATIONS["charleston"] =  STATION_CODE_CHARLESTON
-STATIONS["beaufort"] =  STATION_CODE_BEAUFORT
-STATIONS["myrtle beach"] =  STATION_CODE_MYRTLE_BEACH
-STATIONS["miami"] =  STATION_CODE_MIAMI
-STATIONS["tampa"] =  STATION_CODE_TAMPA
-STATIONS["new orleans"] =  STATION_CODE_NEW_ORLEANS
-STATIONS["galveston"] =  STATION_CODE_GALVESTON
-
+STATIONS["seattle"] = STATION_CODE_SEATTLE
+STATIONS["san francisco"] = STATION_CODE_SAN_FRANCISCO
+STATIONS["monterey"] = STATION_CODE_MONTEREY
+STATIONS["los angeles"] = STATION_CODE_LOS_ANGELES
+STATIONS["san diego"] = STATION_CODE_SAN_DIEGO
+STATIONS["boston"] = STATION_CODE_BOSTON
+STATIONS["new york"] = STATION_CODE_NEW_YORK
+STATIONS["virginia beach"] = STATION_CODE_VIRGINIA_BEACH
+STATIONS["wilmington"] = STATION_CODE_WILMINGTON
+STATIONS["charleston"] = STATION_CODE_CHARLESTON
+STATIONS["beaufort"] = STATION_CODE_BEAUFORT
+STATIONS["myrtle beach"] = STATION_CODE_MYRTLE_BEACH
+STATIONS["miami"] = STATION_CODE_MIAMI
+STATIONS["tampa"] = STATION_CODE_TAMPA
+STATIONS["new orleans"] = STATION_CODE_NEW_ORLEANS
+STATIONS["galveston"] = STATION_CODE_GALVESTON
 
 app = Flask(__name__)
 ask = Ask(app, "/")
@@ -58,7 +56,6 @@ logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
 
 class TideInfo(object):
-
     def __init__(self):
         self.first_high_tide_time = None
         self.first_high_tide_height = None
@@ -76,9 +73,9 @@ def launch():
 
 
 @ask.intent('OneshotTideIntent',
-    mapping={'city': 'City', 'date': 'Date'},
-    convert={'date': 'date'},
-    default={'city': 'seattle', 'date': datetime.date.today })
+            mapping={'city': 'City', 'date': 'Date'},
+            convert={'date': 'date'},
+            default={'city': 'seattle', 'date': datetime.date.today})
 def one_shot_tide(city, date):
     if city.lower() not in STATIONS:
         return supported_cities()
@@ -86,8 +83,8 @@ def one_shot_tide(city, date):
 
 
 @ask.intent('DialogTideIntent',
-    mapping={'city': 'City', 'date': 'Date'},
-    convert={'date': 'date'})
+            mapping={'city': 'City', 'date': 'Date'},
+            convert={'date': 'date'})
 def dialog_tide(city, date):
     if city is not None:
         if city.lower() not in STATIONS:
@@ -142,7 +139,7 @@ def session_ended():
 @app.template_filter()
 def humanize_date(dt):
     # http://stackoverflow.com/a/20007730/1163855
-    ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n/10%10!=1)*(n%10<4)*n%10::4])
+    ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
     month_and_day_of_week = dt.strftime('%A %B')
     day_of_month = ordinal(dt.day)
     year = dt.year if dt.year != datetime.datetime.now().year else ""

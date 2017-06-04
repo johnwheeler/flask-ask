@@ -73,7 +73,7 @@ def top_stream(cache, user_id):
     """
     if not user_id:
         return None
-    
+
     stack = cache.get(user_id)
     if stack is None:
         return None

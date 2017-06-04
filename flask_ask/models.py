@@ -1,13 +1,12 @@
+import aniso8601
 import inspect
+import uuid
 from flask import json
 from xml.etree import ElementTree
-import aniso8601
-from .core import session, context, current_stream, stream_cache
-from .cache import push_stream
-from . import logger
-import uuid
 
-from pprint import pprint
+from . import logger
+from .cache import push_stream
+from .core import session, context, current_stream, stream_cache
 
 
 class _Field(dict):
@@ -47,7 +46,6 @@ class _Field(dict):
 
 
 class _Response(object):
-
     def __init__(self, speech):
         self._json_default = None
         self._response = {
@@ -84,7 +82,7 @@ class _Response(object):
         card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
-        
+
     def consent_card(self, permissions):
         card = {
             'type': 'AskForPermissionsConsent',
@@ -110,19 +108,18 @@ class _Response(object):
 
 
 class statement(_Response):
-
     def __init__(self, speech=""):
-        if len(speech)!=0:
+        if len(speech) != 0:
             super(statement, self).__init__(speech)
             self._response['shouldEndSession'] = True
         else:
             super(statement, self).__init__("Error: Please add text to statement message.");
             self._response['shouldEndSession'] = True
 
-class question(_Response):
 
+class question(_Response):
     def __init__(self, speech=""):
-        if len(speech)!=0 :
+        if len(speech) != 0:
             super(question, self).__init__(speech)
             self._response['shouldEndSession'] = False
         else:
@@ -130,7 +127,7 @@ class question(_Response):
             self._response['shouldEndSession'] = False
 
     def reprompt(self, reprompt=""):
-        if len(reprompt)!=0:
+        if len(reprompt) != 0:
             reprompt = {'outputSpeech': _output_speech(reprompt)}
             self._response['reprompt'] = reprompt
             return self
