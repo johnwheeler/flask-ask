@@ -73,7 +73,8 @@ class SmokeTestUsingSamples(unittest.TestCase):
                     'PATH': os.getenv('PATH')}
 
     def _launch(self, sample):
-        path = "samples\\" + sample
+        prefix = os.path.join(project_root, 'samples/')
+        path = prefix + sample
         process = subprocess.Popen([self.python, path], env=self.env)
         time.sleep(1)
         self.assertIsNone(process.poll(),
