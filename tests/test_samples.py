@@ -70,9 +70,10 @@ class SmokeTestUsingSamples(unittest.TestCase):
     def setUp(self):
         self.python = sys.executable
         self.env = {'PYTHONPATH': project_root,
-                    'ASK_VERIFY_REQUESTS': 'false',
-                    'SYSTEMROOT': os.getenv('SYSTEMROOT'),
-                    'PATH': os.getenv('PATH')}
+                    'ASK_VERIFY_REQUESTS': 'false'}
+        if os.name == 'nt':
+            self.env['SYSTEMROOT'] = os.getenv('SYSTEMROOT')
+            self.env['PATH'] = os.getenv('PATH')
 
     def _launch(self, sample):
         prefix = os.path.join(project_root, 'samples/')
