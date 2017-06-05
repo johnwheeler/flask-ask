@@ -1,18 +1,17 @@
+import aniso8601
+import collections
+import inspect
 import os
 import yaml
-import inspect
-from functools import wraps, partial
-
-import aniso8601
-from werkzeug.contrib.cache import SimpleCache
-from werkzeug.local import LocalProxy, LocalStack
-from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
+from functools import wraps, partial
+from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
+from werkzeug.contrib.cache import SimpleCache
+from werkzeug.local import LocalProxy
 
 from . import verifier, logger
-from .convert import to_date, to_time, to_timedelta
 from .cache import top_stream, set_stream
-import collections
+from .convert import to_date, to_time, to_timedelta
 
 
 def find_ask():
@@ -32,7 +31,6 @@ def find_ask():
                     return getattr(blueprints[blueprint_name], 'ask')
 
 
-
 request = LocalProxy(lambda: find_ask().request)
 session = LocalProxy(lambda: find_ask().session)
 version = LocalProxy(lambda: find_ask().version)
@@ -42,7 +40,6 @@ current_stream = LocalProxy(lambda: find_ask().current_stream)
 stream_cache = LocalProxy(lambda: find_ask().stream_cache)
 
 from . import models
-
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
@@ -189,6 +186,7 @@ class Ask(object):
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
+
         return f
 
     def session_ended(self, f):
@@ -209,6 +207,7 @@ class Ask(object):
         @wraps(f)
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
+
         return f
 
     def intent(self, intent_name, mapping={}, convert={}, default={}):
@@ -235,6 +234,7 @@ class Ask(object):
                 returns no corresponding slot, or a slot with an empty value
                 default: {}
         """
+
         def decorator(f):
             self._intent_view_funcs[intent_name] = f
             self._intent_mappings[intent_name] = mapping
@@ -244,7 +244,9 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kw):
                 self._flask_view_func(*args, **kw)
+
             return f
+
         return decorator
 
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
@@ -268,6 +270,7 @@ class Ask(object):
             logger.info('stream has token {}'.format(token))
             logger.info('Current position within the stream is {} ms'.format(offset))
         """
+
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStarted'] = f
             self._intent_mappings['AudioPlayer.PlaybackStarted'] = mapping
@@ -277,7 +280,9 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+
             return f
+
         return decorator
 
     def on_playback_finished(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
@@ -299,6 +304,7 @@ class Ask(object):
 
         Audioplayer Requests do not include the stream URL, it must be accessed from current_stream.url
         """
+
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackFinished'] = f
             self._intent_mappings['AudioPlayer.PlaybackFinished'] = mapping
@@ -308,7 +314,9 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+
             return f
+
         return decorator
 
     def on_playback_stopped(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
@@ -337,6 +345,7 @@ class Ask(object):
 
         Audioplayer Requests do not include the stream URL, it must be accessed from current_stream.url
         """
+
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackStopped'] = f
             self._intent_mappings['AudioPlayer.PlaybackStopped'] = mapping
@@ -346,7 +355,9 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+
             return f
+
         return decorator
 
     def on_playback_nearly_finished(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
@@ -392,6 +403,7 @@ class Ask(object):
             _infodump('Stream at {} ms when Playback Request sent'.format(pos))
             _infodump('Stream holds the token {}'.format(stream_token))
         """
+
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackNearlyFinished'] = f
             self._intent_mappings['AudioPlayer.PlaybackNearlyFinished'] = mapping
@@ -401,7 +413,9 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+
             return f
+
         return decorator
 
     def on_playback_failed(self, mapping={}, convert={}, default={}):
@@ -429,6 +443,7 @@ class Ask(object):
 
                     playerActivity - player state when the error occurred
         """
+
         def decorator(f):
             self._intent_view_funcs['AudioPlayer.PlaybackFailed'] = f
             self._intent_mappings['AudioPlayer.PlaybackFailed'] = mapping
@@ -438,7 +453,9 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+
             return f
+
         return decorator
 
     @property
@@ -483,7 +500,7 @@ class Ask(object):
 
     @property
     def current_stream(self):
-        #return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
+        # return getattr(_app_ctx_stack.top, '_ask_current_stream', models._Field())
         user = self._get_user()
         if user:
             stream = top_stream(self.stream_cache, user)
@@ -505,7 +522,6 @@ class Ask(object):
         if self.context:
             return self.context.get('System', {}).get('user', {}).get('userId')
         return None
-                
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
@@ -565,7 +581,8 @@ class Ask(object):
         self.request = request_body.request
         self.version = request_body.version
         self.context = getattr(request_body, 'context', models._Field())
-        self.session = getattr(request_body, 'session', self.session) # to keep old session.attributes through AudioRequests
+        self.session = getattr(request_body, 'session',
+                               self.session)  # to keep old session.attributes through AudioRequests
 
         if not self.session:
             self.session = models._Field()
@@ -591,12 +608,15 @@ class Ask(object):
             else:
                 result = "{}", 200
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
-            result = self._map_intent_to_view_func(self.request.intent)()
+            try:
+                result = self._map_intent_to_view_func(self.request.intent)()
+            except Exception as e:
+                print("Error:", e)
+                exit()
         elif 'AudioPlayer' in request_type:
             result = self._map_player_request_to_func(self.request.type)()
             # routes to on_playback funcs
             # user can also access state of content.AudioPlayer with current_stream
-
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
@@ -605,12 +625,15 @@ class Ask(object):
 
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""
-        view_func = self._intent_view_funcs[intent.name]
-        argspec = inspect.getargspec(view_func)
-        arg_names = argspec.args
-        arg_values = self._map_params_to_view_args(intent.name, arg_names)
-
-        return partial(view_func, *arg_values)
+        try:
+            view_func = self._intent_view_funcs[intent.name]
+            argspec = inspect.getargspec(view_func)
+            arg_names = argspec.args
+            arg_values = self._map_params_to_view_args(intent.name, arg_names)
+            return partial(view_func, *arg_values)
+        except:
+            print("Error: Please add the ", intent.name, "to run correctly the skill.")
+            exit()
 
     def _map_player_request_to_func(self, player_request_type):
         """Provides appropriate parameters to the on_playback functions."""
@@ -670,7 +693,6 @@ class Ask(object):
 
 
 class YamlLoader(BaseLoader):
-
     def __init__(self, app, path):
         self.path = app.root_path + os.path.sep + path
         self.mapping = {}

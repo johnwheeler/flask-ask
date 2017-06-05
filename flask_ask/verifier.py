@@ -1,13 +1,9 @@
-import os
 import base64
 import posixpath
+from OpenSSL import crypto
 from datetime import datetime
 from six.moves.urllib.parse import urlparse
 from six.moves.urllib.request import urlopen
-
-from OpenSSL import crypto
-
-from . import logger
 
 
 class VerificationError(Exception): pass
@@ -62,8 +58,8 @@ def _valid_certificate(cert):
         short_name = extension.get_short_name().decode('utf-8')
         value = str(extension)
         if 'subjectAltName' == short_name and 'DNS:echo-api.amazon.com' == value:
-                found = True
-                break
+            found = True
+            break
     if not found:
         return False
     return True

@@ -1,8 +1,8 @@
 import logging
 import os
+from flask import Flask, json
 
-from flask import Flask, json, render_template
-from flask_ask import Ask, request, session, question, statement, context, audio, current_stream
+from flask_ask import Ask, question, audio, current_stream
 
 app = Flask(__name__)
 ask = Ask(app, "/")
@@ -42,10 +42,10 @@ def pause():
 def resume():
     return audio('Resuming.').resume()
 
+
 @ask.intent('AMAZON.StopIntent')
 def stop():
     return audio('stopping').clear_queue(stop=True)
-
 
 
 # optional callbacks
@@ -67,13 +67,16 @@ def stopped(offset, token):
 def nearly_finished():
     _infodump('Stream nearly finished from {}'.format(current_stream.url))
 
+
 @ask.on_playback_finished()
 def stream_finished(token):
     _infodump('Playback has finished for stream with token {}'.format(token))
 
+
 @ask.session_ended
 def session_ended():
     return "{}", 200
+
 
 def _infodump(obj, indent=2):
     msg = json.dumps(obj, indent=indent)
@@ -86,4 +89,3 @@ if __name__ == '__main__':
         if verify == 'false':
             app.config['ASK_VERIFY_REQUESTS'] = False
     app.run(debug=True)
-

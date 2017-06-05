@@ -1,12 +1,12 @@
 import unittest
 from mock import patch, Mock
 from werkzeug.contrib.cache import SimpleCache
-from flask_ask.core import Ask
+
 from flask_ask.cache import push_stream, pop_stream, top_stream, set_stream
+from flask_ask.core import Ask
 
 
 class CacheTests(unittest.TestCase):
-
     def setUp(self):
         self.patcher = patch('flask_ask.core.find_ask', return_value=Ask())
         self.ask = self.patcher.start()

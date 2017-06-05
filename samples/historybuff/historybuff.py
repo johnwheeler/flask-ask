@@ -1,21 +1,18 @@
 import logging
 import os
 import re
+from flask import Flask
 from six.moves.urllib.request import urlopen
 
-
-from flask import Flask
-from flask_ask import Ask, request, session, question, statement
-
+from flask_ask import Ask, session, question, statement
 
 app = Flask(__name__)
 ask = Ask(app, "/")
 logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 
-
 # URL prefix to download history content from Wikipedia.
 URL_PREFIX = 'https://en.wikipedia.org/w/api.php?action=query&prop=extracts' + \
-    '&format=json&explaintext=&exsectionformat=plain&redirects=&titles='
+             '&format=json&explaintext=&exsectionformat=plain&redirects=&titles='
 
 # Constant defining number of events to be read at one time.
 PAGINATION_SIZE = 3
@@ -42,7 +39,7 @@ def launch():
     return question(speech_output).reprompt(reprompt_text)
 
 
-@ask.intent('GetFirstEventIntent', convert={ 'day': 'date' })
+@ask.intent('GetFirstEventIntent', convert={'day': 'date'})
 def get_first_event(day):
     month_name = day.strftime('%B')
     day_number = day.day
@@ -142,4 +139,3 @@ if __name__ == '__main__':
         if verify == 'false':
             app.config['ASK_VERIFY_REQUESTS'] = False
     app.run(debug=True)
-

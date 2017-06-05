@@ -2,63 +2,61 @@
 Smoke test using the samples.
 """
 
-import unittest
-import os
-import six
 import sys
 import time
-import subprocess
 
+import os
+import six
+import subprocess
+import unittest
 from requests import post
 
 import flask_ask
 
-
 launch = {
-  "version": "1.0",
-  "session": {
-    "new": True,
-    "sessionId": "amzn1.echo-api.session.0000000-0000-0000-0000-00000000000",
-    "application": {
-      "applicationId": "fake-application-id"
-    },
-    "attributes": {},
-    "user": {
-      "userId": "amzn1.account.AM3B00000000000000000000000"
-    }
-  },
-  "context": {
-    "System": {
-      "application": {
-        "applicationId": "fake-application-id"
-      },
-      "user": {
-        "userId": "amzn1.account.AM3B00000000000000000000000"
-      },
-      "device": {
-        "supportedInterfaces": {
-          "AudioPlayer": {}
+    "version": "1.0",
+    "session": {
+        "new": True,
+        "sessionId": "amzn1.echo-api.session.0000000-0000-0000-0000-00000000000",
+        "application": {
+            "applicationId": "fake-application-id"
+        },
+        "attributes": {},
+        "user": {
+            "userId": "amzn1.account.AM3B00000000000000000000000"
         }
-      }
     },
-    "AudioPlayer": {
-      "offsetInMilliseconds": 0,
-      "playerActivity": "IDLE"
-    }
-  },
-  "request": {
-    "type": "LaunchRequest",
-    "requestId": "string",
-    "timestamp": "string",
-    "locale": "string",
-    "intent": {
-      "name": "TestPlay",
-      "slots": {
+    "context": {
+        "System": {
+            "application": {
+                "applicationId": "fake-application-id"
+            },
+            "user": {
+                "userId": "amzn1.account.AM3B00000000000000000000000"
+            },
+            "device": {
+                "supportedInterfaces": {
+                    "AudioPlayer": {}
+                }
+            }
+        },
+        "AudioPlayer": {
+            "offsetInMilliseconds": 0,
+            "playerActivity": "IDLE"
         }
-      }
+    },
+    "request": {
+        "type": "LaunchRequest",
+        "requestId": "string",
+        "timestamp": "string",
+        "locale": "string",
+        "intent": {
+            "name": "TestPlay",
+            "slots": {
+            }
+        }
     }
 }
-
 
 project_root = os.path.abspath(os.path.join(flask_ask.__file__, '../..'))
 
@@ -70,7 +68,9 @@ class SmokeTestUsingSamples(unittest.TestCase):
     def setUp(self):
         self.python = sys.executable
         self.env = {'PYTHONPATH': project_root,
-                    'ASK_VERIFY_REQUESTS': 'false'}
+                    'ASK_VERIFY_REQUESTS': 'false',
+                    'SYSTEMROOT': os.getenv('SYSTEMROOT'),
+                    'PATH': os.getenv('PATH')}
 
     def _launch(self, sample):
         prefix = os.path.join(project_root, 'samples/')
@@ -79,7 +79,7 @@ class SmokeTestUsingSamples(unittest.TestCase):
         time.sleep(1)
         self.assertIsNone(process.poll(),
                           msg='Poll should work,'
-                          'otherwise we failed to launch')
+                              'otherwise we failed to launch')
         self.process = process
 
     def _post(self, route='/', data={}):
@@ -92,17 +92,17 @@ class SmokeTestUsingSamples(unittest.TestCase):
     @staticmethod
     def _get_text(http_response):
         data = http_response.json()
-        return data.get('response', {})\
-                   .get('outputSpeech', {})\
-                   .get('text', None)
+        return data.get('response', {}) \
+            .get('outputSpeech', {}) \
+            .get('text', None)
 
     @staticmethod
     def _get_reprompt(http_response):
         data = http_response.json()
-        return data.get('response', {})\
-                   .get('reprompt', {})\
-                   .get('outputSpeech', {})\
-                   .get('text', None)
+        return data.get('response', {}) \
+            .get('reprompt', {}) \
+            .get('outputSpeech', {}) \
+            .get('text', None)
 
     def tearDown(self):
         try:

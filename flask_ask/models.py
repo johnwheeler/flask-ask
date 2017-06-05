@@ -1,13 +1,12 @@
+import aniso8601
 import inspect
+import uuid
 from flask import json
 from xml.etree import ElementTree
-import aniso8601
-from .core import session, context, current_stream, stream_cache
-from .cache import push_stream
-from . import logger
-import uuid
 
-from pprint import pprint
+from . import logger
+from .cache import push_stream
+from .core import session, context, current_stream, stream_cache
 
 
 class _Field(dict):
@@ -47,7 +46,6 @@ class _Field(dict):
 
 
 class _Response(object):
-
     def __init__(self, speech):
         self._json_default = None
         self._response = {
@@ -84,7 +82,7 @@ class _Response(object):
         card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
-        
+
     def consent_card(self, permissions):
         card = {
             'type': 'AskForPermissionsConsent',
@@ -110,22 +108,33 @@ class _Response(object):
 
 
 class statement(_Response):
-
-    def __init__(self, speech):
-        super(statement, self).__init__(speech)
-        self._response['shouldEndSession'] = True
+    def __init__(self, speech=""):
+        if len(speech) != 0:
+            super(statement, self).__init__(speech)
+            self._response['shouldEndSession'] = True
+        else:
+            super(statement, self).__init__("Error: Please add text to statement message.");
+            self._response['shouldEndSession'] = True
 
 
 class question(_Response):
+    def __init__(self, speech=""):
+        if len(speech) != 0:
+            super(question, self).__init__(speech)
+            self._response['shouldEndSession'] = False
+        else:
+            super(question, self).__init__("Error: Please add text to question message.")
+            self._response['shouldEndSession'] = False
 
-    def __init__(self, speech):
-        super(question, self).__init__(speech)
-        self._response['shouldEndSession'] = False
-
-    def reprompt(self, reprompt):
-        reprompt = {'outputSpeech': _output_speech(reprompt)}
-        self._response['reprompt'] = reprompt
-        return self
+    def reprompt(self, reprompt=""):
+        if len(reprompt) != 0:
+            reprompt = {'outputSpeech': _output_speech(reprompt)}
+            self._response['reprompt'] = reprompt
+            return self
+        else:
+            print("Error: Please add text to reprompt to run correct the skill.")
+            self._response['shouldEndSession'] = True
+            exit()
 
 
 class audio(_Response):
@@ -156,22 +165,28 @@ class audio(_Response):
 
     def play(self, stream_url, offset=0):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
-
-        self._response['shouldEndSession'] = True
-        directive = self._play_directive('REPLACE_ALL')
-        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
-        self._response['directives'].append(directive)
-        return self
+        try:
+            self._response['shouldEndSession'] = True
+            directive = self._play_directive('REPLACE_ALL')
+            directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
+            self._response['directives'].append(directive)
+            return self
+        except:
+            print("Error: Please add stream url to play correctly the skill.")
+            exit()
 
     def enqueue(self, stream_url, offset=0):
         """Adds stream to the queue. Does not impact the currently playing stream."""
-        directive = self._play_directive('ENQUEUE')
-        audio_item = self._audio_item(stream_url=stream_url, offset=offset, push_buffer=False)
-        audio_item['stream']['expectedPreviousToken'] = current_stream.token
-
-        directive['audioItem'] = audio_item
-        self._response['directives'].append(directive)
-        return self
+        try:
+            directive = self._play_directive('ENQUEUE')
+            audio_item = self._audio_item(stream_url=stream_url, offset=offset, push_buffer=False)
+            audio_item['stream']['expectedPreviousToken'] = current_stream.token
+            directive['audioItem'] = audio_item
+            self._response['directives'].append(directive)
+            return self
+        except:
+            print("Error: Please add stream url to play correctly the skill.")
+            exit()
 
     def play_next(self, stream_url=None, offset=0):
         """Replace all streams in the queue but does not impact the currently playing stream."""

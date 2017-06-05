@@ -1,10 +1,8 @@
+import aniso8601
 import re
 from datetime import datetime, time
 
-import aniso8601
-
 from . import logger
-
 
 _DATE_PATTERNS = {
     # "today", "tomorrow", "november twenty-fifth": 2015-11-25
