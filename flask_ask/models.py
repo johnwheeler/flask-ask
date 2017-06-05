@@ -165,22 +165,28 @@ class audio(_Response):
 
     def play(self, stream_url, offset=0):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
-
-        self._response['shouldEndSession'] = True
-        directive = self._play_directive('REPLACE_ALL')
-        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
-        self._response['directives'].append(directive)
-        return self
+        try:
+            self._response['shouldEndSession'] = True
+            directive = self._play_directive('REPLACE_ALL')
+            directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
+            self._response['directives'].append(directive)
+            return self
+        except:
+            print("Error: Please add stream url to play correctly the skill.")
+            exit()
 
     def enqueue(self, stream_url, offset=0):
         """Adds stream to the queue. Does not impact the currently playing stream."""
-        directive = self._play_directive('ENQUEUE')
-        audio_item = self._audio_item(stream_url=stream_url, offset=offset, push_buffer=False)
-        audio_item['stream']['expectedPreviousToken'] = current_stream.token
-
-        directive['audioItem'] = audio_item
-        self._response['directives'].append(directive)
-        return self
+        try:
+            directive = self._play_directive('ENQUEUE')
+            audio_item = self._audio_item(stream_url=stream_url, offset=offset, push_buffer=False)
+            audio_item['stream']['expectedPreviousToken'] = current_stream.token
+            directive['audioItem'] = audio_item
+            self._response['directives'].append(directive)
+            return self
+        except:
+            print("Error: Please add stream url to play correctly the skill.")
+            exit()
 
     def play_next(self, stream_url=None, offset=0):
         """Replace all streams in the queue but does not impact the currently playing stream."""

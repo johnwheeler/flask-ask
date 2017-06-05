@@ -608,12 +608,15 @@ class Ask(object):
             else:
                 result = "{}", 200
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
-            result = self._map_intent_to_view_func(self.request.intent)()
+            try:
+                result = self._map_intent_to_view_func(self.request.intent)()
+            except Exception as e:
+                print("Error:", e)
+                exit()
         elif 'AudioPlayer' in request_type:
             result = self._map_player_request_to_func(self.request.type)()
             # routes to on_playback funcs
             # user can also access state of content.AudioPlayer with current_stream
-
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
@@ -629,7 +632,7 @@ class Ask(object):
             arg_values = self._map_params_to_view_args(intent.name, arg_names)
             return partial(view_func, *arg_values)
         except:
-            print("Error: Please add the ", intent.name, " to play to run correctly the skill.")
+            print("Error: Please add the ", intent.name, "to run correctly the skill.")
             exit()
 
     def _map_player_request_to_func(self, player_request_type):
