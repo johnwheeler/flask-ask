@@ -134,3 +134,8 @@ Of course, there's always room for improvement.
 Feel free to `open an issue <https://github.com/johnwheeler/flask-ask/issues>`_ so we can make Flask-Ask better.
 
 Special thanks to `@kennethreitz <https://github.com/kennethreitz>`_ for his `sense <http://docs.python-requests.org/en/master/>`_ of `style <https://github.com/kennethreitz/records/blob/master/README.rst>`_, and of course, `@mitsuhiko <https://github.com/mitsuhiko>`_ for `Flask <https://www.palletsprojects.com/p/flask/>`_
+
+
+.. image:: https://badges.gitter.im/johnwheeler/flask-ask.svg
+   :alt: Join the chat at https://gitter.im/johnwheeler/flask-ask
+   :target: https://gitter.im/johnwheeler/flask-ask?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
