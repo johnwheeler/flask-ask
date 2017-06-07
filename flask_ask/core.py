@@ -673,6 +673,12 @@ class YamlLoader(BaseLoader):
 
     def __init__(self, app, path):
         self.path = app.root_path + os.path.sep + path
+        if os.path.exists(self.path):
+            pass
+        else:
+            self.path = app.root_path + os.path.sep + 'templates.yml'
+            if os.path.exists(self.path):
+                pass
         self.mapping = {}
         self._reload_mapping()
 
