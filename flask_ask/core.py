@@ -74,6 +74,7 @@ class Ask(object):
         self._launch_view_func = None
         self._session_ended_view_func = None
         self._on_session_started_callback = None
+        self._default_intent_view_func = None
         self._player_request_view_funcs = {}
         self._player_mappings = {}
         self._player_converts = {}
@@ -246,6 +247,15 @@ class Ask(object):
                 self._flask_view_func(*args, **kw)
             return f
         return decorator
+
+    def default_intent(self, f):
+        """Decorator routes any Alexa IntentRequest that is not matched by any existing @ask.intent routing."""
+        self._default_intent_view_func = f
+
+        @wraps(f)
+        def wrapper(*args, **kw):
+            self._flask_view_func(*args, **kw)
+        return f
 
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
@@ -605,7 +615,13 @@ class Ask(object):
 
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""
-        view_func = self._intent_view_funcs[intent.name]
+        if intent.name in self._intent_view_funcs:
+            view_func = self._intent_view_funcs[intent.name]
+        elif self._default_intent_view_func is not None:
+            view_func = self._default_intent_view_func
+        else:
+            raise NotImplementedError('Intent "{}" not found and no default intent specified.'.format(intent.name))
+
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent.name, arg_names)
