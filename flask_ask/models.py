@@ -254,7 +254,7 @@ def _output_speech(speech):
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
-    except ElementTree.ParseError as e:
+    except (UnicodeEncodeError, ElementTree.ParseError) as e:
         pass
     return {'type': 'PlainText', 'text': speech}
 
