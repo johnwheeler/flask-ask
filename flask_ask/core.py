@@ -32,14 +32,14 @@ def find_ask():
                     return getattr(blueprints[blueprint_name], 'ask')
 
 
-
-request = LocalProxy(lambda: find_ask().request)
-session = LocalProxy(lambda: find_ask().session)
-version = LocalProxy(lambda: find_ask().version)
-context = LocalProxy(lambda: find_ask().context)
-convert_errors = LocalProxy(lambda: find_ask().convert_errors)
-current_stream = LocalProxy(lambda: find_ask().current_stream)
-stream_cache = LocalProxy(lambda: find_ask().stream_cache)
+_ask = find_ask()
+request = LocalProxy(lambda: _ask.request)
+session = LocalProxy(lambda: _ask.session)
+version = LocalProxy(lambda: _ask.version)
+context = LocalProxy(lambda: _ask.context)
+convert_errors = LocalProxy(lambda: _ask.convert_errors)
+current_stream = LocalProxy(lambda: _ask.current_stream)
+stream_cache = LocalProxy(lambda: _ask.stream_cache)
 
 from . import models
 
@@ -515,7 +515,7 @@ class Ask(object):
         if self.context:
             return self.context.get('System', {}).get('user', {}).get('userId')
         return None
-                
+
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
