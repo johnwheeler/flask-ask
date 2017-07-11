@@ -53,6 +53,25 @@ class TestCoreRoutines(unittest.TestCase):
         with self.assertRaises(ValueError):
             Ask._parse_timestamp(None)
 
+    def test_tries_parsing_on_valueerror(self):
+        max_timestamp = 253402300800
+
+        # should cause a ValueError normally
+        with self.assertRaises(ValueError):
+            datetime.utcfromtimestamp(max_timestamp)
+
+        # should safely parse, assuming scale change needed
+        # note: this assert looks odd, but Py2 handles the parsing
+        #       differently, resulting in a differing timestamp
+        #       due to more granularity of microseconds
+        result = Ask._parse_timestamp(max_timestamp)
+        self.assertEqual(datetime(1978, 1, 11, 21, 31, 40).timetuple()[0:6],
+                         result.timetuple()[0:6])
+
+        with self.assertRaises(ValueError):
+            # still raise an error if too large
+            Ask._parse_timestamp(max_timestamp * 1000)
+
     def tearDown(self):
         self.patch_current_app.stop()
         self.patch_load_cert.stop()

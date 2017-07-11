@@ -558,8 +558,13 @@ class Ask(object):
             try:
                 return aniso8601.parse_datetime(timestamp)
             except AttributeError:
-                # raised by aniso8601 if raw_timestamp is not valid string in ISO8601 format
-                return datetime.utcfromtimestamp(timestamp)
+                # raised by aniso8601 if raw_timestamp is not valid string
+                # in ISO8601 format
+                try:
+                    return datetime.utcfromtimestamp(timestamp)
+                except ValueError:
+                    # relax the timestamp a bit in case it was sent in millis
+                    return datetime.utcfromtimestamp(timestamp/1000)
 
         raise ValueError('Invalid timestamp value! Cannot parse from either ISO8601 string or UTC timestamp.')
             
