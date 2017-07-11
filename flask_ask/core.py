@@ -1,6 +1,7 @@
 import os
 import yaml
 import inspect
+from datetime import datetime
 from functools import wraps, partial
 
 import aniso8601
@@ -529,10 +530,14 @@ class Ask(object):
             cert = verifier.load_certificate(cert_url)
             # verify signature
             verifier.verify_signature(cert, signature, raw_body)
+
             # verify timestamp
-            timestamp = aniso8601.parse_datetime(alexa_request_payload['request']['timestamp'])
+            raw_timestamp = alexa_request_payload.get('request', {}).get('timestamp')
+            timestamp = self._parse_timestamp(raw_timestamp)
+
             if not current_app.debug or self.ask_verify_timestamp_debug:
                 verifier.verify_timestamp(timestamp)
+
             # verify application id
             try:
                 application_id = alexa_request_payload['session']['application']['applicationId']
@@ -543,6 +548,21 @@ class Ask(object):
                 verifier.verify_application_id(application_id, self.ask_application_id)
 
         return alexa_request_payload
+
+    @staticmethod
+    def _parse_timestamp(timestamp):
+        """
+        Parse a given timestamp value, raising ValueError if None or Flasey
+        """
+        if timestamp:
+            try:
+                return aniso8601.parse_datetime(timestamp)
+            except AttributeError:
+                # raised by aniso8601 if raw_timestamp is not valid string in ISO8601 format
+                return datetime.utcfromtimestamp(timestamp)
+
+        raise ValueError('Invalid timestamp value! Cannot parse from either ISO8601 string or UTC timestamp.')
+            
 
     def _update_stream(self):
         fresh_stream = models._Field()
