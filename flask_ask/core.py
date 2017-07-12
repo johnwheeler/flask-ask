@@ -562,7 +562,7 @@ class Ask(object):
                 # in ISO8601 format
                 try:
                     return datetime.utcfromtimestamp(timestamp)
-                except ValueError:
+                except:
                     # relax the timestamp a bit in case it was sent in millis
                     return datetime.utcfromtimestamp(timestamp/1000)
 
