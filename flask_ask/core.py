@@ -1,6 +1,7 @@
 import os
 import yaml
 import inspect
+from datetime import datetime
 from functools import wraps, partial
 
 import aniso8601
@@ -74,6 +75,7 @@ class Ask(object):
         self._launch_view_func = None
         self._session_ended_view_func = None
         self._on_session_started_callback = None
+        self._default_intent_view_func = None
         self._player_request_view_funcs = {}
         self._player_mappings = {}
         self._player_converts = {}
@@ -246,6 +248,15 @@ class Ask(object):
                 self._flask_view_func(*args, **kw)
             return f
         return decorator
+
+    def default_intent(self, f):
+        """Decorator routes any Alexa IntentRequest that is not matched by any existing @ask.intent routing."""
+        self._default_intent_view_func = f
+
+        @wraps(f)
+        def wrapper(*args, **kw):
+            self._flask_view_func(*args, **kw)
+        return f
 
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
@@ -519,10 +530,14 @@ class Ask(object):
             cert = verifier.load_certificate(cert_url)
             # verify signature
             verifier.verify_signature(cert, signature, raw_body)
+
             # verify timestamp
-            timestamp = aniso8601.parse_datetime(alexa_request_payload['request']['timestamp'])
+            raw_timestamp = alexa_request_payload.get('request', {}).get('timestamp')
+            timestamp = self._parse_timestamp(raw_timestamp)
+
             if not current_app.debug or self.ask_verify_timestamp_debug:
                 verifier.verify_timestamp(timestamp)
+
             # verify application id
             try:
                 application_id = alexa_request_payload['session']['application']['applicationId']
@@ -533,6 +548,26 @@ class Ask(object):
                 verifier.verify_application_id(application_id, self.ask_application_id)
 
         return alexa_request_payload
+
+    @staticmethod
+    def _parse_timestamp(timestamp):
+        """
+        Parse a given timestamp value, raising ValueError if None or Flasey
+        """
+        if timestamp:
+            try:
+                return aniso8601.parse_datetime(timestamp)
+            except AttributeError:
+                # raised by aniso8601 if raw_timestamp is not valid string
+                # in ISO8601 format
+                try:
+                    return datetime.utcfromtimestamp(timestamp)
+                except:
+                    # relax the timestamp a bit in case it was sent in millis
+                    return datetime.utcfromtimestamp(timestamp/1000)
+
+        raise ValueError('Invalid timestamp value! Cannot parse from either ISO8601 string or UTC timestamp.')
+            
 
     def _update_stream(self):
         fresh_stream = models._Field()
@@ -611,7 +646,13 @@ class Ask(object):
 
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""
-        view_func = self._intent_view_funcs[intent.name]
+        if intent.name in self._intent_view_funcs:
+            view_func = self._intent_view_funcs[intent.name]
+        elif self._default_intent_view_func is not None:
+            view_func = self._default_intent_view_func
+        else:
+            raise NotImplementedError('Intent "{}" not found and no default intent specified.'.format(intent.name))
+
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent.name, arg_names)
