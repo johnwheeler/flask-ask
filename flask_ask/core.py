@@ -115,11 +115,10 @@ class Ask(object):
             being synchronized with an NTP server. This setting should not be enabled in production.
             Default: False
 
-        `ASK_MINIFY_DEBUG_LOGS`:
+        `ASK_PRETTY_DEBUG_LOGS`:
 
-            Turn on to print debug-level logs of the request and response in minified form instead of pretty-printing.
-            This is useful when debug logs are sent to CloudWatch, which prettifies JSON natively and breaks
-            already-prettified JSON objects into multiple events.
+            Add tabs and linebreaks to the Alexa request and response printed to the debug log.
+            This improves readability when printing to the console, but breaks formatting when logging to CloudWatch.
             Default: False
         """
         if self._route is None:
@@ -164,7 +163,7 @@ class Ask(object):
         return current_app.config.get('ASK_APPLICATION_ID', None)
 
     @property
-    def ask_minify_debug_logs(self):
+    def ask_pretty_debug_logs(self):
         return current_app.config.get('ASK_MINIFY_DEBUG_LOGS', False)
 
     def on_session_started(self, f):
@@ -590,7 +589,7 @@ class Ask(object):
             fresh_stream.__dict__.update(context_info)
 
         self.current_stream = fresh_stream
-        _dbgdump(current_stream.__dict__, indent=None if self.ask_minify_debug_logs else 2)
+        _dbgdump(current_stream.__dict__, indent=2 if self.ask_pretty_debug_logs else None)
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})
@@ -605,7 +604,7 @@ class Ask(object):
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
-        _dbgdump(ask_payload, indent=None if self.ask_minify_debug_logs else 2)
+        _dbgdump(ask_payload, indent=2 if self.ask_pretty_debug_logs else None)
         request_body = models._Field(ask_payload)
 
         self.request = request_body.request
@@ -745,6 +744,6 @@ class YamlLoader(BaseLoader):
         return TemplateNotFound(template)
 
 
-def _dbgdump(obj, indent=2, default=None, cls=None):
+def _dbgdump(obj, indent=None, default=None, cls=None):
     msg = json.dumps(obj, indent=indent, default=default, cls=cls)
     logger.debug(msg)
