@@ -114,6 +114,13 @@ class Ask(object):
             Timestamp verification helps mitigate against replay attacks. It relies on the system clock
             being synchronized with an NTP server. This setting should not be enabled in production.
             Default: False
+
+        `ASK_MINIFY_DEBUG_LOGS`:
+
+            Turn on to print debug-level logs of the request and response in minified form instead of pretty-printing.
+            This is useful when debug logs are sent to CloudWatch, which prettifies JSON natively and breaks
+            already-prettified JSON objects into multiple events.
+            Default: False
         """
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
@@ -155,6 +162,10 @@ class Ask(object):
     @property
     def ask_application_id(self):
         return current_app.config.get('ASK_APPLICATION_ID', None)
+
+    @property
+    def ask_minify_debug_logs(self):
+        return current_app.config.get('ASK_MINIFY_DEBUG_LOGS', False)
 
     def on_session_started(self, f):
         """Decorator to call wrapped function upon starting a session.
