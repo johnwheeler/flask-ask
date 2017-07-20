@@ -590,7 +590,7 @@ class Ask(object):
             fresh_stream.__dict__.update(context_info)
 
         self.current_stream = fresh_stream
-        _dbgdump(current_stream.__dict__)
+        _dbgdump(current_stream.__dict__, indent=None if self.ask_minify_debug_logs else 2)
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})
@@ -605,7 +605,7 @@ class Ask(object):
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
-        _dbgdump(ask_payload)
+        _dbgdump(ask_payload, indent=None if self.ask_minify_debug_logs else 2)
         request_body = models._Field(ask_payload)
 
         self.request = request_body.request
