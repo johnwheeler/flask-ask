@@ -110,7 +110,7 @@ class _Response(object):
 
 
 class delegate(_Response):
-    def __init__(self):
+    def __init__(self, speech):
         self._response = {
             'shouldEndSession': False,
             'directives': [{'type': 'Dialog.Delegate'}]
