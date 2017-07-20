@@ -108,7 +108,7 @@ class Ask(object):
             It is useful for mocking JSON requests in automated tests.
             Default: True
 
-        ASK_VERIFY_TIMESTAMP_DEBUG:
+        `ASK_VERIFY_TIMESTAMP_DEBUG`:
 
             Turn on request timestamp verification while debugging by setting this to True.
             Timestamp verification helps mitigate against replay attacks. It relies on the system clock
