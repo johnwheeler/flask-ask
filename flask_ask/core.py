@@ -33,7 +33,11 @@ def find_ask():
                     return getattr(blueprints[blueprint_name], 'ask')
 
 
-def _dbgdump(obj, indent=None, default=None, cls=None):
+def _dbgdump(obj, default=None, cls=None):
+    if current_app.config['ASK_PRETTY_DEBUG_LOGS']:
+        indent = 2
+    else:
+        indent = None
     msg = json.dumps(obj, indent=indent, default=default, cls=cls)
     logger.debug(msg)
 
@@ -165,10 +169,6 @@ class Ask(object):
     @property
     def ask_application_id(self):
         return current_app.config.get('ASK_APPLICATION_ID', None)
-
-    @property
-    def ask_pretty_debug_logs(self):
-        return current_app.config.get('ASK_PRETTY_DEBUG_LOGS', False)
 
     def on_session_started(self, f):
         """Decorator to call wrapped function upon starting a session.
@@ -593,7 +593,7 @@ class Ask(object):
             fresh_stream.__dict__.update(context_info)
 
         self.current_stream = fresh_stream
-        _dbgdump(current_stream.__dict__, indent=2 if self.ask_pretty_debug_logs else None)
+        _dbgdump(current_stream.__dict__)
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})
@@ -608,7 +608,7 @@ class Ask(object):
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
-        _dbgdump(ask_payload, indent=2 if self.ask_pretty_debug_logs else None)
+        _dbgdump(ask_payload)
         request_body = models._Field(ask_payload)
 
         self.request = request_body.request
