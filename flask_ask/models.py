@@ -260,6 +260,6 @@ def _output_speech(speech):
     return {'type': 'PlainText', 'text': speech}
 
 
-def _dbgdump(obj, indent=2, default=None, cls=None):
+def _dbgdump(obj, indent=None, default=None, cls=None):
     msg = json.dumps(obj, indent=indent, default=default, cls=cls)
     logger.debug(msg)
