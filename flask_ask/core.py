@@ -164,7 +164,7 @@ class Ask(object):
 
     @property
     def ask_pretty_debug_logs(self):
-        return current_app.config.get('ASK_MINIFY_DEBUG_LOGS', False)
+        return current_app.config.get('ASK_PRETTY_DEBUG_LOGS', False)
 
     def on_session_started(self, f):
         """Decorator to call wrapped function upon starting a session.
