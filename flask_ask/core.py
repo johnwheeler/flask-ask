@@ -33,6 +33,10 @@ def find_ask():
                     return getattr(blueprints[blueprint_name], 'ask')
 
 
+def _dbgdump(obj, indent=None, default=None, cls=None):
+    msg = json.dumps(obj, indent=indent, default=default, cls=cls)
+    logger.debug(msg)
+
 
 request = LocalProxy(lambda: find_ask().request)
 session = LocalProxy(lambda: find_ask().session)
@@ -742,8 +746,3 @@ class YamlLoader(BaseLoader):
             source = self.mapping[template]
             return source, None, lambda: source == self.mapping.get(template)
         return TemplateNotFound(template)
-
-
-def _dbgdump(obj, indent=None, default=None, cls=None):
-    msg = json.dumps(obj, indent=indent, default=default, cls=cls)
-    logger.debug(msg)
