@@ -34,7 +34,7 @@ def find_ask():
 
 
 def _dbgdump(obj, default=None, cls=None):
-    if current_app.config['ASK_PRETTY_DEBUG_LOGS']:
+    if current_app.config.get('ASK_PRETTY_DEBUG_LOGS', False):
         indent = 2
     else:
         indent = None
