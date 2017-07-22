@@ -2,10 +2,9 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, context, current_stream, stream_cache
-from .cache import push_stream
+from .core import session, _stream_buffer, current_stream
 from . import logger
-import uuid
+import random
 
 from pprint import pprint
 
@@ -21,7 +20,7 @@ class _Field(dict):
 
     Example:
 
-    payload_object = _Field(alexa_json_payload)
+    payload_object = _Field(alexa_josn_payload)
 
     request_type_from_keys = payload_object['request']['type']
     request_type_from_attrs = payload_object.request.type
@@ -84,13 +83,73 @@ class _Response(object):
         card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
-        
-    def consent_card(self, permissions):
-        card = {
-            'type': 'AskForPermissionsConsent',
-            'permissions': [permissions]
-        }
-        self._response['card'] = card
+
+    def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
+        directive = [
+            {
+                'type': 'Display.RenderTemplate',
+                'template': {
+                    'type': template,
+                    'backButton': backButton,
+                    'backgroundImage': {
+                        'sources': [
+                            {'url': background_image_url}
+                        ]
+                    },
+                    'title': title,
+                    'listItems': listItems
+                }
+            }
+        ]
+
+        if hintText is not None:
+            hint = {
+                'type':'Hint',
+                'hint': {
+                    'type':"PlainText",
+                    'text': hintText
+                }
+            }
+            directive.append(hint)
+        self._response['directives'] = directive
+        return self
+
+    def display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, text=None, hintText=None):
+        directive = [
+            {
+                'type': 'Display.RenderTemplate',
+                'template': {
+                    'type': template,
+                    'backButton': backButton,
+                    'backgroundImage': {
+                        'sources': [
+                            {'url': background_image_url}
+                            ]
+                    },
+                    'title': title,
+                    'textContent': text
+                }
+            }
+        ]
+        if image is not None:
+            directive[0]['template']['image'] = {
+                'sources': [
+                    {'url': image}
+                ]
+            }
+        if token is not None:
+            directive['template']['token'] = token
+        if hintText is not None:
+            hint = {
+                'type':'Hint',
+                'hint': {
+                    'type':"PlainText",
+                    'text': hintText
+                }
+            }
+            directive.append(hint)
+
+        self._response['directives'] = directive
         return self
 
     def render_response(self):
@@ -209,11 +268,11 @@ class audio(_Response):
         # new stream
         else:
             stream['url'] = stream_url
-            stream['token'] = str(uuid.uuid4())
+            stream['token'] = str(random.randint(10000, 100000))
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            push_stream(stream_cache, context['System']['user']['userId'], stream)
+            _stream_buffer.push(stream)
         return audio_item
 
     def stop(self):
@@ -254,7 +313,7 @@ def _output_speech(speech):
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
-    except (UnicodeEncodeError, ElementTree.ParseError) as e:
+    except ElementTree.ParseError as e:
         pass
     return {'type': 'PlainText', 'text': speech}
 
