@@ -1,5 +1,5 @@
 import inspect
-from flask import json, current_app
+from flask import json
 from xml.etree import ElementTree
 import aniso8601
 from .core import session, context, current_stream, stream_cache, dbgdump
@@ -106,8 +106,7 @@ class _Response(object):
             kw[kwargname] = json_encoder
         dbgdump(response_wrapper, **kw)
 
-        return json.dumps(response_wrapper,
-                          indent=2 if current_app.config.get('ASK_MINIFY_DEBUG_LOGS', False) else None, **kw)
+        return json.dumps(response_wrapper, **kw)
 
 
 class statement(_Response):
