@@ -33,7 +33,7 @@ def find_ask():
                     return getattr(blueprints[blueprint_name], 'ask')
 
 
-def _dbgdump(obj, default=None, cls=None):
+def dbgdump(obj, default=None, cls=None):
     if current_app.config.get('ASK_PRETTY_DEBUG_LOGS', False):
         indent = 2
     else:
@@ -593,7 +593,7 @@ class Ask(object):
             fresh_stream.__dict__.update(context_info)
 
         self.current_stream = fresh_stream
-        _dbgdump(current_stream.__dict__)
+        dbgdump(current_stream.__dict__)
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})
@@ -608,7 +608,7 @@ class Ask(object):
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
-        _dbgdump(ask_payload)
+        dbgdump(ask_payload)
         request_body = models._Field(ask_payload)
 
         self.request = request_body.request

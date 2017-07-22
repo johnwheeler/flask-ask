@@ -2,7 +2,7 @@ import inspect
 from flask import json, current_app
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, context, current_stream, stream_cache, _dbgdump
+from .core import session, context, current_stream, stream_cache, dbgdump
 from .cache import push_stream
 from . import logger
 import uuid
@@ -104,7 +104,7 @@ class _Response(object):
             json_encoder = session.attributes_encoder
             kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
             kw[kwargname] = json_encoder
-        _dbgdump(response_wrapper, **kw)
+        dbgdump(response_wrapper, **kw)
 
         return json.dumps(response_wrapper,
                           indent=2 if current_app.config.get('ASK_MINIFY_DEBUG_LOGS', False) else None, **kw)
