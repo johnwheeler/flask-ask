@@ -2,9 +2,10 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, _stream_buffer, current_stream
+from .core import session, context, current_stream, stream_cache
+from .cache import push_stream
 from . import logger
-import random
+import uuid
 
 from pprint import pprint
 
@@ -20,7 +21,7 @@ class _Field(dict):
 
     Example:
 
-    payload_object = _Field(alexa_josn_payload)
+    payload_object = _Field(alexa_json_payload)
 
     request_type_from_keys = payload_object['request']['type']
     request_type_from_attrs = payload_object.request.type
@@ -78,12 +79,6 @@ class _Response(object):
 
         self._response['card'] = card
         return self
-
-    def link_account_card(self):
-        card = {'type': 'LinkAccount'}
-        self._response['card'] = card
-        return self
-
     def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
         directive = [
             {
@@ -150,6 +145,19 @@ class _Response(object):
             directive.append(hint)
 
         self._response['directives'] = directive
+        return self
+
+    def link_account_card(self):
+        card = {'type': 'LinkAccount'}
+        self._response['card'] = card
+        return self
+
+    def consent_card(self, permissions):
+        card = {
+            'type': 'AskForPermissionsConsent',
+            'permissions': [permissions]
+        }
+        self._response['card'] = card
         return self
 
     def render_response(self):
@@ -268,11 +276,11 @@ class audio(_Response):
         # new stream
         else:
             stream['url'] = stream_url
-            stream['token'] = str(random.randint(10000, 100000))
+            stream['token'] = str(uuid.uuid4())
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            _stream_buffer.push(stream)
+            push_stream(stream_cache, context['System']['user']['userId'], stream)
         return audio_item
 
     def stop(self):
@@ -313,7 +321,7 @@ def _output_speech(speech):
         xmldoc = ElementTree.fromstring(speech)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
-    except ElementTree.ParseError as e:
+    except (UnicodeEncodeError, ElementTree.ParseError) as e:
         pass
     return {'type': 'PlainText', 'text': speech}
 
