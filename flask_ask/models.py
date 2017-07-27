@@ -2,7 +2,7 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, context, current_stream, stream_cache
+from .core import session, context, current_stream, stream_cache, dbgdump
 from .cache import push_stream
 from . import logger
 import uuid
@@ -104,7 +104,7 @@ class _Response(object):
             json_encoder = session.attributes_encoder
             kwargname = 'cls' if inspect.isclass(json_encoder) else 'default'
             kw[kwargname] = json_encoder
-        _dbgdump(response_wrapper, **kw)
+        dbgdump(response_wrapper, **kw)
 
         return json.dumps(response_wrapper, **kw)
 
@@ -257,8 +257,3 @@ def _output_speech(speech):
     except (UnicodeEncodeError, ElementTree.ParseError) as e:
         pass
     return {'type': 'PlainText', 'text': speech}
-
-
-def _dbgdump(obj, indent=2, default=None, cls=None):
-    msg = json.dumps(obj, indent=indent, default=default, cls=cls)
-    logger.debug(msg)

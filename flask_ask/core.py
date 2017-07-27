@@ -33,6 +33,14 @@ def find_ask():
                     return getattr(blueprints[blueprint_name], 'ask')
 
 
+def dbgdump(obj, default=None, cls=None):
+    if current_app.config.get('ASK_PRETTY_DEBUG_LOGS', False):
+        indent = 2
+    else:
+        indent = None
+    msg = json.dumps(obj, indent=indent, default=default, cls=cls)
+    logger.debug(msg)
+
 
 request = LocalProxy(lambda: find_ask().request)
 session = LocalProxy(lambda: find_ask().session)
@@ -108,11 +116,17 @@ class Ask(object):
             It is useful for mocking JSON requests in automated tests.
             Default: True
 
-        ASK_VERIFY_TIMESTAMP_DEBUG:
+        `ASK_VERIFY_TIMESTAMP_DEBUG`:
 
             Turn on request timestamp verification while debugging by setting this to True.
             Timestamp verification helps mitigate against replay attacks. It relies on the system clock
             being synchronized with an NTP server. This setting should not be enabled in production.
+            Default: False
+
+        `ASK_PRETTY_DEBUG_LOGS`:
+
+            Add tabs and linebreaks to the Alexa request and response printed to the debug log.
+            This improves readability when printing to the console, but breaks formatting when logging to CloudWatch.
             Default: False
         """
         if self._route is None:
@@ -579,7 +593,7 @@ class Ask(object):
             fresh_stream.__dict__.update(context_info)
 
         self.current_stream = fresh_stream
-        _dbgdump(current_stream.__dict__)
+        dbgdump(current_stream.__dict__)
 
     def _from_context(self):
         return getattr(self.context, 'AudioPlayer', {})
@@ -594,7 +608,7 @@ class Ask(object):
 
     def _flask_view_func(self, *args, **kwargs):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
-        _dbgdump(ask_payload)
+        dbgdump(ask_payload)
         request_body = models._Field(ask_payload)
 
         self.request = request_body.request
@@ -732,8 +746,3 @@ class YamlLoader(BaseLoader):
             source = self.mapping[template]
             return source, None, lambda: source == self.mapping.get(template)
         return TemplateNotFound(template)
-
-
-def _dbgdump(obj, indent=2, default=None, cls=None):
-    msg = json.dumps(obj, indent=indent, default=default, cls=cls)
-    logger.debug(msg)
