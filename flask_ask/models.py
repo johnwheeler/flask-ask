@@ -109,6 +109,14 @@ class _Response(object):
         return json.dumps(response_wrapper, **kw)
 
 
+class delegate(_Response):
+    def __init__(self, speech):
+        self._response = {
+            'shouldEndSession': False,
+            'directives': [{'type': 'Dialog.Delegate'}]
+        }
+
+
 class statement(_Response):
 
     def __init__(self, speech):
