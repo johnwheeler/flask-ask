@@ -84,7 +84,7 @@ class _Response(object):
         card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
-        
+
     def consent_card(self, permissions):
         card = {
             'type': 'AskForPermissionsConsent',
@@ -126,6 +126,15 @@ class question(_Response):
         reprompt = {'outputSpeech': _output_speech(reprompt)}
         self._response['reprompt'] = reprompt
         return self
+
+
+class delegate(_Response):
+
+    def __init__(self, speech):
+        self._response = {
+            'shouldEndSession': False,
+            'directives': [{'type': 'Dialog.Delegate'}]
+        }
 
 
 class audio(_Response):

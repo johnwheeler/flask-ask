@@ -530,7 +530,7 @@ class Ask(object):
         if self.context:
             return self.context.get('System', {}).get('user', {}).get('userId')
         return None
-                
+
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
@@ -581,7 +581,7 @@ class Ask(object):
                     return datetime.utcfromtimestamp(timestamp/1000)
 
         raise ValueError('Invalid timestamp value! Cannot parse from either ISO8601 string or UTC timestamp.')
-            
+
 
     def _update_stream(self):
         fresh_stream = models._Field()
@@ -622,6 +622,12 @@ class Ask(object):
             self.session.attributes = models._Field()
 
         self._update_stream()
+
+        # add current dialog state in session
+        try:
+            self.session["dialogState"] = request.dialogState
+        except KeyError:
+            self.session["dialogState"] = "unknown"
 
         try:
             if self.session.new and self._on_session_started_callback is not None:
