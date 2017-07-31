@@ -195,6 +195,15 @@ class question(_Response):
         return self
 
 
+class delegate(_Response):
+
+    def __init__(self, speech):
+        self._response = {
+            'shouldEndSession': False,
+            'directives': [{'type': 'Dialog.Delegate'}]
+        }
+
+
 class audio(_Response):
     """Returns a response object with an Amazon AudioPlayer Directive.
 

@@ -644,6 +644,12 @@ class Ask(object):
 
         self._update_stream()
 
+        # add current dialog state in session
+        try:
+            self.session["dialogState"] = request.dialogState
+        except KeyError:
+            self.session["dialogState"] = "unknown"
+
         try:
             if self.session.new and self._on_session_started_callback is not None:
                 self._on_session_started_callback()

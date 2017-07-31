@@ -16,4 +16,4 @@ from .core import (
     convert_errors
 )
 
-from .models import question, statement, audio
+from .models import question, statement, audio, delegate

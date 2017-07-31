@@ -94,6 +94,7 @@ ENV/
 # Misc
 .DS_Store
 temp
+.idea/
 
 # Project
 backups
