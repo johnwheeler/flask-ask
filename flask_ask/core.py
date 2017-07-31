@@ -272,6 +272,27 @@ class Ask(object):
             self._flask_view_func(*args, **kw)
         return f
 
+    def display_element_selected(self, f):
+        """Decorator routes Alexa Display.ElementSelected request to the wrapped view function.
+
+        @ask.display_element_selected
+        def eval_element():
+            return "", 200
+
+        The wrapped function is registered as the display_element_selected view function
+        and renders the response for requests.
+
+        Arguments:
+            f {function} -- display_element_selected view function
+        """
+        self._display_element_selected_func = f
+
+        @wraps(f)
+        def wrapper(*args, **kw):
+            self._flask_view_func(*args, **kw)
+        return f
+
+
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
 
@@ -530,7 +551,7 @@ class Ask(object):
         if self.context:
             return self.context.get('System', {}).get('user', {}).get('userId')
         return None
-                
+
 
     def _alexa_request(self, verify=True):
         raw_body = flask_request.data
@@ -581,7 +602,7 @@ class Ask(object):
                     return datetime.utcfromtimestamp(timestamp/1000)
 
         raise ValueError('Invalid timestamp value! Cannot parse from either ISO8601 string or UTC timestamp.')
-            
+
 
     def _update_stream(self):
         fresh_stream = models._Field()

@@ -79,12 +79,79 @@ class _Response(object):
 
         self._response['card'] = card
         return self
+    def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
+        directive = [
+            {
+                'type': 'Display.RenderTemplate',
+                'template': {
+                    'type': template,
+                    'backButton': backButton,
+                    'backgroundImage': {
+                        'sources': [
+                            {'url': background_image_url}
+                        ]
+                    },
+                    'title': title,
+                    'listItems': listItems
+                }
+            }
+        ]
+
+        if hintText is not None:
+            hint = {
+                'type':'Hint',
+                'hint': {
+                    'type':"PlainText",
+                    'text': hintText
+                }
+            }
+            directive.append(hint)
+        self._response['directives'] = directive
+        return self
+
+    def display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, text=None, hintText=None):
+        directive = [
+            {
+                'type': 'Display.RenderTemplate',
+                'template': {
+                    'type': template,
+                    'backButton': backButton,
+                    'backgroundImage': {
+                        'sources': [
+                            {'url': background_image_url}
+                            ]
+                    },
+                    'title': title,
+                    'textContent': text
+                }
+            }
+        ]
+        if image is not None:
+            directive[0]['template']['image'] = {
+                'sources': [
+                    {'url': image}
+                ]
+            }
+        if token is not None:
+            directive['template']['token'] = token
+        if hintText is not None:
+            hint = {
+                'type':'Hint',
+                'hint': {
+                    'type':"PlainText",
+                    'text': hintText
+                }
+            }
+            directive.append(hint)
+
+        self._response['directives'] = directive
+        return self
 
     def link_account_card(self):
         card = {'type': 'LinkAccount'}
         self._response['card'] = card
         return self
-        
+
     def consent_card(self, permissions):
         card = {
             'type': 'AskForPermissionsConsent',
