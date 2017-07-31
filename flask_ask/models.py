@@ -10,6 +10,11 @@ import uuid
 from pprint import pprint
 
 
+# Only use the anonymous key if you're not concerened
+# about multiple users or workers trampling one another
+ANONYMOUS_KEY = 'anonymous'
+
+
 class _Field(dict):
     """Container to represent Alexa Request Data.
 
@@ -294,7 +299,13 @@ class audio(_Response):
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            push_stream(stream_cache, context['System']['user']['userId'], stream)
+            if context:
+                key = context.get('System', {}).get('user', {}).get('userId', ANONYMOUS_KEY)
+            else:
+                logger.warning('Anonymous key being used due to missing Context!')
+                key = ANONYMOUS_KEY
+
+            push_stream(stream_cache, key, stream)
         return audio_item
 
     def stop(self):
