@@ -79,6 +79,7 @@ class _Response(object):
 
         self._response['card'] = card
         return self
+    
     def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
         directive = [
             {
@@ -126,14 +127,17 @@ class _Response(object):
                 }
             }
         ]
+        
         if image is not None:
             directive[0]['template']['image'] = {
                 'sources': [
                     {'url': image}
                 ]
             }
+            
         if token is not None:
             directive['template']['token'] = token
+            
         if hintText is not None:
             hint = {
                 'type':'Hint',
@@ -166,6 +170,7 @@ class _Response(object):
             'response': self._response,
             'sessionAttributes': session.attributes
         }
+        
         kw = {}
         if hasattr(session, 'attributes_encoder'):
             json_encoder = session.attributes_encoder
