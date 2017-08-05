@@ -79,7 +79,7 @@ class _Response(object):
 
         self._response['card'] = card
         return self
-    
+
     def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
         directive = [
             {
@@ -127,17 +127,17 @@ class _Response(object):
                 }
             }
         ]
-        
+
         if image is not None:
             directive[0]['template']['image'] = {
                 'sources': [
                     {'url': image}
                 ]
             }
-            
+
         if token is not None:
             directive['template']['token'] = token
-            
+
         if hintText is not None:
             hint = {
                 'type':'Hint',
@@ -170,7 +170,7 @@ class _Response(object):
             'response': self._response,
             'sessionAttributes': session.attributes
         }
-        
+
         kw = {}
         if hasattr(session, 'attributes_encoder'):
             json_encoder = session.attributes_encoder
@@ -235,10 +235,17 @@ class audio(_Response):
             self._response = {}
         self._response['directives'] = []
 
-    def play(self, stream_url, offset=0):
+    def play(self, stream_url, offset=0, reprompt=True):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
 
-        self._response['shouldEndSession'] = True
+        """Per Amazon's docs on the Play directive:
+
+        When sending a Play directive, you normally set the shouldEndSession flag in the response object to true to end the session.
+
+        If you set this flag to false, Alexa sends the stream to the device for playback, then immediately pauses the stream to listen for the users response.
+        """
+        self._response['shouldEndSession'] = reprompt
+
         directive = self._play_directive('REPLACE_ALL')
         directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset)
         self._response['directives'].append(directive)
@@ -321,6 +328,11 @@ class audio(_Response):
         self._response['directives'].append(directive)
         return self
 
+    # enables reprompt at end of audio stream (I think)
+    def reprompt(self, reprompt):
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
+        self._response['reprompt'] = reprompt
+        return self
 
 def _copyattr(src, dest, attr, convert=None):
     if attr in src:
