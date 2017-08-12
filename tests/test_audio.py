@@ -23,6 +23,13 @@ class AudioUnitTests(unittest.TestCase):
         self.assertEqual(36, len(audio_item['stream']['token']))
         self.assertEqual(123, audio_item['stream']['offsetInMilliseconds'])
 
+    def test_custom_token(self):
+        """ Check to see that the provided opaque token remains constant"""
+        token = "hello_world"
+        audio_item = audio()._audio_item(stream_url='https://fakestream', offset=10, opaque_token=token)
+        self.assertEqual(token, audio_item['stream']['token'])
+        self.assertEqual(10, audio_item['stream']['offsetInMilliseconds'])
+
 
 class AskStreamHandlingTests(unittest.TestCase):
 
