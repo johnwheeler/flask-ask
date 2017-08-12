@@ -2,7 +2,7 @@ import unittest
 from mock import patch, MagicMock
 from flask import Flask
 from flask_ask import Ask, audio
-from flask_ask.models import _Field
+from flask_ask.models import _Field, _Response
 
 
 class AudioUnitTests(unittest.TestCase):
@@ -26,9 +26,9 @@ class AudioUnitTests(unittest.TestCase):
     def test_custom_token(self):
         """ Check to see that the provided opaque token remains constant"""
         token = "hello_world"
-        audio_item = audio().play(stream_url='https://fakestream', offset=10, opaque_token=token)
+        audio_item = audio()._audio_item(stream_url='https://fakestream', offset=10, opaque_token=token)
         self.assertEqual(token, audio_item['stream']['token'])
-        self.assertEqual(-99, audio_item['stream']['offsetInMilliseconds'])
+        self.assertEqual(10, audio_item['stream']['offsetInMilliseconds'])
 
 
 class AskStreamHandlingTests(unittest.TestCase):
@@ -61,7 +61,6 @@ class AskStreamHandlingTests(unittest.TestCase):
         with patch('flask_ask.core.top_stream', return_value=fake_stream):
             from_buffer = ask._from_directive()
             self.assertEqual(fake_stream, from_buffer)
-
 
 if __name__ == '__main__':
     unittest.main()
