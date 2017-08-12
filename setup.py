@@ -9,7 +9,7 @@ from pip.req import parse_requirements
 
 setup(
     name='Flask-Ask',
-    version='0.9.6',
+    version='0.9.7',
     url='https://github.com/johnwheeler/flask-ask',
     license='Apache 2.0',
     author='John Wheeler',
