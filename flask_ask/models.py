@@ -199,11 +199,14 @@ class question(_Response):
 
 class delegate(_Response):
 
-    def __init__(self):
+    def __init__(self, updated_intent=None):
         self._response = {
             'shouldEndSession': False,
             'directives': [{'type': 'Dialog.Delegate'}]
         }
+
+        if updated_intent:
+            self._response['directives'][0]['updatedIntent'] = updated_intent
 
 
 class elicit_slot(_Response):
