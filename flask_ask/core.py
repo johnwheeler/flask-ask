@@ -650,6 +650,12 @@ class Ask(object):
         except KeyError:
             self.session["dialogState"] = "unknown"
 
+        # add confirmation status in session
+        try:
+            self.session["confirmationStatus"] = request.intent.confirmationStatus
+        except (KeyError, AttributeError):
+            self.session["confirmationStatus"] = "unknown"
+
         try:
             if self.session.new and self._on_session_started_callback is not None:
                 self._on_session_started_callback()
