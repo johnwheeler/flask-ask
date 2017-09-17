@@ -87,16 +87,18 @@ class _Response(object):
                 'template': {
                     'type': template,
                     'backButton': backButton,
-                    'backgroundImage': {
-                        'sources': [
-                            {'url': background_image_url}
-                        ]
-                    },
                     'title': title,
                     'listItems': listItems
                 }
             }
         ]
+        
+        if background_image_url is not None:
+            directive[0]['template']['backgroundImage'] = {
+               'sources': [
+                   {'url': background_image_url}
+               ]
+            }
 
         if hintText is not None:
             hint = {
@@ -117,16 +119,18 @@ class _Response(object):
                 'template': {
                     'type': template,
                     'backButton': backButton,
-                    'backgroundImage': {
-                        'sources': [
-                            {'url': background_image_url}
-                            ]
-                    },
                     'title': title,
                     'textContent': text
                 }
             }
         ]
+        
+        if background_image_url is not None:
+            directive[0]['template']['backgroundImage'] = {
+               'sources': [
+                   {'url': background_image_url}
+               ]
+            }
         
         if image is not None:
             directive[0]['template']['image'] = {
