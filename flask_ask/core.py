@@ -668,6 +668,8 @@ class Ask(object):
                 result = "{}", 200
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
+        elif request_type == 'Display.ElementSelected' and self._display_element_selected_func:
+            result = self._display_element_selected_func()
         elif 'AudioPlayer' in request_type:
             result = self._map_player_request_to_func(self.request.type)()
             # routes to on_playback funcs
