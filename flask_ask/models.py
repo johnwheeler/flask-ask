@@ -86,6 +86,7 @@ class _Response(object):
                 'type': 'Display.RenderTemplate',
                 'template': {
                     'type': template,
+                    'token': token,
                     'backButton': backButton,
                     'backgroundImage': {
                         'sources': [
