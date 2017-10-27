@@ -92,9 +92,15 @@ Deployment
 
 You can deploy using any WSGI compliant framework (uWSGI, Gunicorn). If you haven't deployed a Flask app to production, `checkout flask-live-starter <https://github.com/johnwheeler/flask-live-starter>`_.
 
-To deploy on AWS Lambda, use `Zappa <https://github.com/Miserlou/Zappa>`_. This `blog post <https://developer.amazon.com/blogs/post/8e8ad73a-99e9-4c0f-a7b3-60f92287b0bf/new-alexa-tutorial-deploy-flask-ask-skills-to-aws-lambda-with-zappa>`_ shows how to deploy Flask-Ask with Zappa from scratch.
+To deploy on AWS Lambda, you have two options. Use `Zappa <https://github.com/Miserlou/Zappa>`_ to automate the deployment of an AWS Lambda function and an AWS API Gateway to provide a public facing endpoint for your Lambda function. This `blog post <https://developer.amazon.com/blogs/post/8e8ad73a-99e9-4c0f-a7b3-60f92287b0bf/new-alexa-tutorial-deploy-flask-ask-skills-to-aws-lambda-with-zappa>`_ shows how to deploy Flask-Ask with Zappa from scratch. Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates, not the Lambda function's ARN.
 
-Note: When deploying to AWS Lambda with Zappa, make sure you point the Alexa skill to the HTTPS API gateway that Zappa creates, not the Lambda function's ARN.
+Alternatively, you can use AWS Lambda directly without the need for an AWS API Gateway endpoint. In this case you will need to `deploy <https://developer.amazon.com/docs/custom-skills/host-a-custom-skill-as-an-aws-lambda-function.html>`_ your Lambda function yourself and use `virtualenv <http://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html>`_ to create a deployment package that contains your Flask-Ask application along with its dependencies, which can be uploaded to Lambda. If your Lambda handler is configured as `lambda_function.lambda_handler`, then you would save the full application example above in a file called `lambda_function.py` and add the following two lines to it:
+
+.. code-block:: python
+
+    def lambda_handler(event, _context):
+        return ask.run_aws_lambda(event)
+
 
 Development
 ===============
