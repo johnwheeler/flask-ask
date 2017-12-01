@@ -136,7 +136,7 @@ class _Response(object):
             }
             
         if token is not None:
-            directive['template']['token'] = token
+            directive[0]['template']['token'] = token
             
         if hintText is not None:
             hint = {
