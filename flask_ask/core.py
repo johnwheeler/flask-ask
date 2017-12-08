@@ -871,4 +871,4 @@ class YamlLoader(BaseLoader):
         if template in self.mapping:
             source = self.mapping[template]
             return source, None, lambda: source == self.mapping.get(template)
-        return TemplateNotFound(template)
+        raise TemplateNotFound(template)
