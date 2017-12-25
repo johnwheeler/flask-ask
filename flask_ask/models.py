@@ -206,7 +206,7 @@ class question(_Response):
 
 class delegate(_Response):
 
-    def __init__(self, speech):
+    def __init__(self):
         self._response = {
             'shouldEndSession': False,
             'directives': [{'type': 'Dialog.Delegate'}]
