@@ -3,8 +3,12 @@ import sys
 import yaml
 import inspect
 from datetime import datetime
-from StringIO import StringIO
 from functools import wraps, partial
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import aniso8601
 from werkzeug.contrib.cache import SimpleCache
