@@ -58,6 +58,29 @@ from . import models
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 
+# A simple object used to store detailed slot data
+# It takes the arg_value (after default+convert)
+# It then extracts the relevant custom slot info and match type.
+# Where no match is found it initialises name and id to "" so checking is easier
+#
+_unicodeSuccessMatch = unicode('ER_SUCCESS_MATCH', 'utf8')
+class _slot():
+    def __init__(self, slotData, arg_value):
+        self.value = arg_value
+        self.id = ""
+        self.name = ""
+
+        if (slotData is None):
+            return
+
+        self.code  = slotData[0]['status']['code']
+
+        if self.code == _unicodeSuccessMatch and slotData[0]['values'] is not None:
+            slotValues = slotData[0]['values']
+            value=slotValues[0]['value']
+            self.name = value['name']
+            self.id = value['id']
+
 class Ask(object):
     """The Ask object provides the central interface for interacting with the Alexa service.
 
@@ -82,6 +105,7 @@ class Ask(object):
         self._intent_converts = {}
         self._intent_defaults = {}
         self._intent_mappings = {}
+        self._intent_types = {}
         self._launch_view_func = None
         self._session_ended_view_func = None
         self._on_session_started_callback = None
@@ -229,7 +253,7 @@ class Ask(object):
             self._flask_view_func(*args, **kw)
         return f
 
-    def intent(self, intent_name, mapping={}, convert={}, default={}):
+    def intent(self, intent_name, mapping={}, convert={}, default={}, types={}):
         """Decorator routes an Alexa IntentRequest and provides the slot parameters to the wrapped function.
 
         Functions decorated as an intent are registered as the view function for the Intent's URL,
@@ -252,12 +276,18 @@ class Ask(object):
             default {dict} --  Provides default values for Intent slots if Alexa reuqest
                 returns no corresponding slot, or a slot with an empty value
                 default: {}
+
+            types {dict} -- Specifies the type of data to return for an argument. By default only
+                            the argument value is returned, however if a value of 'slot' is specified
+                            then the full slot data will be returned via the _slot class.
+                default: {}
         """
         def decorator(f):
             self._intent_view_funcs[intent_name] = f
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
+            self._intent_types[intent_name] = types
 
             @wraps(f)
             def wrapper(*args, **kw):
@@ -810,16 +840,28 @@ class Ask(object):
         convert = self._intent_converts.get(view_name)
         default = self._intent_defaults.get(view_name)
         mapping = self._intent_mappings.get(view_name)
+        types = self._intent_types.get(view_name)
 
         convert_errors = {}
 
         request_data = {}
+        slot_data = {}
+
         intent = getattr(self.request, 'intent', None)
         if intent is not None:
             if intent.slots is not None:
+
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
                     request_data[slot_object.name] = getattr(slot_object, 'value', None)
+
+                    # Where appropriate, grab the custom slot data
+                    if request_data[slot_object.name] is not None \
+                            and request_data[slot_object.name] != "":
+
+                        slot_data[slot_object.name] = getattr(slot_object, 'resolutions', None)
+                        slot_data[slot_object.name] = getattr(slot_data[slot_object.name], 'resolutionsPerAuthority', None)
+
 
         else:
             for param_name in self.request:
@@ -828,6 +870,7 @@ class Ask(object):
         for arg_name in arg_names:
             param_or_slot = mapping.get(arg_name, arg_name)
             arg_value = request_data.get(param_or_slot)
+            
             if arg_value is None or arg_value == "":
                 if arg_name in default:
                     default_value = default[arg_name]
@@ -845,7 +888,13 @@ class Ask(object):
                     arg_value = convert_func(arg_value)
                 except Exception as e:
                     convert_errors[arg_name] = e
-            arg_values.append(arg_value)
+
+            if arg_value is not None and arg_name in types and types[arg_name] == 'slot':
+                slotData = _slot(slot_data.get(arg_name, None), arg_value)
+                arg_values.append(slotData)
+            else:
+                arg_values.append(arg_value)
+                
         self.convert_errors = convert_errors
         return arg_values
 
