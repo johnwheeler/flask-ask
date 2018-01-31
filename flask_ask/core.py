@@ -3,7 +3,7 @@ import sys
 import yaml
 import inspect
 from datetime import datetime
-from StringIO import StringIO
+from io import StringIO
 from functools import wraps, partial
 
 import aniso8601
