@@ -21,5 +21,7 @@ from .models import (
     statement,
     audio,
     delegate,
-    elicit_slot
+    elicit_slot,
+    confirm_slot,
+    confirm_intent
 )

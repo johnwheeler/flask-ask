@@ -215,7 +215,7 @@ class delegate(_Response):
 
 class elicit_slot(_Response):
     """
-    Send an ElicitSlot directive.
+    Sends an ElicitSlot directive.
     slot - The slot name to elicit
     speech - The output speech
     updated_intent - Optional updated intent
@@ -227,6 +227,44 @@ class elicit_slot(_Response):
             'directives': [{
                 'type': 'Dialog.ElicitSlot',
                 'slotToElicit': slot,
+            }],
+            'outputSpeech': _output_speech(speech),
+        }
+
+        if updated_intent:
+            self._response['directives'][0]['updatedIntent'] = updated_intent
+
+class confirm_slot(_Response):
+    """
+    Sends a ConfirmSlot directive.
+    slot - The slot name to confirm
+    speech - The output speech
+    updated_intent - Optional updated intent
+    """
+
+    def __init__(self, slot, speech, updated_intent=None):
+        self._response = {
+            'shouldEndSession': False,
+            'directives': [{
+                'type': 'Dialog.ConfirmSlot',
+                'slotToConfirm': slot,
+            }],
+            'outputSpeech': _output_speech(speech),
+        }
+
+        if updated_intent:
+            self._response['directives'][0]['updatedIntent'] = updated_intent
+
+class confirm_intent(_Response):
+    """
+    Sends a ConfirmIntent directive.
+    
+    """
+    def __init__(self, speech, updated_intent=None):
+        self._response = {
+            'shouldEndSession': False,
+            'directives': [{
+                'type': 'Dialog.ConfirmIntent',
             }],
             'outputSpeech': _output_speech(speech),
         }
