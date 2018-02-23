@@ -3,7 +3,11 @@ import sys
 import yaml
 import inspect
 from datetime import datetime
-from StringIO import StringIO
+# Needed to support Python 3
+try:
+    from StringIO import StringIO
+except ModuleNotFoundError:
+    from io import StringIO
 from functools import wraps, partial
 
 import aniso8601
