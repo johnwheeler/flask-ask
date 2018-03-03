@@ -1,6 +1,6 @@
 import inspect
 from flask import json
-from xml.etree import ElementTree
+from lxml import etree
 import aniso8601
 from .core import session, context, current_stream, stream_cache, dbgdump
 from .cache import push_stream
@@ -399,9 +399,10 @@ def _copyattr(src, dest, attr, convert=None):
 
 def _output_speech(speech):
     try:
-        xmldoc = ElementTree.fromstring(speech)
+        parser = etree.XMLParser(dtd_validation=False, load_dtd=False, recover=True)
+        xmldoc = etree.fromstring(speech, parser)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
-    except (UnicodeEncodeError, ElementTree.ParseError) as e:
+    except (UnicodeEncodeError, etree.ParseError) as e:
         pass
     return {'type': 'PlainText', 'text': speech}
