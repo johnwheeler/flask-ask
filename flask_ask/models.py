@@ -403,6 +403,6 @@ def _output_speech(speech):
         xmldoc = etree.fromstring(speech, parser)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
-    except (UnicodeEncodeError, etree.ParseError) as e:
+    except (UnicodeEncodeError, etree.XMLSyntaxError, AttributeError) as e:
         pass
     return {'type': 'PlainText', 'text': speech}
