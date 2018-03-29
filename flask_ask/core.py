@@ -610,7 +610,7 @@ class Ask(object):
         body = json.dumps(event)
         environ['CONTENT_TYPE'] = 'application/json'
         environ['CONTENT_LENGTH'] = len(body)
-        environ['wsgi.input'] = StringIO(body)
+        environ['wsgi.input'] = StringIO(unicode(body))
 
         # Start response is a required callback that must be passed when
         # the application is invoked. It is used to set HTTP status and
