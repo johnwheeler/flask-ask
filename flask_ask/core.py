@@ -804,6 +804,22 @@ class Ask(object):
 
         return partial(view_func, *arg_values)
 
+    def _get_slot_value(self, slot_object):
+        slot_name = slot_object.name
+        slot_value = getattr(slot_object, 'value', None)
+        resolutions = getattr(slot_object, 'resolutions', None)
+
+        if resolutions is not None:
+            resolutions_per_authority = getattr(resolutions, 'resolutionsPerAuthority', None)
+            if resolutions_per_authority is not None and len(resolutions_per_authority) > 0:
+                values = resolutions_per_authority[0].get('values', None)
+                if values is not None and len(values) > 0:
+                    value = values[0].get('value', None)
+                    if value is not None:
+                        slot_value = value.get('name', slot_value)
+
+        return slot_value
+
     def _map_params_to_view_args(self, view_name, arg_names):
 
         arg_values = []
@@ -819,7 +835,7 @@ class Ask(object):
             if intent.slots is not None:
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
-                    request_data[slot_object.name] = getattr(slot_object, 'value', None)
+                    request_data[slot_object.name] = self._get_slot_value(slot_object=slot_object)
 
         else:
             for param_name in self.request:
