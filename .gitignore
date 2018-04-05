@@ -6,6 +6,8 @@ __pycache__/
 
 # Distribution / packaging
 *.egg-info/
+build/
+dist/
 
 # pyenv
 .python-version

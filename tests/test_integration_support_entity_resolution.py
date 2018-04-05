@@ -84,8 +84,8 @@ play_request = {
 }
 
 
-class AudioIntegrationTests(unittest.TestCase):
-    """ Integration tests of the Audio Directives """
+class CustomSlotTypeIntegrationTests(unittest.TestCase):
+    """ Integration tests of the custom slot type """
 
     def setUp(self):
         self.app = Flask(__name__)
@@ -100,8 +100,8 @@ class AudioIntegrationTests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_play_intent(self):
-        """ Test to see if we can properly play a stream """
+    def test_custom_slot_type_intent(self):
+        """ Test to see if custom slot type value is correct """
         response = self.client.post('/ask', data=json.dumps(play_request))
         self.assertEqual(200, response.status_code)
 
