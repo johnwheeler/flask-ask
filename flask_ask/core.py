@@ -3,7 +3,7 @@ import sys
 import yaml
 import inspect
 from datetime import datetime
-from io import StringIO
+from io import BytesIO
 from functools import wraps, partial
 
 import aniso8601
@@ -610,7 +610,7 @@ class Ask(object):
         body = json.dumps(event)
         environ['CONTENT_TYPE'] = 'application/json'
         environ['CONTENT_LENGTH'] = len(body)
-        environ['wsgi.input'] = StringIO(unicode(body))
+        environ['wsgi.input'] = BytesIO(body)
 
         # Start response is a required callback that must be passed when
         # the application is invoked. It is used to set HTTP status and
