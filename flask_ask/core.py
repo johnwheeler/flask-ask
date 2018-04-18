@@ -853,7 +853,10 @@ class Ask(object):
 class YamlLoader(BaseLoader):
 
     def __init__(self, app, path):
-        self.path = app.root_path + os.path.sep + path
+        if os.path.isabs(path):
+            self.path = path
+        else:
+            self.path = app.root_path + os.path.sep + path
         self.mapping = {}
         self._reload_mapping()
 
