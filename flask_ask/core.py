@@ -72,7 +72,7 @@ class Ask(object):
         route {str} -- entry point to which initial Alexa Requests are forwarded (default: {None})
         blueprint {Flask blueprint} -- Flask Blueprint instance to use instead of Flask App (default: {None})
         stream_cache {Werkzeug BasicCache} -- BasicCache-like object for storing Audio stream data (default: {SimpleCache})
-        path {str} -- path to templates yaml file for VUI dialog (default: {'templates.yaml'})
+        path {str} -- absolute or relative path to templates yaml file for VUI dialog (default: {'templates.yaml'})
     """
 
     def __init__(self, app=None, route=None, blueprint=None, stream_cache=None, path='templates.yaml'):

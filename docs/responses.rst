@@ -144,3 +144,5 @@ You can also use Jinja templates. Define them in a YAML file named `templates.ya
 You can also use a custom templates file passed into the Ask object::
 
   ask = Ask(app, '/', None, 'custom-templates.yml')
+
+The path may be an absolute or relative path.
