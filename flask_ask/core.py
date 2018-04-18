@@ -872,3 +872,6 @@ class YamlLoader(BaseLoader):
             source = self.mapping[template]
             return source, None, lambda: source == self.mapping.get(template)
         raise TemplateNotFound(template)
+
+    def load_templates(self):
+        return sorted(self.mapping)
