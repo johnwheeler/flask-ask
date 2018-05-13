@@ -234,6 +234,12 @@ class elicit_slot(_Response):
         if updated_intent:
             self._response['directives'][0]['updatedIntent'] = updated_intent
 
+    def reprompt(self, reprompt):
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
+        self._response['reprompt'] = reprompt
+        return self
+    
+            
 class confirm_slot(_Response):
     """
     Sends a ConfirmSlot directive.
@@ -255,6 +261,12 @@ class confirm_slot(_Response):
         if updated_intent:
             self._response['directives'][0]['updatedIntent'] = updated_intent
 
+    def reprompt(self, reprompt):
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
+        self._response['reprompt'] = reprompt
+        return self
+
+    
 class confirm_intent(_Response):
     """
     Sends a ConfirmIntent directive.
@@ -272,7 +284,12 @@ class confirm_intent(_Response):
         if updated_intent:
             self._response['directives'][0]['updatedIntent'] = updated_intent
 
+    def reprompt(self, reprompt):
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
+        self._response['reprompt'] = reprompt
+        return self
 
+    
 class audio(_Response):
     """Returns a response object with an Amazon AudioPlayer Directive.
 
