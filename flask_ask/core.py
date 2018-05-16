@@ -134,6 +134,8 @@ class Ask(object):
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
 
+        self.app = app
+        
         app.ask = self
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
