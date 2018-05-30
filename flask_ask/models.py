@@ -76,6 +76,14 @@ class _Response(object):
 
         self._response['card'] = card
         return self
+
+    def link_card(self):
+        card = {
+            'type': 'LinkAccount'
+        }
+
+        self._response['card'] = card
+        return self
     
     def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
         directive = [
