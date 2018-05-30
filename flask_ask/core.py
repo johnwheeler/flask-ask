@@ -2,8 +2,8 @@ import os
 import sys
 import yaml
 import inspect
+import io
 from datetime import datetime
-from io import StringIO
 from functools import wraps, partial
 
 import aniso8601
@@ -610,7 +610,13 @@ class Ask(object):
         body = json.dumps(event)
         environ['CONTENT_TYPE'] = 'application/json'
         environ['CONTENT_LENGTH'] = len(body)
-        environ['wsgi.input'] = StringIO(body)
+        
+        PY3 = sys.version_info[0] == 3
+        
+        if PY3:
+            environ['wsgi.input'] = io.StringIO(body)
+        else:
+            environ['wsgi.input'] = io.BytesIO(body)
 
         # Start response is a required callback that must be passed when
         # the application is invoked. It is used to set HTTP status and
