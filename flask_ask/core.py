@@ -884,7 +884,7 @@ class YamlLoader(BaseLoader):
     def _reload_mapping(self):
         if os.path.isfile(self.path):
             self.last_mtime = os.path.getmtime(self.path)
-            with open(self.path) as f:
+            with open(self.path, encoding="utf-8") as f:
                 self.mapping = yaml.safe_load(f.read())
 
     def get_source(self, environment, template):
