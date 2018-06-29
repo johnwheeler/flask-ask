@@ -130,6 +130,21 @@ class Ask(object):
             Add tabs and linebreaks to the Alexa request and response printed to the debug log.
             This improves readability when printing to the console, but breaks formatting when logging to CloudWatch.
             Default: False
+            
+        `ASK_INTERACTION_MODEL_FILE`:
+
+            When this path is set, a JSON interaction model compatible with ASK JSON Editor
+            When None : no interaction model is generated.
+            Default: None
+            
+        `ASK_IM_INVOCATION_NAME`:
+
+            When this name is set, it is used as invocation name in generated interaction model,
+            when None invocation name is a placeholder that needs to be filled by user.
+            Default: None
+        
+            
+        
         """
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
@@ -140,7 +155,9 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app, path)])
-
+        
+        self._resolve_im_path(app)
+        
     def init_blueprint(self, blueprint, path='templates.yaml'):
         """Initialize a Flask Blueprint, similar to init_app, but without the access
         to the application config.
@@ -260,10 +277,12 @@ class Ask(object):
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
-
+            
             @wraps(f)
             def wrapper(*args, **kw):
                 self._flask_view_func(*args, **kw)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -327,6 +346,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -358,6 +379,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -396,6 +419,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -451,6 +476,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -488,6 +515,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -650,24 +679,42 @@ class Ask(object):
             # is implemented on the result object.
             if hasattr(result, 'close'):
                 result.close()
-    
-    def generate_interaction_model_blueprint(self):
+        
+    def _resolve_im_path(self, app):
+        self.invocation_name = app.config.get("ASK_IM_INVOCATION_NAME","Set ASK_IM_INVOCATION_NAME or define one here")
+
+        self.impath = app.config.get("ASK_INTERACTION_MODEL_FILE", None)
+        if not self.impath and ('--generate-interaction-model' in sys.argv):
+            idx = sys.argv.index('--generate-interaction-model')
+            self.impath = 'interactionModel.json' if (len(sys.argv) == idx+1) else sys.argv[idx+1]
+        if not self.impath:
+            return
+        logger.info("Interaction model JSON will be generated in : %s" % self.impath)
+                
+    def sync_interaction_model(self):
         """ 
             Generates a JSON representation of the Skill Interaction Model 
             JSON, this is not 100% complete model but is a starting point,
             it can be copy/pasted in ASK Console JSON Editor as a starting point
         """
-        #TODO: support types
-        return {
-            "interactionModel": {
-                "languageModel": {
-#TODO: define invocationName in some way ?
-                    "invocationName": "abracadabra",
-                    "intents":list(self._gen_im_intents()),
-                     "types": []
+        if not self.impath: return
+        try:
+            out = open(self.impath, 'w', encoding='utf-8')
+            #TODO: support types
+            json.dump({
+                "interactionModel": {
+                    "languageModel": {
+                        "invocationName": self.invocation_name,
+                        "intents":list(self._gen_im_intents()),
+                         "types": []
+                     }
                  }
-             }
-         }
+             }, out, indent=4)
+            out.close()
+            logger.debug("Synced interaction model to : %s" % self.impath) 
+        except:
+            logger.warn("Failed synching interaction model to : %s" % self.impath, exc_info=True)
+        
          
     @staticmethod
     def _gen_im_identifier_to_words(identifier):
