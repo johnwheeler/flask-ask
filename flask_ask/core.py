@@ -16,7 +16,7 @@ from . import verifier, logger
 from .convert import to_date, to_time, to_timedelta
 from .cache import top_stream, set_stream
 import collections
-
+import re
 
 def find_ask():
     """
@@ -650,8 +650,94 @@ class Ask(object):
             # is implemented on the result object.
             if hasattr(result, 'close'):
                 result.close()
+    
+    def generate_interaction_model_blueprint(self):
+        """ 
+            Generates a JSON representation of the Skill Interaction Model 
+            JSON, this is not 100% complete model but is a starting point,
+            it can be copy/pasted in ASK Console JSON Editor as a starting point
+        """
+        #TODO: support types
+        return {
+            "interactionModel": {
+                "languageModel": {
+#TODO: define invocationName in some way ?
+                    "invocationName": "abracadabra",
+                    "intents":list(self._gen_im_intents()),
+                     "types": []
+                 }
+             }
+         }
+         
+    @staticmethod
+    def _gen_im_identifier_to_words(identifier):
+        """ Split camelcase, remove non alphas, and remove eventual trailing "Intent"  """
+        matches = re.finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
+        return ' '.join(m.group(0) for m in matches if m.group(0).lower() != 'intent')
+        
+    def _gen_im_intents(self):
+        for view_name in self._intent_view_funcs.keys():
+            slots = list(self._gen_im_slots(view_name))
+            intent = { "name": view_name,
+                      "slots": slots
+                  }
+            intent_in_words = self._gen_im_identifier_to_words(view_name)
+            
+            slot_samples = []
+            
+            if len(slots) > 0:
+                slot_samples.append(' '.join(
+                "{%s}"%slot["name"] for slot in slots))
+                    
+                slot_samples.append(' '.join(
+                    "%s {%s}"%(self._gen_im_identifier_to_words(slot["name"]), 
+                            slot["name"]) for slot in slots))
+                
+                slot_samples.append( ' and '.join(
+                    "%s {%s}"%(self._gen_im_identifier_to_words(slot["name"]), 
+                        slot["name"]) for slot in slots))
+                
+                slot_samples.extend(list("with "+sample for sample in slot_samples))
+            else:
+                slot_samples = [""]
+                
+            intent["samples"] = []
+            
+            for slot_sample in slot_samples:
+                intent["samples"].extend(pattern % (intent_in_words, slot_sample) for pattern in 
+                        ["I want to %s %s", "My answer is %s %s", "invoke %s %s", "do %s %s","%s %s"])
+            yield intent
+            #TODO: utterrances should be made customizable (in af ile ?)
+            
 
+    def _gen_im_slots(self, view_name):
+        view_func = self._intent_view_funcs.get(view_name)
+        argspec = inspect.getargspec(view_func)
+        arg_names = argspec.args
+        
+        convert = self._intent_converts.get(view_name)
+        default = self._intent_defaults.get(view_name)
+        mapping = self._intent_mappings.get(view_name)
 
+        for arg_name in arg_names:
+            yield {
+                "name": mapping.get(arg_name, arg_name),
+                "type": self._gen_im_infer_slot_type(convert[arg_name])
+            }
+    
+    def _gen_im_infer_slot_type(self, shorthand_or_function):
+        if shorthand_or_function in ('date',to_date):
+            return "AMAZON.DATE"
+        elif shorthand_or_function in ('time',to_time):
+            return "AMAZON.TIME"
+        elif shorthand_or_function in ('timedelta',to_timedelta):
+            return "AMAZON.DURATION"
+        elif shorthand_or_function in (int, float):
+            return "AMAZON.NUMBER"
+        #TODO: support for list types 
+        #TODO: support for custom types
+        return "UnknowType"
+        
     def _get_user(self):
         if self.context:
             return self.context.get('System', {}).get('user', {}).get('userId')
