@@ -869,7 +869,7 @@ class Ask(object):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         dbgdump(ask_payload)
         request_body = models._Field(ask_payload)
-
+        
         self.request = request_body.request
         self.version = request_body.version
         self.context = getattr(request_body, 'context', models._Field())
@@ -1008,12 +1008,13 @@ class Ask(object):
 
 
 class YamlLoader(BaseLoader):
-
+    
     def __init__(self, app, path):
         self.path = app.root_path + os.path.sep + path
         self.mapping = {}
         self._reload_mapping()
-
+    
+        
     def _reload_mapping(self):
         if os.path.isfile(self.path):
             self.last_mtime = os.path.getmtime(self.path)
@@ -1025,7 +1026,19 @@ class YamlLoader(BaseLoader):
             return None, None, None
         if self.last_mtime != os.path.getmtime(self.path):
             self._reload_mapping()
-        if template in self.mapping:
+        
+        locale = getattr(_app_ctx_stack.top, '_ask_request').locale
+        source = None
+        for sfx in (locale.replace('-','_'), locale.split('-',1)[0]):
+            key = template+"_"+sfx
+            if key in self.mapping:
+                source = self.mapping[key]
+                break
+        if not source:
+            logger.warn("No localized template found for locale %r and template %r, falling back to default.", locale, template)
             source = self.mapping[template]
+        
+        if source:
             return source, None, lambda: source == self.mapping.get(template)
+            
         raise TemplateNotFound(template)
