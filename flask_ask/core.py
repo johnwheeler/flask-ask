@@ -3,6 +3,7 @@ import sys
 import yaml
 import inspect
 import io
+import random
 from datetime import datetime
 from functools import wraps, partial
 
@@ -893,6 +894,12 @@ class YamlLoader(BaseLoader):
         if self.last_mtime != os.path.getmtime(self.path):
             self._reload_mapping()
         if template in self.mapping:
-            source = self.mapping[template]
+            # convert to template list if not already
+            # choose one at random
+            options = self.mapping[template]
+            if not isinstance(options, list):
+                options = [options]
+
+            source = random.choice(options)
             return source, None, lambda: source == self.mapping.get(template)
         raise TemplateNotFound(template)
