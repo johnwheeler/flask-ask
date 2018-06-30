@@ -1,8 +1,7 @@
 Building Responses
 ==================
 
-📼 A `Building Responses with Flask-Ask video <https://alexatutorial.com/2>`_ is available on
-`AlexaTutorial.com <https://alexatutorial.com>`_.
+📼 Here is a video demo on `Building Responses with Flask-Ask video <https://youtu.be/mObuAlfxnl8>`_ .
 
 The two primary constructs in Flask-Ask for creating responses are ``statement`` and ``question``.
 
@@ -92,7 +91,7 @@ if the root element is ``speak``::
 
 Displaying Cards in the Alexa Smartphone/Tablet App
 ---------------------------------------------------
-In addition to speaking back, Flask-Ask can display contextual cards in the Alexa smartphone/tablet app. All three
+In addition to speaking back, Flask-Ask can display contextual cards in the Alexa smartphone/tablet app. All four
 of the Alexa Skills Kit card types are supported.
 
 Simple cards display a title and message::
@@ -111,6 +110,13 @@ Standard cards are like simple cards but they also support small and large image
                          text='Make your time',
                          small_image_url='https://example.com/small.png',
                          large_image_url='https://example.com/large.png')
+
+Link account cards display a link to authorize the Alexa user with a user account in your system. The link displayed is the auhorization URL you configure in the amazon skill developer portal::  
+
+  @ask.intent('AllYourBaseIntent')
+  def all_your_base():
+      return statement('Please link your account in the Alexa app') \
+      .link_account_card()
 
 Consent cards ask for the permission to access the device's address. You can either ask for the country and postal code (`read::alexa:device:all:address:country_and_postal_code`) or for the full address (`read::alexa:device:all:address`). The permission you ask for has to match what you've specified in the amazon skill developer portal:: 
 
