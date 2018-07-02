@@ -891,15 +891,20 @@ class YamlLoader(BaseLoader):
     def get_source(self, environment, template):
         if not os.path.isfile(self.path):
             return None, None, None
+
         if self.last_mtime != os.path.getmtime(self.path):
             self._reload_mapping()
-        if template in self.mapping:
-            # convert to template list if not already
-            # choose one at random
-            options = self.mapping[template]
-            if not isinstance(options, list):
-                options = [options]
 
-            source = random.choice(options)
-            return source, None, lambda: source == self.mapping.get(template)
+        if template in self.mapping:
+            source = self.mapping[template]
+            if isinstance(source, list):
+                options = source
+                source = random.choice(options)
+                # Force Jinja to always reload picking a random option
+                uptodate = lambda: False
+            else:
+                uptodate = lambda: source == self.mapping[template]
+
+            return source, None, uptodate
+
         raise TemplateNotFound(template)
