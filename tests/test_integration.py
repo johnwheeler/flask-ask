@@ -117,6 +117,13 @@ class AudioIntegrationTests(unittest.TestCase):
         # reset our play_request
         play_request['request']['intent']['name'] = original_intent_name
 
+    def test_play_without_context(self):
+        """ Test if we can play even without a Context being provided. """
+        request = play_request.copy()
+        del request['context']
+        response = self.client.post('/ask', data=json.dumps(request))
+        self.assertEqual(200, response.status_code)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,10 +1,15 @@
 import inspect
 from flask import json
-from xml.etree import ElementTree
+from lxml import etree
 import aniso8601
 from .core import session, context, current_stream, stream_cache, dbgdump
 from .cache import push_stream
 import uuid
+
+
+# Only use the anonymous key if you're not concerened
+# about multiple users or workers trampling one another
+ANONYMOUS_KEY = 'anonymous'
 
 
 class _Field(dict):
@@ -361,7 +366,13 @@ class audio(_Response):
             stream['offsetInMilliseconds'] = offset
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
-            push_stream(stream_cache, context['System']['user']['userId'], stream)
+            if context:
+                key = context.get('System', {}).get('user', {}).get('userId', ANONYMOUS_KEY)
+            else:
+                logger.warning('Anonymous key being used due to missing Context!')
+                key = ANONYMOUS_KEY
+
+            push_stream(stream_cache, key, stream)
         return audio_item
 
     def stop(self):
@@ -399,9 +410,10 @@ def _copyattr(src, dest, attr, convert=None):
 
 def _output_speech(speech):
     try:
-        xmldoc = ElementTree.fromstring(speech)
+        parser = etree.XMLParser(dtd_validation=False, load_dtd=False, recover=True)
+        xmldoc = etree.fromstring(speech, parser)
         if xmldoc.tag == 'speak':
             return {'type': 'SSML', 'ssml': speech}
-    except (UnicodeEncodeError, ElementTree.ParseError) as e:
+    except (UnicodeEncodeError, etree.XMLSyntaxError, AttributeError) as e:
         pass
     return {'type': 'PlainText', 'text': speech}
