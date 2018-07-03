@@ -684,12 +684,16 @@ class Ask(object):
         self.invocation_name = app.config.get("ASK_IM_INVOCATION_NAME","Set ASK_IM_INVOCATION_NAME or define one here")
 
         self.impath = app.config.get("ASK_INTERACTION_MODEL_FILE", None)
-        if not self.impath and ('--generate-interaction-model' in sys.argv):
-            idx = sys.argv.index('--generate-interaction-model')
+        if not self.impath and ('--interaction-model-file' in sys.argv):
+            idx = sys.argv.index('--interaction-model-file')
             self.impath = 'interactionModel.json' if (len(sys.argv) == idx+1) else sys.argv[idx+1]
         if not self.impath:
             return
-        logger.info("Interaction model JSON will be generated in : %s" % self.impath)
+        logger.info("Interaction model JSON will be synchronized : %s" % self.impath)
+        try:
+            self._old_im = json.load(open(self.impath,"r",encoding="utf-8"))
+        except:
+            self._old_im = {}
                 
     def sync_interaction_model(self):
         """ 
@@ -721,13 +725,28 @@ class Ask(object):
         """ Split camelcase, remove non alphas, and remove eventual trailing "Intent"  """
         matches = re.finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
         return ' '.join(m.group(0) for m in matches if m.group(0).lower() != 'intent')
-        
+    
+    def _get_old_im_intent(self,view_name):
+        i = self._old_im.get("interactionModel",{})
+        i = i.get("languageModel",{})
+        for intent in i.get("intents",[]):
+            if view_name == intent.get("name",None):
+                return intent
+    
     def _gen_im_intents(self):
         for view_name in self._intent_view_funcs.keys():
             slots = list(self._gen_im_slots(view_name))
-            intent = { "name": view_name,
-                      "slots": slots
+            intent = { 
+                    "name": view_name,
+                    "slots": slots
                   }
+                  
+            old_int = self._get_old_im_intent(view_name)
+            if old_int:
+                intent["samples"] = old_int.get("samples",[])
+                yield  intent
+                continue
+            
             intent_in_words = self._gen_im_identifier_to_words(view_name)
             
             slot_samples = []
