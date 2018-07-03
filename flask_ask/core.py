@@ -740,9 +740,13 @@ class Ask(object):
                     "name": view_name,
                     "slots": slots
                   }
-                  
+            
             old_int = self._get_old_im_intent(view_name)
             if old_int:
+                if set(json.dumps(o, sort_keys=True) for o in old_int.get("slots",[])) != set(json.dumps(o, sort_keys=True) for o in intent.get("slots",[])):
+                    logger.warn("Slots of intent %s changed between old and new " 
+                        +"interaction model (May be you want to review your "
+                        +"samples ?)", view_name)
                 intent["samples"] = old_int.get("samples",[])
                 yield  intent
                 continue
