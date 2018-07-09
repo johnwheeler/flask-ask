@@ -795,7 +795,12 @@ class Ask(object):
         else:
             raise NotImplementedError('Intent "{}" not found and no default intent specified.'.format(intent.name))
 
-        argspec = inspect.getargspec(view_func)
+        PY3 = sys.version_info[0] == 3
+        if PY3:
+            argspec = inspect.getfullargspec(view_func)
+        else:
+            argspec = inspect.getargspec(view_func)
+            
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent.name, arg_names)
 
