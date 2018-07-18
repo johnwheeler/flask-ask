@@ -13,7 +13,8 @@ from .core import (
     version,
     context,
     current_stream,
-    convert_errors
+    convert_errors,
+    state
 )
 
 from .models import (

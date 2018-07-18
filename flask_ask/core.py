@@ -51,6 +51,7 @@ context = LocalProxy(lambda: find_ask().context)
 convert_errors = LocalProxy(lambda: find_ask().convert_errors)
 current_stream = LocalProxy(lambda: find_ask().current_stream)
 stream_cache = LocalProxy(lambda: find_ask().stream_cache)
+state = LocalProxy(lambda: find_ask().state)
 
 from . import models
 
@@ -231,7 +232,7 @@ class Ask(object):
             self._flask_view_func(*args, **kw)
         return f
 
-    def intent(self, intent_name, mapping={}, convert={}, default={}):
+    def intent(self, intent_name, state=None, mapping={}, convert={}, default={}):
         """Decorator routes an Alexa IntentRequest and provides the slot parameters to the wrapped function.
 
         Functions decorated as an intent are registered as the view function for the Intent's URL,
@@ -251,15 +252,16 @@ class Ask(object):
             convert {dict} -- Converts slot values to data types before assignment to parameters
                 default: {}
 
-            default {dict} --  Provides default values for Intent slots if Alexa reuqest
+            default {dict} --  Provides default values for Intent slots if Alexa request
                 returns no corresponding slot, or a slot with an empty value
                 default: {}
         """
         def decorator(f):
-            self._intent_view_funcs[intent_name] = f
-            self._intent_mappings[intent_name] = mapping
-            self._intent_converts[intent_name] = convert
-            self._intent_defaults[intent_name] = default
+            intent_id = intent_name, state
+            self._intent_view_funcs[intent_id] = f
+            self._intent_mappings[intent_id] = mapping
+            self._intent_converts[intent_id] = convert
+            self._intent_defaults[intent_id] = default
 
             @wraps(f)
             def wrapper(*args, **kw):
@@ -543,6 +545,14 @@ class Ask(object):
                 return current
         return models._Field()
 
+    @property
+    def state(self):
+        return getattr(_app_ctx_stack.top, '_ask_state', None)
+
+    @state.setter
+    def state(self, value):
+        _app_ctx_stack.top._ask_state = value
+
     @current_stream.setter
     def current_stream(self, value):
         # assumption 1 is we get a models._Field as value
@@ -747,6 +757,7 @@ class Ask(object):
         if not self.session.attributes:
             self.session.attributes = models._Field()
 
+        self.state = State(self.session)
         self._update_stream()
 
         # add current dialog state in session
@@ -787,13 +798,17 @@ class Ask(object):
         return "", 400
 
     def _map_intent_to_view_func(self, intent):
-        """Provides appropiate parameters to the intent functions."""
-        if intent.name in self._intent_view_funcs:
-            view_func = self._intent_view_funcs[intent.name]
+        """Provides appropriate parameters to the intent functions."""
+        intent_id = intent.name, self.state.current
+
+        logger.warn(intent_id)
+
+        if intent_id in self._intent_view_funcs:
+            view_func = self._intent_view_funcs[intent_id]
         elif self._default_intent_view_func is not None:
             view_func = self._default_intent_view_func
         else:
-            raise NotImplementedError('Intent "{}" not found and no default intent specified.'.format(intent.name))
+            raise NotImplementedError('Intent "{}" not found and no default intent specified.'.format(intent_id))
 
         PY3 = sys.version_info[0] == 3
         if PY3:
@@ -802,7 +817,7 @@ class Ask(object):
             argspec = inspect.getargspec(view_func)
             
         arg_names = argspec.args
-        arg_values = self._map_params_to_view_args(intent.name, arg_names)
+        arg_values = self._map_params_to_view_args(intent_id, arg_names)
 
         return partial(view_func, *arg_values)
 
@@ -877,6 +892,17 @@ class Ask(object):
             arg_values.append(arg_value)
         self.convert_errors = convert_errors
         return arg_values
+
+class State(object):
+    SESSION_KEY = '_ask_state_id'
+
+    def __init__(self, session):
+        self._session = session
+        self.current = session.attributes.get(State.SESSION_KEY)
+
+    def transition(self, state_id):
+        self.current = state_id
+        self._session.attributes[State.SESSION_KEY] = self.current
 
 
 class YamlLoader(BaseLoader):
