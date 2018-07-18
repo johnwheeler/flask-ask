@@ -257,11 +257,12 @@ class Ask(object):
                 default: {}
         """
         def decorator(f):
-            intent_id = intent_name, state
-            self._intent_view_funcs[intent_id] = f
-            self._intent_mappings[intent_id] = mapping
-            self._intent_converts[intent_id] = convert
-            self._intent_defaults[intent_id] = default
+            for s in list(state):
+                intent_id = intent_name, s
+                self._intent_view_funcs[intent_id] = f
+                self._intent_mappings[intent_id] = mapping
+                self._intent_converts[intent_id] = convert
+                self._intent_defaults[intent_id] = default
 
             @wraps(f)
             def wrapper(*args, **kw):
