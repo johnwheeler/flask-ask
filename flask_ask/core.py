@@ -802,8 +802,6 @@ class Ask(object):
         """Provides appropriate parameters to the intent functions."""
         intent_id = intent.name, self.state.current
 
-        logger.warn(intent_id)
-
         if intent_id in self._intent_view_funcs:
             view_func = self._intent_view_funcs[intent_id]
         elif self._default_intent_view_func is not None:
@@ -870,6 +868,9 @@ class Ask(object):
             for param_name in self.request:
                 request_data[param_name] = getattr(self.request, param_name, None)
 
+        if not arg_names:
+            arg_names = request_data.keys()
+
         for arg_name in arg_names:
             param_or_slot = mapping.get(arg_name, arg_name)
             arg_value = request_data.get(param_or_slot)
@@ -879,6 +880,7 @@ class Ask(object):
                     if isinstance(default_value, collections.Callable):
                         default_value = default_value()
                     arg_value = default_value
+                    arg_values.append(arg_value)
             elif arg_name in convert:
                 shorthand_or_function = convert[arg_name]
                 if shorthand_or_function in _converters:
@@ -890,7 +892,9 @@ class Ask(object):
                     arg_value = convert_func(arg_value)
                 except Exception as e:
                     convert_errors[arg_name] = e
-            arg_values.append(arg_value)
+                arg_values.append(arg_value)
+            else:
+                arg_values.append(arg_value)
         self.convert_errors = convert_errors
         return arg_values
 
