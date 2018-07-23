@@ -52,6 +52,7 @@ convert_errors = LocalProxy(lambda: find_ask().convert_errors)
 current_stream = LocalProxy(lambda: find_ask().current_stream)
 stream_cache = LocalProxy(lambda: find_ask().stream_cache)
 state = LocalProxy(lambda: find_ask().state)
+slot_names = LocalProxy(lambda: find_ask().slot_names)
 
 from . import models
 
@@ -554,6 +555,23 @@ class Ask(object):
     def state(self, value):
         _app_ctx_stack.top._ask_state = value
 
+    @property
+    def slot_names(self):
+        request_data = {}
+        intent = getattr(self.request, 'intent', None)
+        if intent is not None:
+            if intent.slots is not None:
+                for slot_key in intent.slots.keys():
+                    slot_object = getattr(intent.slots, slot_key)
+                    slot_val = self._get_slot_value(slot_object=slot_object)
+                    if slot_val:
+                        request_data[slot_object.name] = slot_val
+        return request_data
+
+    @slot_names.setter
+    def slot_names(self, value):
+        _app_ctx_stack.top._ask_slot_names = value
+
     @current_stream.setter
     def current_stream(self, value):
         # assumption 1 is we get a models._Field as value
@@ -758,6 +776,7 @@ class Ask(object):
         if not self.session.attributes:
             self.session.attributes = models._Field()
 
+        self.slot_names = []
         self.state = State(self.session)
         self._update_stream()
 
@@ -814,7 +833,8 @@ class Ask(object):
             argspec = inspect.getfullargspec(view_func)
         else:
             argspec = inspect.getargspec(view_func)
-            
+
+
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent_id, arg_names)
 
@@ -868,9 +888,6 @@ class Ask(object):
             for param_name in self.request:
                 request_data[param_name] = getattr(self.request, param_name, None)
 
-        if not arg_names:
-            arg_names = request_data.keys()
-
         for arg_name in arg_names:
             param_or_slot = mapping.get(arg_name, arg_name)
             arg_value = request_data.get(param_or_slot)
@@ -880,7 +897,6 @@ class Ask(object):
                     if isinstance(default_value, collections.Callable):
                         default_value = default_value()
                     arg_value = default_value
-                    arg_values.append(arg_value)
             elif arg_name in convert:
                 shorthand_or_function = convert[arg_name]
                 if shorthand_or_function in _converters:
@@ -892,9 +908,7 @@ class Ask(object):
                     arg_value = convert_func(arg_value)
                 except Exception as e:
                     convert_errors[arg_name] = e
-                arg_values.append(arg_value)
-            else:
-                arg_values.append(arg_value)
+            arg_values.append(arg_value)
         self.convert_errors = convert_errors
         return arg_values
 
