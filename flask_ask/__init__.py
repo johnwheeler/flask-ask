@@ -15,7 +15,7 @@ from .core import (
     current_stream,
     convert_errors,
     state,
-    slot_names
+    slots
 )
 
 from .models import (

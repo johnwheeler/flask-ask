@@ -52,7 +52,7 @@ convert_errors = LocalProxy(lambda: find_ask().convert_errors)
 current_stream = LocalProxy(lambda: find_ask().current_stream)
 stream_cache = LocalProxy(lambda: find_ask().stream_cache)
 state = LocalProxy(lambda: find_ask().state)
-slot_names = LocalProxy(lambda: find_ask().slot_names)
+slots = LocalProxy(lambda: find_ask().slots)
 
 from . import models
 
@@ -556,21 +556,20 @@ class Ask(object):
         _app_ctx_stack.top._ask_state = value
 
     @property
-    def slot_names(self):
+    def slots(self):
         request_data = {}
         intent = getattr(self.request, 'intent', None)
         if intent is not None:
             if intent.slots is not None:
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
-                    slot_val = self._get_slot_value(slot_object=slot_object)
-                    if slot_val:
-                        request_data[slot_object.name] = slot_val
+                    if getattr(slot_object, 'resolutions', None):
+                        request_data[slot_object.name] = Slot(slot_object)
         return request_data
 
-    @slot_names.setter
-    def slot_names(self, value):
-        _app_ctx_stack.top._ask_slot_names = value
+    @slots.setter
+    def slots(self, value):
+        _app_ctx_stack.top._ask_slots = value
 
     @current_stream.setter
     def current_stream(self, value):
@@ -776,7 +775,7 @@ class Ask(object):
         if not self.session.attributes:
             self.session.attributes = models._Field()
 
-        self.slot_names = []
+        self.slots = []
         self.state = State(self.session)
         self._update_stream()
 
@@ -911,6 +910,38 @@ class Ask(object):
             arg_values.append(arg_value)
         self.convert_errors = convert_errors
         return arg_values
+
+
+class Slot(object):
+    """ Slot Value Resolutions in the IntentRequest
+    https://developer.amazon.com/docs/custom-skills/request-types-reference.html#slot-object
+    """
+    def __init__(self, slot_object):
+        self.value = slot_object['value']
+        self.entities = []
+
+        slot_data = getattr(slot_object, 'resolutions', None)
+        slot_data = getattr(slot_data, 'resolutionsPerAuthority', None)
+
+        if slot_data is None:
+            return
+
+        self.code = slot_data[0]['status']['code']
+
+        if self.code == unicode('ER_SUCCESS_MATCH', 'utf8') and slot_data[0]['values'] is not None:
+            for v in slot_data[0]['values']:
+                self.entities.append(Entity(v['value']))
+
+
+class Entity(object):
+    """
+    The objects found in the values list of resolutions.resolutionsPerAuthority
+    https://developer.amazon.com/docs/custom-skills/request-types-reference.html#resolutions-object
+    """
+    def __init__(self, value_data):
+        self.name = value_data['name']
+        self.id = value_data['id']
+
 
 class State(object):
     SESSION_KEY = '_ask_state_id'
