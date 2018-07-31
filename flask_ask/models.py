@@ -200,6 +200,15 @@ class question(_Response):
         self._response['reprompt'] = reprompt
         return self
 
+class display(_Response):
+    """
+    Allows for a statement with 'shouldEndSession' omitted, allowing for touch inputs from the display.
+    Use with Display_Render and List_Display_Render
+    Will not accept spoken inputs without keyword (alexa/etc.).
+    Populate @ask.display_element_selected 
+    """
+    def __init__(self, speech):
+        super(display, self).__init__(speech)
 
 class delegate(_Response):
 

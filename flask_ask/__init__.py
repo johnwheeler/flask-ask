@@ -19,6 +19,7 @@ from .core import (
 from .models import (
     question,
     statement,
+    display,
     audio,
     delegate,
     elicit_slot,
