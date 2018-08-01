@@ -137,7 +137,7 @@ class Ask(object):
             raise TypeError("route is a required argument when app is not None")
 
         self.app = app
-        
+
         app.ask = self
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
@@ -640,9 +640,9 @@ class Ask(object):
         body = json.dumps(event)
         environ['CONTENT_TYPE'] = 'application/json'
         environ['CONTENT_LENGTH'] = len(body)
-        
+
         PY3 = sys.version_info[0] == 3
-        
+
         if PY3:
             environ['wsgi.input'] = io.StringIO(body)
         else:
@@ -687,24 +687,12 @@ class Ask(object):
 
 
     def _alexa_request(self, verify=True):
-        raw_body = flask_request.data
-        alexa_request_payload = json.loads(raw_body)
+        alexa_request_payload = json.loads(flask_request.data)
 
         if verify:
-            cert_url = flask_request.headers['Signaturecertchainurl']
-            signature = flask_request.headers['Signature']
 
-            # load certificate - this verifies a the certificate url and format under the hood
-            cert = verifier.load_certificate(cert_url)
-            # verify signature
-            verifier.verify_signature(cert, signature, raw_body)
-
-            # verify timestamp
-            raw_timestamp = alexa_request_payload.get('request', {}).get('timestamp')
-            timestamp = self._parse_timestamp(raw_timestamp)
-
-            if not current_app.debug or self.ask_verify_timestamp_debug:
-                verifier.verify_timestamp(timestamp)
+            if not verifier.isValidAlexaRequest(flask_request):
+                raise Exception("Certificate verification failed")
 
             # verify application id
             try:
@@ -713,7 +701,8 @@ class Ask(object):
                 application_id = alexa_request_payload['context'][
                     'System']['application']['applicationId']
             if self.ask_application_id is not None:
-                verifier.verify_application_id(application_id, self.ask_application_id)
+                if application_id not in self.ask_application_id:
+                    raise Exception("Application ID verification failed")
 
         return alexa_request_payload
 
