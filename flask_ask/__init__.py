@@ -23,5 +23,8 @@ from .models import (
     delegate,
     elicit_slot,
     confirm_slot,
-    confirm_intent
+    confirm_intent,
+    buy,
+    upsell,
+    refund
 )

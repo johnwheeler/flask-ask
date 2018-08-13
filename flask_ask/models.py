@@ -201,6 +201,59 @@ class question(_Response):
         return self
 
 
+class buy(_Response):
+
+    def __init__(self, productId=None):
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+              'type': 'Connections.SendRequest',
+              'name': 'Buy',          
+              'payload': {
+                         'InSkillProduct': {
+                             'productId': productId
+                         }
+               },
+              'token': 'correlationToken'              
+            }]
+        }
+
+
+class refund(_Response):
+
+    def __init__(self, productId=None):
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+              'type': 'Connections.SendRequest',
+              'name': 'Cancel',          
+              'payload': {
+                         'InSkillProduct': {
+                             'productId': productId
+                         }
+               },
+              'token': 'correlationToken'              
+            }]
+        }
+
+class upsell(_Response):
+
+    def __init__(self, productId=None, msg=None):
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+              'type': 'Connections.SendRequest',
+              'name': 'Upsell',          
+              'payload': {
+                         'InSkillProduct': {
+                             'productId': productId
+                         },
+                         'upsellMessage': msg
+               },
+              'token': 'correlationToken'              
+            }]
+        }
+
 class delegate(_Response):
 
     def __init__(self, updated_intent=None):
