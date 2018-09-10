@@ -1,5 +1,4 @@
 import inspect
-import json
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
@@ -452,8 +451,6 @@ class gadget(_Response):
 
     def __init__(self, speech=''):
         super(gadget, self).__init__(speech)
-        # if not speech:
-        #     self._response = {}
         self._response['directives'] = []
         self._response['shouldEndSession'] = False
 
