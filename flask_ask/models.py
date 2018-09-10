@@ -464,27 +464,29 @@ class gadget(_Response):
         directive = {}
         directive['type'] = 'GameEngine.StartInputHandler'
         directive['timeout'] = timeout
-        directive['proxies'] = proxies
-        directive['recognizers'] = recognizers
-        directive['events'] = events
-        return directive
+        directive['proxies'] = proxies if proxies else []
+        directive['recognizers'] = recognizers if recognizers else {}
+        directive['events'] = events if events else {}
+        self._response['directives'] = [directive]
+        return self
 
     def _stop_input_handler(self, request_id):
         """Cancels the current Input Handler."""
         directive = {}
         directive['type'] = 'GameEngine.StopInputHandler'
         directive['originatingRequestId'] = request_id
-        return directive
+        self._response['directives'] = [directive]
+        return self
 
     def roll_call(self, timeout=0, max_buttons=1):
         """Waits for all available Echo Buttons to connect to the Echo device."""
-        directive = self._start_input_handler(timeout=timeout)
+        self._start_input_handler(timeout=timeout)
         for i in range(1, max_buttons + 1):
             button = "btn{}".format(i)
             recognizer = 'roll_call_recognizer_{}'.format(button)
             event = 'roll_call_event_{}'.format(button)
-            directive['proxies'].append(button)
-            directive['recognizers'][recognizer] = {
+            self._response['directives'][-1]['proxies'].append(button)
+            self._response['directives'][-1]['recognizers'][recognizer] = {
                 'type': 'match',
                 'fuzzy': True,
                 'anchor': 'end',
@@ -493,24 +495,23 @@ class gadget(_Response):
                     'action': 'down'
                 }]
             }
-            directive['events'][event] = {
+            self._response['directives'][-1]['events'][event] = {
                 'meets': [recognizer],
                 'reports': 'matches',
                 'shouldEndInputHandler': i == max_buttons,
                 'maximumInvocations': 1
             }
-        directive['events']['timeout'] = {
+        self._response['directives'][-1]['events']['timeout'] = {
             'meets': ['timed out'],
             'reports': 'history',
             'shouldEndInputHandler': True
         }
-        self._response['directives'].append(directive)
         return self
 
     def first_button(self, timeout=0, gadget_ids=[], animations=[]):
         """Waits for the first Echo Button to be pressed."""
-        directive = self._start_input_handler(timeout=timeout)
-        directive['recognizers'] = {
+        self._start_input_handler(timeout=timeout)
+        self._response['directives'][-1]['recognizers'] = {
             'button_down_recognizer': {
                 'type': 'match',
                 'fuzzy': False,
@@ -520,7 +521,7 @@ class gadget(_Response):
                 }]
             }
         }
-        directive['events'] = {
+        self._response['directives'][-1]['events'] = {
             'timeout': {
                 'meets': ['timed out'],
                 'reports': 'nothing',
@@ -532,8 +533,8 @@ class gadget(_Response):
                 'shouldEndInputHandler': True
             }
         }
-        self._response['directives'].append(directive)
-        self.set_light(targets=gadget_ids, animations=animations)
+        if animations:
+            self.set_light(targets=gadget_ids, animations=animations)
         return self
 
     def set_light(self, targets=[], trigger='none', delay=0, animations=[]):
@@ -565,7 +566,6 @@ class animation(dict):
         attributes = {'repeat': repeat, 'targetLights': lights, 'sequence': sequence}
         super(animation, self).__init__(attributes)
         if not sequence:
-            print('clearing sequence')
             self['sequence'] = []
 
     def on(self, duration=1, color='FFFFFF'):
