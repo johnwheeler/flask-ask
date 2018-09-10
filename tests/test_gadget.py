@@ -177,10 +177,10 @@ class GadgetIntegrationTests(unittest.TestCase):
         self.ask = Ask(app=self.app, route='/ask')
         self.client = self.app.test_client()
 
-        @self.ask.intent('RollCallIntent')
-        def start_roll_call():
-            speech = 'Players, press your buttons now.'
-            return gadget(speech).roll_call(timeout=10000, max_buttons=2)
+        # @self.ask.intent('RollCallIntent')
+        # def start_roll_call():
+        #     speech = 'Players, press your buttons now.'
+        #     return gadget(speech).roll_call(timeout=10000, max_buttons=2)
 
         @self.ask.on_input_handler_event()
         def event_received(type, requestId, originatingRequestId, events):
@@ -203,7 +203,7 @@ class GadgetIntegrationTests(unittest.TestCase):
                     speech = 'I found {} buttons. Ready to start the round?'.format(2)
                 return gadget(speech).set_light(
                     targets=[gid],
-                    animations=[animation().pulse(color='FFFF00', duration=100)]
+                    animations=[animation().on(color='FFFF00')]
                 )
 
         def buzz_in(input_event):
@@ -245,6 +245,9 @@ class GadgetIntegrationTests(unittest.TestCase):
             response_data = json.loads(response.data.decode('utf-8'))
             self.assertEqual(response_data['sessionAttributes']['players'][0]['gid'], 'amzn1.ask.gadget.{}'.format(button))
             self.assertEqual(response_data['sessionAttributes']['players'][0]['pid'], str(button))
+            directive = response_data['response']['directives'][0]
+            sequence = directive['parameters']['animations'][0]['sequence']
+            self.assertEqual(sequence[0]['color'], 'FFFF00')
 
     def test_first_button(self):
         event = {
