@@ -597,7 +597,7 @@ class animation(dict):
     def breathe(self, duration=1000, color='FFFFFF', repeat=1):
         for i in range(repeat):
             self['sequence'].append(animation_step(duration=1, color='000000', blend=True))
-            self['sequence'].append(animation_step(duration=duration, color='FFFFFF', blend=True))
+            self['sequence'].append(animation_step(duration=duration, color=color, blend=True))
             self['sequence'].append(animation_step(duration=int(duration * 0.3), color='000000', blend=True))
         return self
 
