@@ -933,13 +933,14 @@ class Entity(object):
 
 
 class State(object):
-    SESSION_KEY = '_ask_state_id'
+    SESSION_KEY = 'state'
 
     def __init__(self, session):
         self._session = session
-        self.current = session.attributes.get(State.SESSION_KEY)
+        self.current = str(session.attributes.get(State.SESSION_KEY))
 
     def transition(self, state_id):
+        # state_id: str
         self.current = state_id
         self._session.attributes[State.SESSION_KEY] = self.current
 
