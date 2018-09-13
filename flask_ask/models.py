@@ -517,14 +517,15 @@ class gadget(_Response):
         if not self._input_handler:
             self._start_input_handler(timeout=timeout)
         ih = self._input_handler
+        pattern = {'action': 'down'}
+        if targets:
+            pattern['gadgetIds'] = targets
         self._response['directives'][ih]['recognizers'] = {
             'button_down_recognizer': {
                 'type': 'match',
                 'fuzzy': False,
                 'anchor': 'end',
-                'pattern': [{
-                    'action': 'down'
-                }]
+                'pattern': [pattern]
             }
         }
         self._response['directives'][ih]['events'] = {
