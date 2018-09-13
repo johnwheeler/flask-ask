@@ -453,40 +453,44 @@ class gadget(_Response):
         super(gadget, self).__init__(speech)
         self._response['directives'] = []
         self._response['shouldEndSession'] = False
+        self._input_handler = None
 
     def reprompt(self, reprompt):
         reprompt = {'outputSpeech': _output_speech(reprompt)}
         self._response['reprompt'] = reprompt
         return self
 
-    def _start_input_handler(self, timeout=0, proxies=[], recognizers={}, events={}):
+    def _start_input_handler(self, timeout=0):
         """Returns an Input Handler which will wait for gadget events."""
         directive = {}
         directive['type'] = 'GameEngine.StartInputHandler'
         directive['timeout'] = timeout
-        directive['proxies'] = proxies if proxies else []
-        directive['recognizers'] = recognizers if recognizers else {}
-        directive['events'] = events if events else {}
-        self._response['directives'] = [directive]
+        directive['proxies'] = []
+        directive['recognizers'] = {}
+        directive['events'] = {}
+        self._input_handler = len(self._response['directives'])
+        self._response['directives'].append(directive)
         return self
 
-    def _stop_input_handler(self, request_id):
+    def stop(self, request_id):
         """Cancels the current Input Handler."""
         directive = {}
         directive['type'] = 'GameEngine.StopInputHandler'
         directive['originatingRequestId'] = request_id
-        self._response['directives'] = [directive]
+        self._response['directives'].append(directive)
         return self
 
     def roll_call(self, timeout=0, max_buttons=1):
         """Waits for all available Echo Buttons to connect to the Echo device."""
-        self._start_input_handler(timeout=timeout)
-        for i in range(1, max_buttons + 1):
-            button = "btn{}".format(i)
+        if not self._input_handler:
+            self._start_input_handler(timeout=timeout)
+        ih = self._input_handler
+        for btn in range(1, max_buttons + 1):
+            button = "btn{}".format(btn)
             recognizer = 'roll_call_recognizer_{}'.format(button)
             event = 'roll_call_event_{}'.format(button)
-            self._response['directives'][-1]['proxies'].append(button)
-            self._response['directives'][-1]['recognizers'][recognizer] = {
+            self._response['directives'][ih]['proxies'].append(button)
+            self._response['directives'][ih]['recognizers'][recognizer] = {
                 'type': 'match',
                 'fuzzy': True,
                 'anchor': 'end',
@@ -495,23 +499,25 @@ class gadget(_Response):
                     'action': 'down'
                 }]
             }
-            self._response['directives'][-1]['events'][event] = {
+            self._response['directives'][ih]['events'][event] = {
                 'meets': [recognizer],
                 'reports': 'matches',
-                'shouldEndInputHandler': i == max_buttons,
+                'shouldEndInputHandler': btn == max_buttons,
                 'maximumInvocations': 1
             }
-        self._response['directives'][-1]['events']['timeout'] = {
+        self._response['directives'][ih]['events']['timeout'] = {
             'meets': ['timed out'],
             'reports': 'history',
             'shouldEndInputHandler': True
         }
         return self
 
-    def first_button(self, timeout=0, gadget_ids=[], animations=[]):
+    def first_button(self, timeout=0, targets=[], animations=[]):
         """Waits for the first Echo Button to be pressed."""
-        self._start_input_handler(timeout=timeout)
-        self._response['directives'][-1]['recognizers'] = {
+        if not self._input_handler:
+            self._start_input_handler(timeout=timeout)
+        ih = self._input_handler
+        self._response['directives'][ih]['recognizers'] = {
             'button_down_recognizer': {
                 'type': 'match',
                 'fuzzy': False,
@@ -521,7 +527,7 @@ class gadget(_Response):
                 }]
             }
         }
-        self._response['directives'][-1]['events'] = {
+        self._response['directives'][ih]['events'] = {
             'timeout': {
                 'meets': ['timed out'],
                 'reports': 'nothing',
@@ -534,7 +540,7 @@ class gadget(_Response):
             }
         }
         if animations:
-            self.set_light(targets=gadget_ids, animations=animations)
+            self.set_light(targets=targets, animations=animations)
         return self
 
     def set_light(self, targets=[], trigger='none', delay=0, animations=[]):

@@ -54,7 +54,7 @@ class GadgetUnitTests(unittest.TestCase):
         self.assertEqual(g._response['directives'][0]['events'], {})
 
     def test_stop_input_handler(self):
-        g = gadget()._stop_input_handler('1234567890')
+        g = gadget().stop('1234567890')
         self.assertEqual(g._response['outputSpeech'], {'type': 'PlainText', 'text': ''})
         self.assertEqual(g._response['shouldEndSession'], False)
         self.assertEqual(g._response['directives'][0]['type'], 'GameEngine.StopInputHandler')
@@ -64,6 +64,7 @@ class GadgetUnitTests(unittest.TestCase):
         g = gadget('Starting roll call').roll_call(timeout=10000, max_buttons=2)
         self.assertEqual(g._response['outputSpeech']['text'], 'Starting roll call')
         self.assertEqual(g._response['shouldEndSession'], False)
+        self.assertEqual(len(g._response['directives']), 1)
         directive = g._response['directives'][0]
         self.assertEqual(directive['type'], 'GameEngine.StartInputHandler')
         self.assertEqual(directive['timeout'], 10000)
@@ -108,6 +109,7 @@ class GadgetUnitTests(unittest.TestCase):
         g = gadget('Press your buttons').first_button(timeout=5000)
         self.assertEqual(g._response['outputSpeech']['text'], 'Press your buttons')
         self.assertEqual(g._response['shouldEndSession'], False)
+        self.assertEqual(len(g._response['directives']), 1)
         directive = g._response['directives'][0]
         self.assertEqual(directive['type'], 'GameEngine.StartInputHandler')
         self.assertEqual(directive['timeout'], 5000)
@@ -245,6 +247,7 @@ class GadgetIntegrationTests(unittest.TestCase):
             response_data = json.loads(response.data.decode('utf-8'))
             self.assertEqual(response_data['sessionAttributes']['players'][0]['gid'], 'amzn1.ask.gadget.{}'.format(button))
             self.assertEqual(response_data['sessionAttributes']['players'][0]['pid'], str(button))
+            self.assertEqual(len(response_data['response']['directives']), 1)
             directive = response_data['response']['directives'][0]
             sequence = directive['parameters']['animations'][0]['sequence']
             self.assertEqual(sequence[0]['color'], 'FFFF00')
