@@ -46,6 +46,24 @@ If the user doesn't respond, encourage them by rephrasing the question with ``re
         .reprompt("I didn't get that. When would you like to be seen?")
 
 
+Sending updates with ``progressive_response``
+--------------------------
+``progressive_response`` causes Alexa to speak while your app finishes processing a request::
+
+     @ask.intent('ConfirmAppointmentIntent')
+     def confirm_appointment():
+         progressive_response("One moment while I add coconut harvesting to your calendar.")
+         return statement('Alright!  Coconut harvesting is scheduled for when the coconut turns brown.')
+      
+  ``progressive_response`` supports SSML by default
+  
+     @ask.intent('ConfirmAppointmentIntent')
+     def confirm_appointment():
+         progressive_response("Please wait while I get today's events.")
+         return statement('<speak>Today at <emphasis level="strong">3pm</emphasis>, you have scheduled <prosody pitch="x-high">feeding deadly cobras</prosody></speak>!')
+      
+  ``progressive_response`` may only be used within an intent function::
+
 Session Management
 ------------------
 
