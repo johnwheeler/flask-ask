@@ -62,7 +62,7 @@ Sending updates with ``progressive_response``
       progressive_response("<speak>Please wait while I get today's events. <audio src="https://yoursite.com/jeopardy.mp3"/></speak>")
       return statement('Today at 3pm, you have scheduled feeding deadly cobras!')
       
-``progressive_response`` may only be used within an intent function::
+``progressive_response`` may only be used within an intent function.
 
 Session Management
 ------------------
