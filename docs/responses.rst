@@ -50,19 +50,19 @@ Sending updates with ``progressive_response``
 --------------------------
 ``progressive_response`` causes Alexa to speak while your app finishes processing a request::
 
-     @ask.intent('ConfirmAppointmentIntent')
-     def confirm_appointment():
+     @ask.intent('ListAppointmentIntent')
+     def list_appointments():
          progressive_response("One moment while I add coconut harvesting to your calendar.")
          return statement('Alright!  Coconut harvesting is scheduled for when the coconut turns brown.')
       
-  ``progressive_response`` supports SSML by default
+``progressive_response`` supports SSML by default
   
      @ask.intent('ConfirmAppointmentIntent')
      def confirm_appointment():
-         progressive_response("Please wait while I get today's events.")
-         return statement('<speak>Today at <emphasis level="strong">3pm</emphasis>, you have scheduled <prosody pitch="x-high">feeding deadly cobras</prosody></speak>!')
+         progressive_response("<speak>Please wait while I get today's events. <audio src="https://yoursite.com/jeopardy.mp3"/></speak>")
+         return statement('Today at 3pm, you have scheduled feeding deadly cobras!')
       
-  ``progressive_response`` may only be used within an intent function::
+``progressive_response`` may only be used within an intent function::
 
 Session Management
 ------------------
