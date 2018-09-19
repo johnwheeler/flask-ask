@@ -55,12 +55,12 @@ Sending updates with ``progressive_response``
          progressive_response("One moment while I add coconut harvesting to your calendar.")
          return statement('Alright!  Coconut harvesting is scheduled for when the coconut turns brown.')
       
-``progressive_response`` supports SSML by default
-  
-     @ask.intent('ConfirmAppointmentIntent')
-     def confirm_appointment():
-         progressive_response("<speak>Please wait while I get today's events. <audio src="https://yoursite.com/jeopardy.mp3"/></speak>")
-         return statement('Today at 3pm, you have scheduled feeding deadly cobras!')
+``progressive_response`` supports SSML by default::
+
+   @ask.intent('ConfirmAppointmentIntent')
+   def confirm_appointment():
+      progressive_response("<speak>Please wait while I get today's events. <audio src="https://yoursite.com/jeopardy.mp3"/></speak>")
+      return statement('Today at 3pm, you have scheduled feeding deadly cobras!')
       
 ``progressive_response`` may only be used within an intent function::
 
