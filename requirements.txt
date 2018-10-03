@@ -2,6 +2,6 @@ aniso8601==1.2.0
 Flask==0.12.1
 cryptography==2.1.4
 pyOpenSSL==17.0.0
-PyYAML==3.12
+PyYAML==3.13
 six==1.11.0
 
