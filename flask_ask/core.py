@@ -5,6 +5,7 @@ import inspect
 import io
 from datetime import datetime
 from functools import wraps, partial
+import logging
 
 import aniso8601
 from werkzeug.contrib.cache import SimpleCache
@@ -12,7 +13,7 @@ from werkzeug.local import LocalProxy, LocalStack
 from jinja2 import BaseLoader, ChoiceLoader, TemplateNotFound
 from flask import current_app, json, request as flask_request, _app_ctx_stack
 
-from . import verifier, logger
+from . import verifier
 from .convert import to_date, to_time, to_timedelta
 from .cache import top_stream, set_stream
 import collections
@@ -41,7 +42,7 @@ def dbgdump(obj, default=None, cls=None):
     else:
         indent = None
     msg = json.dumps(obj, indent=indent, default=default, cls=cls)
-    logger.debug(msg)
+    logging.debug(msg)
 
 
 request = LocalProxy(lambda: find_ask().request)
@@ -904,10 +905,14 @@ class Ask(object):
 class Slot(object):
     """ Slot Value Resolutions in the IntentRequest
     https://developer.amazon.com/docs/custom-skills/request-types-reference.html#slot-object
+    Flask-ask will provide the app with a dictionary of slots.
+        The keys will be how the slot is referenced in the Intent.
+        For example, a slot for the AddItemIntent might be {'product_daily_brew': <SlotData>}
+         with SlotData.value (what the user said) = "cup of coffee" and SlotData.entities=[<Entities>]
     """
     def __init__(self, slot_object):
-        self.value = slot_object['value']
-        self.entities = []
+        self.value = slot_object['value']  # user said this
+        self.entities = []                 # list of Entities
 
         slot_data = getattr(slot_object, 'resolutions', None)
         slot_data = getattr(slot_data, 'resolutionsPerAuthority', None)
@@ -928,8 +933,8 @@ class Entity(object):
     https://developer.amazon.com/docs/custom-skills/request-types-reference.html#resolutions-object
     """
     def __init__(self, value_data):
-        self.name = value_data['name']
-        self.id = value_data['id']
+        self.name = value_data['name']  # Slot Value Name (e.g. 'Smoothies', 'frozen_lemonade', 'twenty_ounce')
+        self.id = value_data['id']      # Slot Value Id (e.g. 'Beverages_3', 'PRODUCT_74', 'mc_size_3')
 
 
 class State(object):
