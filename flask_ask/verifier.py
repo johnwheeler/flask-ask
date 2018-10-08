@@ -36,7 +36,6 @@ def _verify_payload(pub_key,cert_start,cert_end,data,signature):
     from Crypto.Signature import PKCS1_v1_5
     from Crypto.Hash import SHA
 
-
     now = datetime.utcnow().replace(tzinfo=pytz.UTC)
     if now < cert_start or now >= cert_end:
         logging.warning('certificate is not valid right now')
@@ -119,12 +118,14 @@ def isValidAlexaRequest(r):
     logging.info('verifier.isValidAlexaRequest()')
     logging.info('Alexa Req Headers: %s', r.headers)
 
-    signature = _get_signature(r.headers.get('Signature',None))
-    cert_url = r.headers.get('SignatureCertChainUrl','No CertChainUrl in Header')
-    logging.info('Signature: %s \n Cert URL: %s', signature, cert_url)
+    signature = _get_signature(r.headers.get('Signature', None))
+    #    cannot log signature. UnicodeDecodeError: 'ascii' codec can't decode byte 0xd2
+
+    cert_url = r.headers.get('SignatureCertChainUrl', 'No CertChainUrl in Header')
+    logging.info('Cert URL: %s', cert_url)
 
     sig_cert_url_is_valid = _check_signature_cert_url(cert_url)
-    timestamp_is_valid = _check_timestamp( json.loads(r.body) )
+    timestamp_is_valid = _check_timestamp( r.get_json() )
 
     if sig_cert_url_is_valid and timestamp_is_valid:
         logging.info('Signature URL and timestamp are valid')
@@ -132,7 +133,7 @@ def isValidAlexaRequest(r):
         if not pub_key:
             logging.warning('no pub_key in certificate')
             return False
-        if not _verify_payload(pub_key.asOctets(), cert_start, cert_end, r.body, signature):
+        if not _verify_payload(pub_key.asOctets(), cert_start, cert_end, r.get_data(), signature):
             logging.warning('Payload did not verify')
             return False
     else:
