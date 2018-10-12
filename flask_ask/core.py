@@ -564,7 +564,7 @@ class Ask(object):
             if intent.slots is not None:
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
-                    if getattr(slot_object, 'resolutions', None):
+                    if getattr(slot_object, 'value', None):
                         request_data[slot_object.name] = Slot(slot_object)
         return request_data
 
