@@ -922,9 +922,12 @@ class Slot(object):
 
         self.code = slot_data[0]['status']['code']
 
-        if self.code == unicode('ER_SUCCESS_MATCH', 'utf8') and slot_data[0]['values'] is not None:
-            for v in slot_data[0]['values']:
-                self.entities.append(Entity(v['value']))
+        if slot_data[0]['values'] is not None:
+            if self.code == unicode('ER_SUCCESS_MATCH', 'utf8'):
+                for v in slot_data[0]['values']:
+                    self.entities.append(Entity(v['value']))
+            else:
+                logging.info('flask_ask.core.Slot.code ' + self.code + ': Dropped Entities: ' + slot_data[0]['values'])
 
 
 class Entity(object):
