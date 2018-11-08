@@ -1,14 +1,13 @@
-Porting payment integration code in Amazon Alexa node.js cookbook to python using the flask-ask package.
+Porting payment integration code in Amazon Alexa cookbook written in node.js (https://github.com/alexa/alexa-cookbook/tree/master/feature-demos/skill-demo-amazon-pay) to python. Made changes to suit the flask-ask library and fixed a few bugs.
 
 ### Deployment Instruction
 ```bash
-git clone https://github.com/Relishly/python-flask-ask-amazon-pay.git
-cd python-flask-ask-amazon-pay
+# From path_to/samples/payment_integration, run:
+python index.py
 
-# Install my forked version of the flask-ask library. The original library does not support payment integration 
-cd forked-flask-ask && python setup.py install && cd .. # May be prompted to sudo
-
-# Open a new terminal window
+# If you are testing locally, install ngrok and in a new terminal window, do:
 ngrok http -bind-tls=true 5000
 ```
-Copy the ngrok forwarding url, which looks like https://5f271086.ngrok.io, to Alexa Endpoint
+In Alexa developer console, paste en-US.json to the json editor. Paste the ngrok forwarding url, which looks like https://xxxxxxxx.ngrok.io, to Alexa Endpoint. Enable Amazon payment in skill permissions.
+
+Then, you may ask alexa to "open payments demo" and say "yes" to the purchase confirmation.
