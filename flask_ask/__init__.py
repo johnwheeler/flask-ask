@@ -24,6 +24,8 @@ from .models import (
     elicit_slot,
     confirm_slot,
     confirm_intent,
+    setup_payment,
+    charge_payment,
     buy,
     upsell,
     refund
