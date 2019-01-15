@@ -1,0 +1,81 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "demo",
+            "intents": [
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "BuySkillItemIntent",
+                    "slots": [
+                        {
+                            "name": "ProductName",
+                            "type": "LIST_OF_PRODUCT_NAMES"
+                        }
+                    ],
+                    "samples": [
+                        "{ProductName}",
+                        "buy",
+                        "shop",
+                        "buy {ProductName}",
+                        "purchase {ProductName}",
+                        "want {ProductName}",
+                        "would like {ProductName}"
+                    ]
+                },
+                {
+                    "name": "RefundSkillItemIntent",
+                    "slots": [
+                        {
+                            "name": "ProductName",
+                            "type": "LIST_OF_PRODUCT_NAMES"
+                        }
+                    ],
+                    "samples": [
+                        "cancel {ProductName}",
+                        "return {ProductName}",
+                        "refund {ProductName}",
+                        "want a refund for {ProductName}",
+                        "would like to return {ProductName}"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "LIST_OF_PRODUCT_NAMES",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "monthly subscription"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "start smoking"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "stop smoking"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

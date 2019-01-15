@@ -297,6 +297,37 @@ class Ask(object):
         return f
 
 
+    def on_purchase_completed(self, mapping={'payload': 'payload','name':'name','status':'status','token':'token'}, convert={}, default={}):
+        """Decorator routes an Connections.Response  to the wrapped function.
+
+        Request is sent when Alexa completes the purchase flow. 
+        See https://developer.amazon.com/docs/in-skill-purchase/add-isps-to-a-skill.html#handle-results 
+
+
+        The wrapped view function may accept parameters from the  Request.
+        In addition to locale, requestId, timestamp, and type
+        
+
+        @ask.on_purchase_completed( mapping={'payload': 'payload','name':'name','status':'status','token':'token'})
+        def completed(payload, name, status, token):
+            logger.info(payload)
+            logger.info(name)
+            logger.info(status)
+            logger.info(token)
+            
+        """
+        def decorator(f):
+            self._intent_view_funcs['Connections.Response'] = f
+            self._intent_mappings['Connections.Response'] = mapping
+            self._intent_converts['Connections.Response'] = convert
+            self._intent_defaults['Connections.Response'] = default
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                self._flask_view_func(*args, **kwargs)
+            return f
+        return decorator
+
+
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
         """Decorator routes an AudioPlayer.PlaybackStarted Request to the wrapped function.
 
@@ -779,6 +810,8 @@ class Ask(object):
             result = self._map_player_request_to_func(self.request.type)()
             # routes to on_playback funcs
             # user can also access state of content.AudioPlayer with current_stream
+        elif 'Connections.Response' in request_type:
+            result = self._map_purchase_request_to_func(self.request.type)()
 
         if result is not None:
             if isinstance(result, models._Response):
@@ -815,6 +848,21 @@ class Ask(object):
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(player_request_type, arg_names)
 
+        return partial(view_func, *arg_values)
+
+    def _map_purchase_request_to_func(self, purchase_request_type):
+        """Provides appropriate parameters to the on_purchase functions."""
+        
+        if purchase_request_type in self._intent_view_funcs:
+            view_func = self._intent_view_funcs[purchase_request_type]
+        else:
+            raise NotImplementedError('Request type "{}" not found and no default view specified.'.format(purchase_request_type)) 
+
+        argspec = inspect.getargspec(view_func)
+        arg_names = argspec.args
+        arg_values = self._map_params_to_view_args(purchase_request_type, arg_names)
+
+        print('_map_purchase_request_to_func', arg_names, arg_values, view_func, purchase_request_type)
         return partial(view_func, *arg_values)
 
     def _get_slot_value(self, slot_object):
