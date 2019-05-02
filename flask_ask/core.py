@@ -59,7 +59,7 @@ _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 # Will hold response related stuff like statusCode, content type and custom headers.
 class AskResponse():
-     def __init__(self, statusCode = 200, contentType = "application/json", customHeaders = {}):
+    def __init__(self, statusCode = 200, contentType = "application/json", customHeaders = {}):
         self.statusCode = 200
         self.contentType = contentType
         if isinstance(statusCode, int):
