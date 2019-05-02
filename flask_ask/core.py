@@ -816,8 +816,24 @@ class Ask(object):
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
-            return result
+            elif isinstance(result, tuple):
+                return self.makeVerboseResponse(result)
         return "", 400
+
+    def makeVerboseResponse(self, result):
+        # checking tuple's for first index for `models._Response` type
+        if len(result) == 1 and isinstance(result[0], models._Response):
+            response = result[0].render_response()
+            askResponse = AskResponse()
+        # checking tuple's for first index for `models._Response` and second index for `AskResponse` type
+        elif len(result) >= 2 and isinstance(result[0], models._Response) and isinstance(result[1], AskResponse):
+            response = result[0].render_response()
+            askResponse = result[1]
+        else:
+            response = ""
+            askResponse = AskResponse()
+        # returning response in the terms tuple which contains response, statusCode and custom headers.
+        return (response, askResponse.statusCode, askResponse.headers)
 
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""
