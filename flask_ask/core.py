@@ -59,13 +59,20 @@ _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
 # Will hold response related stuff like statusCode, content type and custom headers.
 class AskResponse():
-    def __init__(self, statusCode = 200, contentType = "application/json", customHeaders = {}):
+     def __init__(self, statusCode = 200, contentType = "application/json", customHeaders = {}):
         self.statusCode = 200
+        self.contentType = contentType
         if isinstance(statusCode, int):
             self.statusCode = statusCode
         if isinstance(customHeaders, dict):
             self.headers = customHeaders
-        self.headers["Content-Type"] = contentType
+
+    #added a function for giving some pre-defined and custom headers.
+    def getHeaders(self, request_type):
+        self.headers["x-request-type"] = request_type
+        self.headers["x-dev-edition"] = "flask-ask-devs"
+        self.headers["Content-Type"] = self.contentType
+        return self.headers
         
 class Ask(object):
     """The Ask object provides the central interface for interacting with the Alexa service.
@@ -826,7 +833,7 @@ class Ask(object):
             if isinstance(result, models._Response):
                 return result.render_response()
             elif isinstance(result, tuple):
-                return self.makeVerboseResponse(result)
+                return self.makeVerboseResponse(result, request_type)
         return "", 400
     
     # Contains additional functionality with the support of previously existing one.
@@ -843,7 +850,7 @@ class Ask(object):
             response = ""
             askResponse = AskResponse()
         # returning response in the terms tuple which contains response, statusCode and custom headers.
-        return (response, askResponse.statusCode, askResponse.headers)
+        return (response, askResponse.statusCode, askResponse.getHeaders(request_type))
 
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""
