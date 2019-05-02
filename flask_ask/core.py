@@ -837,7 +837,7 @@ class Ask(object):
         return "", 400
     
     # Contains additional functionality with the support of previously existing one.
-    def makeVerboseResponse(self, result):
+    def makeVerboseResponse(self, result, request_type):
         # checking tuple's for first index for `models._Response` type
         if len(result) == 1 and isinstance(result[0], models._Response):
             response = result[0].render_response()
