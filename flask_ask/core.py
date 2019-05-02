@@ -57,7 +57,16 @@ from . import models
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
-
+# Will hold response related stuff like statusCode, content type and custom headers.
+class AskResponse():
+    def __init__(self, statusCode = 200, contentType = "application/json", customHeaders = {}):
+        self.statusCode = 200
+        if isinstance(statusCode, int):
+            self.statusCode = statusCode
+        if isinstance(customHeaders, dict):
+            self.headers = customHeaders
+        self.headers["Content-Type"] = contentType
+        
 class Ask(object):
     """The Ask object provides the central interface for interacting with the Alexa service.
 
@@ -819,7 +828,8 @@ class Ask(object):
             elif isinstance(result, tuple):
                 return self.makeVerboseResponse(result)
         return "", 400
-
+    
+    # Contains additional functionality with the support of previously existing one.
     def makeVerboseResponse(self, result):
         # checking tuple's for first index for `models._Response` type
         if len(result) == 1 and isinstance(result[0], models._Response):
