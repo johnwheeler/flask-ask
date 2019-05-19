@@ -452,12 +452,13 @@ def progressive_response(speech:str):
             "speech":"This text is spoken while your skill processes the full response."
         }
     }
-    response['header']['requestId'] = context.System.apiAccessToken
-    response['directive']['speech'] = request.requestId
+    response['header']['requestId'] = request.requestId
+    response['directive']['speech'] = speech
 
-
+    authToken = context.System.apiAccessToken
+    alexaAPIendpoint = context.System.apiEndpoint
     headers = {"Authorization":'Bearer '+authToken, "Content-Type":"application/json"}
-    r = requests.post("https://api.amazonalexa.com/v1/directives", headers=headers, json=response)
+    r = requests.post(alexaAPIendpoint + "/v1/directives", headers=headers, json=response)
     return r.status_code
 
 
