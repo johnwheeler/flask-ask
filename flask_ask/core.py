@@ -920,18 +920,19 @@ class Slot(object):
         if slot_data is None:
             return
 
-        logging.info('flask_ask.core Found data in slot named: ' + slot_object.name)
-
         self.code = slot_data[0]['status']['code']
         if slot_data[0].get('values') is not None:
+            slotValueNames = [v['value']['name'] for s in slot_data for v in s['values']]
+            logging.info("flask_ask.core.Slot {}: '{}' with values {}. userSaid '{}'".format(
+                self.code, slot_object.name, slotValueNames, self.value))
+
             if self.code == unicode('ER_SUCCESS_MATCH', 'utf8'):
                 for v in slot_data[0]['values']:
                     self.entities.append(Entity(v['value']))
-            else:
-                logging.info('flask_ask.core.Slot code: {} : Dropped Entities like: {}'.format(
-                    self.code, str(slot_data[0]['values'])))
+
         else:
-            logging.info('flask_ask.core.Slot code {} : Dropped Slot.value: "{}"'.format(self.code, self.value))
+            logging.info("flask_ask.core.Slot {}: '{}'. userSaid '{}'".format(
+                self.code, slot_object.name, self.value))
 
 
 class Entity(object):
