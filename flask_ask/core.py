@@ -921,11 +921,16 @@ class Slot(object):
             return
 
         self.code = slot_data[0]['status']['code']
-        if slot_data[0].get('values') is not None:
+        slotValueNames = []
+        try:
             slotValueNames = [v['value']['name'] for s in slot_data for v in s['values']]
             logging.info("flask_ask.core.Slot {}: '{}' with values {}. userSaid '{}'".format(
                 self.code, slot_object.name, slotValueNames, self.value))
+        except KeyError:
+            logging.info("flask_ask.core.Slot {}: '{}' with NO values. userSaid '{}'".format(
+                self.code, slot_object.name, self.value))
 
+        if slotValueNames:
             if self.code == unicode('ER_SUCCESS_MATCH', 'utf8'):
                 for v in slot_data[0]['values']:
                     self.entities.append(Entity(v['value']))
