@@ -1,0 +1,21 @@
+welcome: |
+    Welcome to the Flask-ask purchase demo. 
+    {% if products %}
+      Here is a list of products available:
+      {%for product in products%}
+        {{ product.name}},
+      {%endfor %}
+      Please tell me the product name you want to buy.
+    {%else%}
+      You have no products configured. Please configure products using ASK CLI. 
+    {%endif%}
+
+
+welcome_reprompt: Please tell me the product name you want to buy.
+
+refund_card: |
+  Refund Intent for {{product}}
+
+
+buy_card: |
+  Buy Intent for {{product}}
