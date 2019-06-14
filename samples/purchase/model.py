@@ -1,11 +1,11 @@
 import requests
 from flask import  json
-from flask_ask import logger
+from flask_ask import logger, context, request
 
 class Product():
     '''
     Object model for inSkillProducts and methods to access products.
-    
+
     {"inSkillProducts":[
     {"productId":"amzn1.adg.product.your_product_id",
     "referenceName":"product_name",
@@ -26,10 +26,10 @@ class Product():
 
     def query(self):
         # Information required to invoke the API is available in the session
-        apiEndpoint = "https://api.amazonalexa.com"
+        apiEndpoint = context.System.apiEndpoint
         apiPath     = "/v1/users/~current/skills/~current/inSkillProducts"
         token       = "bearer " + self.token
-        language    = "en-US" #self.event.request.locale
+        language    = request.locale
 
         url = apiEndpoint + apiPath
         headers = {
@@ -46,7 +46,7 @@ class Product():
             data = json.loads(res.text)
             return data['inSkillProducts']
         else:
-            return None        
+            return None
 
     def list(self):
         """ return list of purchasable and not entitled products"""
@@ -59,11 +59,11 @@ class Product():
     def purchasable(self, product):
         """ return True if purchasable product"""
         return 'PURCHASABLE' == product['purchasable']
-    
+
     def entitled(self, product):
         """ return True if entitled product"""
         return 'ENTITLED' == product['entitled']
-        
+
 
     def productId(self, name):
         print(self.product_list)
