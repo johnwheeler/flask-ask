@@ -201,6 +201,67 @@ class question(_Response):
         return self
 
 
+class setup(_Response):
+
+    def __init__(self, sellerId, sandboxMode=False, sandboxCustomerEmailId=''):
+        setupPayload = {
+            "@type": "SetupAmazonPayRequest",
+            "@version": "2",
+            "sellerId": sellerId,
+            "countryOfEstablishment": "US",
+            "ledgerCurrency": "USD",
+            "checkoutLanguage": "en_US",
+            "needAmazonShippingAddress": False,
+            "sandboxMode": sandboxMode,
+            "sandboxCustomerEmailId": sandboxCustomerEmailId
+        }
+
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+              'type': 'Connections.SendRequest',
+              'name': 'Setup',
+              'payload': setupPayload,
+              'token': 'correlationTokenSetup'
+            }]
+        }
+
+
+class charge(_Response):
+
+    def __init__(self, billingAgreementId, sellerId, amountStr, authorizationReferenceId, correlationToken=' '):
+        setupPayload = {
+            "@type": "ChargeAmazonPayRequest",
+            "@version": "2",
+            "billingAgreementId": billingAgreementId,
+            "sellerId": sellerId,
+            "paymentAction": "AUTHORIZE",
+            "authorizeAttributes": {
+                "@type": "AuthorizeAttributes",
+                "@version": "2",
+                "authorizationReferenceId": authorizationReferenceId,
+                "authorizationAmount": {
+                    "@type": "Price",
+                    "@version": "2",
+                    "amount": amountStr,
+                    "currencyCode": "USD"
+                },
+                "transactionTimeout": 0,  # minutes
+                "sellerAuthorizationNote": "Preauth"
+            }
+        }
+
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+              'type': 'Connections.SendRequest',
+              'name': 'Charge',
+              'payload': setupPayload,
+              'token': correlationToken
+            }]
+        }
+
+
 class buy(_Response):
 
     def __init__(self, productId=None):
@@ -208,13 +269,13 @@ class buy(_Response):
             'shouldEndSession': True,
             'directives': [{
               'type': 'Connections.SendRequest',
-              'name': 'Buy',          
+              'name': 'Buy',
               'payload': {
                          'InSkillProduct': {
                              'productId': productId
                          }
                },
-              'token': 'correlationToken'              
+              'token': 'correlationToken'
             }]
         }
 

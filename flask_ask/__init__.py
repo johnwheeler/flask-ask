@@ -28,5 +28,7 @@ from .models import (
     confirm_intent,
     buy,
     upsell,
-    refund
+    refund,
+    setup,
+    charge
 )
