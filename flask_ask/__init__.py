@@ -29,6 +29,6 @@ from .models import (
     buy,
     upsell,
     refund,
-    setup,
-    charge
+    setupAmzPay,
+    chargeAmzPay
 )

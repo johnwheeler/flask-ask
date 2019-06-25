@@ -333,7 +333,7 @@ class Ask(object):
         return decorator
 
 
-    def on_setup_completed(self, mapping={'payload': 'payload', 'name': 'name', 'status': 'status', 'token': 'token'},
+    def on_setupAmzPay_completed(self, mapping={'payload': 'payload', 'name': 'name', 'status': 'status', 'token': 'token'},
                            convert={}, default={}):
         """Decorator routes an Connections.Response to the wrapped function.
 
@@ -366,12 +366,12 @@ class Ask(object):
         return decorator
 
 
-    def on_charge_completed(self, mapping={'payload': 'payload', 'name': 'name', 'status': 'status', 'token': 'token'},
+    def on_chargeAmzPay_completed(self, mapping={'payload': 'payload', 'name': 'name', 'status': 'status', 'token': 'token'},
                            convert={}, default={}):
         """Decorator routes an Connections.Response to the wrapped function.
 
-        Request is sent when Alexa completes the setup flow.
-        See https://developer.amazon.com/docs/amazon-pay/amazon-pay-apis-for-alexa.html#setup
+        Request is sent when Alexa completes the charge flow.
+        See https://developer.amazon.com/docs/amazon-pay/amazon-pay-apis-for-alexa.html#charge
 
         The wrapped view function may accept parameters from the Request.
         In addition to locale, requestId, timestamp, and type

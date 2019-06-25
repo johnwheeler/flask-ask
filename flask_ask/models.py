@@ -201,9 +201,9 @@ class question(_Response):
         return self
 
 
-class setup(_Response):
+class setupAmzPay(_Response):
 
-    def __init__(self, sellerId, sandboxMode=False, sandboxCustomerEmailId=''):
+    def __init__(self, sellerId, sandboxMode=False, sandboxCustomerEmailId='', token='correlationTokenSetup'):
         setupPayload = {
             "@type": "SetupAmazonPayRequest",
             "@version": "2",
@@ -222,12 +222,12 @@ class setup(_Response):
               'type': 'Connections.SendRequest',
               'name': 'Setup',
               'payload': setupPayload,
-              'token': 'correlationTokenSetup'
+              'token': token
             }]
         }
 
 
-class charge(_Response):
+class chargeAmzPay(_Response):
 
     def __init__(self, billingAgreementId, sellerId, amountStr, authorizationReferenceId, correlationToken=' '):
         setupPayload = {
