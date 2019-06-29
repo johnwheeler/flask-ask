@@ -158,9 +158,11 @@ class _Response(object):
         return self
 
     def consent_card(self, permissions):
+        if not isinstance(permissions, list):
+            permissions = [permissions]
         card = {
             'type': 'AskForPermissionsConsent',
-            'permissions': [permissions]
+            'permissions': permissions
         }
         self._response['card'] = card
         return self
