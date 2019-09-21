@@ -79,6 +79,7 @@ class Ask(object):
         self.app = app
         self._route = route
         self._intent_view_funcs = {}
+        self._intent_can_handle_funcs = {}
         self._intent_converts = {}
         self._intent_defaults = {}
         self._intent_mappings = {}
@@ -260,6 +261,51 @@ class Ask(object):
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
+
+            @wraps(f)
+            def wrapper(*args, **kw):
+                self._flask_view_func(*args, **kw)
+            return f
+        return decorator
+
+    def can_handle(self, intent_name):
+        """Decorator routes an Alexa CanHandleIntent and provides the slot parameters to the wrapped function.
+
+        Functions decorated as an CanHandleIntent function are registered as the view function for the CanHandleIntent request
+        and provide the YES/NO responses to give your Skill name-free invocation.
+
+        @ask.can_handle('WeatherIntent')
+        def weather(city):
+            valid_cities = ['Tampa', 'Orlando', 'Miami']
+            maybe_cities = ['Ocala', 'Temple', "Disney"]
+            no_cities = ['Cape Coral', 'Fort Myers', 'Naples']
+
+            slots = {}
+            can_fulfill = "NO"
+            if city in valid_cities:
+                can_fulfill = "YES"
+                slots.update({
+                    "city": ["YES", "YES"] <- [CanUnderstand, CanFulfill]
+                })
+            elif city in maybe_cities:
+                can_fulfill = "MAYBE"
+                slots.update({
+                    "city": ["YES", "MAYBE"]
+                })
+            elif city in no_cities:
+                slots.update({
+                    "city": ["YES", "NO"]
+                })
+            
+
+            return can_handle(can_fulfill, slots)
+
+        Arguments:
+            intent_name {str} -- Name of the intent request to be checked by the decorated function
+
+        """
+        def decorator(f):
+            self._intent_can_handle_funcs[intent_name] = f
 
             @wraps(f)
             def wrapper(*args, **kw):
@@ -812,7 +858,8 @@ class Ask(object):
             # user can also access state of content.AudioPlayer with current_stream
         elif 'Connections.Response' in request_type:
             result = self._map_purchase_request_to_func(self.request.type)()
-
+        elif 'CanFulfillIntentRequest' in request_type:
+            result = self._map_canhandle_to_view_func(self.request.intent)()
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
@@ -837,6 +884,24 @@ class Ask(object):
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent.name, arg_names)
 
+        return partial(view_func, *arg_values)
+        
+    def _map_canhandle_to_view_func(self, intent):
+        """Provides appropiate parameters to the intent functions."""
+        if intent.name in self._intent_can_handle_funcs:
+            view_func = self._intent_can_handle_funcs[intent.name]
+        else:
+            raise NotImplementedError('CanHandle "{}" not found'.format(intent.name))
+
+        PY3 = sys.version_info[0] == 3
+        if PY3:
+            argspec = inspect.getfullargspec(view_func)
+        else:
+            argspec = inspect.getargspec(view_func)
+            
+        arg_names = argspec.args
+        arg_values = self._map_params_to_view_args(intent.name, arg_names)
+        
         return partial(view_func, *arg_values)
 
     def _map_player_request_to_func(self, player_request_type):

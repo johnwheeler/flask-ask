@@ -25,6 +25,7 @@ from .models import (
     confirm_slot,
     confirm_intent,
     buy,
+    can_handle,
     upsell,
     refund
 )

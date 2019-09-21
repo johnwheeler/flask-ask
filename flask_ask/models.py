@@ -51,6 +51,7 @@ class _Response(object):
             'outputSpeech': _output_speech(speech)
         }
 
+
     def simple_card(self, title=None, content=None):
         card = {
             'type': 'Simple',
@@ -76,6 +77,8 @@ class _Response(object):
 
         self._response['card'] = card
         return self
+
+   
     
     def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
         directive = [
@@ -218,6 +221,23 @@ class buy(_Response):
             }]
         }
 
+class can_handle(_Response):
+
+    def __init__(self, can_fulfill="NO", slots={}):
+        slotsDict = {}
+        for intentName, slot in slots.items():
+            print(slot)
+            slotsDict[intentName] = {
+                "canUnderstand": slot[0].upper(),
+                "canFulfill": slot[1].upper()
+            }
+            
+        self._response = {
+            "canFulfillIntent": {
+                "canFulfill": can_fulfill,
+                "slots": slotsDict
+            }
+        }
 
 class refund(_Response):
 
