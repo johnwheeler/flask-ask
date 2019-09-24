@@ -113,6 +113,13 @@ class _Response(object):
         return self
 
     def display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, text=None, hintText=None):
+        if type(text) is str:
+            text = {
+                "primaryText": {
+                    "text": text,
+                    "type": "PlainText"
+                }
+            }
         directive = [
             {
                 'type': 'Display.RenderTemplate',

@@ -850,6 +850,8 @@ class Ask(object):
                 result = "{}", 200
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
             result = self._map_intent_to_view_func(self.request.intent)()
+        elif request_type == 'CanFulfillIntentRequest':
+            result = self._map_canhandle_to_view_func(self.request.intent)()
         elif request_type == 'Display.ElementSelected' and self._display_element_selected_func:
             result = self._display_element_selected_func()
         elif 'AudioPlayer' in request_type:
@@ -858,8 +860,7 @@ class Ask(object):
             # user can also access state of content.AudioPlayer with current_stream
         elif 'Connections.Response' in request_type:
             result = self._map_purchase_request_to_func(self.request.type)()
-        elif 'CanFulfillIntentRequest' in request_type:
-            result = self._map_canhandle_to_view_func(self.request.intent)()
+        
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
