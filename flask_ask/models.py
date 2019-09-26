@@ -467,6 +467,26 @@ class audio(_Response):
 
         self._response['directives'].append(directive)
         return self
+    
+def progressive_response(speech:str):
+    """Causes Alexa to speak before your skill sends its full response."""
+    response = {
+        "header":{
+            "requestId":"amzn1.echo-api.request.xxxxxxx"
+        },
+        "directive":{
+            "type":"VoicePlayer.Speak",
+            "speech":"This text is spoken while your skill processes the full response."
+        }
+    }
+    response['header']['requestId'] = request.requestId
+    response['directive']['speech'] = speech
+
+    authToken = context.System.apiAccessToken
+    alexaAPIendpoint = context.System.apiEndpoint
+    headers = {"Authorization":'Bearer '+authToken, "Content-Type":"application/json"}
+    r = requests.post(alexaAPIendpoint + "/v1/directives", headers=headers, json=response)
+    return r.status_code
 
 
 def _copyattr(src, dest, attr, convert=None):

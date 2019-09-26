@@ -27,5 +27,6 @@ from .models import (
     buy,
     can_handle,
     upsell,
-    refund
+    refund,
+    progressive_response
 )
