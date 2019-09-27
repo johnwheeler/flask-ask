@@ -79,7 +79,7 @@ class _Response(object):
         self._response['card'] = card
         return self
 
-    def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
+    def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None, touchInput=None):
         directive = [
             {
                 'type': 'Display.RenderTemplate',
@@ -109,10 +109,15 @@ class _Response(object):
                 }
             }
             directive.append(hint)
+
+        #locate and remove shouldEndSession from response to allow for touch inputs on screened devices.
+        if (touchInput==True):
+            self._response.pop('shouldEndSession', True)
+
         self._response['directives'] = directive
         return self
 
-    def display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, text=None, hintText=None):
+    def display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, text=None, hintText=None, touchInput=None):
         if type(text) is str:
             text = {
                 "primaryText": {
@@ -120,6 +125,7 @@ class _Response(object):
                     "type": "PlainText"
                 }
             }
+
         directive = [
             {
                 'type': 'Display.RenderTemplate',
@@ -158,6 +164,10 @@ class _Response(object):
                 }
             }
             directive.append(hint)
+
+        #locate and remove shouldEndSession from response to allow for touch inputs on screened devices.
+        if (touchInput==True):
+            self._response.pop('shouldEndSession', True)
 
         self._response['directives'] = directive
         return self
@@ -228,7 +238,6 @@ class question(_Response):
         reprompt = {'outputSpeech': _output_speech(reprompt)}
         self._response['reprompt'] = reprompt
         return self
-
 
 class buy(_Response):
 
