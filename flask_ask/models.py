@@ -87,6 +87,7 @@ class _Response(object):
                 'type': 'Display.RenderTemplate',
                 'template': {
                     'type': template,
+                    'token': token,
                     'backButton': backButton,
                     'title': title,
                     'listItems': listItems
@@ -161,6 +162,25 @@ class _Response(object):
             directive.append(hint)
 
         self._response['directives'] = directive
+        return self
+
+    def video_app_interface(self, source=None, title=None, subtitle=None):
+        directive = [
+            {
+                "type": "VideoApp.Launch",
+                "videoItem":
+                    {
+                        "source": source,
+                        "metadata": {
+                            "title": title,
+                            "subtitle": subtitle
+                        }
+                    }
+            }
+        ]
+
+        self._response['directives'] = directive
+        self._response.pop('shouldEndSession', None)
         return self
 
     def link_account_card(self):
