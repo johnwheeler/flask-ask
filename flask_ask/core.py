@@ -136,7 +136,7 @@ class Ask(object):
             raise TypeError("route is a required argument when app is not None")
 
         self.app = app
-        
+
         app.ask = self
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
@@ -346,13 +346,13 @@ class Ask(object):
     def on_purchase_completed(self, mapping={'payload': 'payload','name':'name','status':'status','token':'token'}, convert={}, default={}):
         """Decorator routes an Connections.Response  to the wrapped function.
 
-        Request is sent when Alexa completes the purchase flow. 
-        See https://developer.amazon.com/docs/in-skill-purchase/add-isps-to-a-skill.html#handle-results 
+        Request is sent when Alexa completes the purchase flow.
+        See https://developer.amazon.com/docs/in-skill-purchase/add-isps-to-a-skill.html#handle-results
 
 
         The wrapped view function may accept parameters from the  Request.
         In addition to locale, requestId, timestamp, and type
-        
+
 
         @ask.on_purchase_completed( mapping={'payload': 'payload','name':'name','status':'status','token':'token'})
         def completed(payload, name, status, token):
@@ -360,7 +360,7 @@ class Ask(object):
             logger.info(name)
             logger.info(status)
             logger.info(token)
-            
+
         """
         def decorator(f):
             self._intent_view_funcs['Connections.Response'] = f
@@ -568,6 +568,19 @@ class Ask(object):
             return f
         return decorator
 
+    def on_input_handler_event(self, mapping={}, convert={}, default={}):
+        def decorator(f):
+            self._intent_view_funcs['GameEngine.InputHandlerEvent'] = f
+            self._intent_mappings['GameEngine.InputHandlerEvent'] = mapping
+            self._intent_converts['GameEngine.InputHandlerEvent'] = convert
+            self._intent_defaults['GameEngine.InputHandlerEvent'] = default
+
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                self._flask_view_func(*args, **kwargs)
+            return f
+        return decorator
+
     @property
     def request(self):
         return getattr(_app_ctx_stack.top, '_ask_request', None)
@@ -689,9 +702,9 @@ class Ask(object):
         body = json.dumps(event)
         environ['CONTENT_TYPE'] = 'application/json'
         environ['CONTENT_LENGTH'] = len(body)
-        
+
         PY3 = sys.version_info[0] == 3
-        
+
         if PY3:
             environ['wsgi.input'] = io.StringIO(body)
         else:
@@ -860,7 +873,9 @@ class Ask(object):
             # user can also access state of content.AudioPlayer with current_stream
         elif 'Connections.Response' in request_type:
             result = self._map_purchase_request_to_func(self.request.type)()
-        
+        elif 'GameEngine' in request_type:
+            result = self._map_gadget_request_to_func(self.request.type)()
+            
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
@@ -881,7 +896,7 @@ class Ask(object):
             argspec = inspect.getfullargspec(view_func)
         else:
             argspec = inspect.getargspec(view_func)
-            
+
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent.name, arg_names)
 
@@ -918,17 +933,31 @@ class Ask(object):
 
     def _map_purchase_request_to_func(self, purchase_request_type):
         """Provides appropriate parameters to the on_purchase functions."""
-        
+
         if purchase_request_type in self._intent_view_funcs:
             view_func = self._intent_view_funcs[purchase_request_type]
         else:
-            raise NotImplementedError('Request type "{}" not found and no default view specified.'.format(purchase_request_type)) 
+            raise NotImplementedError('Request type "{}" not found and no default view specified.'.format(purchase_request_type))
 
         argspec = inspect.getargspec(view_func)
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(purchase_request_type, arg_names)
 
         print('_map_purchase_request_to_func', arg_names, arg_values, view_func, purchase_request_type)
+        return partial(view_func, *arg_values)
+
+    def _map_gadget_request_to_func(self, gadget_request_type):
+        """Provides appropriate parameters to the on_input_handler_event function."""
+
+        if gadget_request_type in self._intent_view_funcs:
+            view_func = self._intent_view_funcs[gadget_request_type]
+        else:
+            raise NotImplementedError('Request type "{}" not found and no default view specified.'.format(gadget_request_type))
+
+        argspec = inspect.getargspec(view_func)
+        arg_names = argspec.args
+        arg_values = self._map_params_to_view_args(gadget_request_type, arg_names)
+
         return partial(view_func, *arg_values)
 
     def _get_slot_value(self, slot_object):

@@ -28,5 +28,8 @@ from .models import (
     can_handle,
     upsell,
     refund,
-    progressive_response
+    progressive_response,
+    gadget,
+    animation,
+    animation_step
 )

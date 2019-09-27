@@ -79,8 +79,6 @@ class _Response(object):
         self._response['card'] = card
         return self
 
-   
-    
     def list_display_render(self, template=None, title=None, backButton='HIDDEN', token=None, background_image_url=None, image=None, listItems=None, hintText=None):
         directive = [
             {
@@ -94,7 +92,7 @@ class _Response(object):
                 }
             }
         ]
-        
+
         if background_image_url is not None:
             directive[0]['template']['backgroundImage'] = {
                'sources': [
@@ -133,24 +131,24 @@ class _Response(object):
                 }
             }
         ]
-        
+
         if background_image_url is not None:
             directive[0]['template']['backgroundImage'] = {
                'sources': [
                    {'url': background_image_url}
                ]
             }
-        
+
         if image is not None:
             directive[0]['template']['image'] = {
                 'sources': [
                     {'url': image}
                 ]
             }
-            
+
         if token is not None:
             directive[0]['template']['token'] = token
-            
+
         if hintText is not None:
             hint = {
                 'type':'Hint',
@@ -202,7 +200,7 @@ class _Response(object):
             'response': self._response,
             'sessionAttributes': session.attributes
         }
-        
+
         kw = {}
         if hasattr(session, 'attributes_encoder'):
             json_encoder = session.attributes_encoder
@@ -239,13 +237,13 @@ class buy(_Response):
             'shouldEndSession': True,
             'directives': [{
               'type': 'Connections.SendRequest',
-              'name': 'Buy',          
+              'name': 'Buy',
               'payload': {
                          'InSkillProduct': {
                              'productId': productId
                          }
                },
-              'token': 'correlationToken'              
+              'token': 'correlationToken'
             }]
         }
 
@@ -274,13 +272,13 @@ class refund(_Response):
             'shouldEndSession': True,
             'directives': [{
               'type': 'Connections.SendRequest',
-              'name': 'Cancel',          
+              'name': 'Cancel',
               'payload': {
                          'InSkillProduct': {
                              'productId': productId
                          }
                },
-              'token': 'correlationToken'              
+              'token': 'correlationToken'
             }]
         }
 
@@ -291,14 +289,14 @@ class upsell(_Response):
             'shouldEndSession': True,
             'directives': [{
               'type': 'Connections.SendRequest',
-              'name': 'Upsell',          
+              'name': 'Upsell',
               'payload': {
                          'InSkillProduct': {
                              'productId': productId
                          },
                          'upsellMessage': msg
                },
-              'token': 'correlationToken'              
+              'token': 'correlationToken'
             }]
         }
 
@@ -359,7 +357,7 @@ class confirm_slot(_Response):
 class confirm_intent(_Response):
     """
     Sends a ConfirmIntent directive.
-    
+
     """
     def __init__(self, speech, updated_intent=None):
         self._response = {
@@ -508,6 +506,199 @@ def progressive_response(speech:str):
     headers = {"Authorization":'Bearer '+authToken, "Content-Type":"application/json"}
     r = requests.post(alexaAPIendpoint + "/v1/directives", headers=headers, json=response)
     return r.status_code
+
+
+class gadget(_Response):
+    """Returns a response object with one or more GameEngine/GadgetController directives.
+
+    Responses may include outputSpeech in addition to these directives.  All timeout
+    parameters below are in milliseconds.
+    """
+
+    def __init__(self, speech=''):
+        super(gadget, self).__init__(speech)
+        self._response['directives'] = []
+        self._response['shouldEndSession'] = False
+        self._input_handler = None
+
+    def reprompt(self, reprompt):
+        reprompt = {'outputSpeech': _output_speech(reprompt)}
+        self._response['reprompt'] = reprompt
+        return self
+
+    def _start_input_handler(self, timeout=0):
+        """Returns an Input Handler which will wait for gadget events."""
+        directive = {}
+        directive['type'] = 'GameEngine.StartInputHandler'
+        directive['timeout'] = timeout
+        directive['proxies'] = []
+        directive['recognizers'] = {}
+        directive['events'] = {}
+        self._input_handler = len(self._response['directives'])
+        self._response['directives'].append(directive)
+        return self
+
+    def stop(self, request_id):
+        """Cancels the current Input Handler."""
+        directive = {}
+        directive['type'] = 'GameEngine.StopInputHandler'
+        directive['originatingRequestId'] = request_id
+        self._response['directives'].append(directive)
+        return self
+
+    def roll_call(self, timeout=0, max_buttons=1):
+        """Waits for all available Echo Buttons to connect to the Echo device."""
+        if not self._input_handler:
+            self._start_input_handler(timeout=timeout)
+        ih = self._input_handler
+        for btn in range(1, max_buttons + 1):
+            button = "btn{}".format(btn)
+            recognizer = 'roll_call_recognizer_{}'.format(button)
+            event = 'roll_call_event_{}'.format(button)
+            self._response['directives'][ih]['proxies'].append(button)
+            self._response['directives'][ih]['recognizers'][recognizer] = {
+                'type': 'match',
+                'fuzzy': True,
+                'anchor': 'end',
+                'pattern': [{
+                    'gadgetIds': [button],
+                    'action': 'down'
+                }]
+            }
+            self._response['directives'][ih]['events'][event] = {
+                'meets': [recognizer],
+                'reports': 'matches',
+                'shouldEndInputHandler': btn == max_buttons,
+                'maximumInvocations': 1
+            }
+        self._response['directives'][ih]['events']['timeout'] = {
+            'meets': ['timed out'],
+            'reports': 'history',
+            'shouldEndInputHandler': True
+        }
+        return self
+
+    def first_button(self, timeout=0, targets=[], animations=[]):
+        """Waits for the first Echo Button to be pressed."""
+        if not self._input_handler:
+            self._start_input_handler(timeout=timeout)
+        ih = self._input_handler
+        pattern = {'action': 'down'}
+        if targets:
+            pattern['gadgetIds'] = targets
+        self._response['directives'][ih]['recognizers'] = {
+            'button_down_recognizer': {
+                'type': 'match',
+                'fuzzy': False,
+                'anchor': 'end',
+                'pattern': [pattern]
+            }
+        }
+        self._response['directives'][ih]['events'] = {
+            'timeout': {
+                'meets': ['timed out'],
+                'reports': 'nothing',
+                'shouldEndInputHandler': True
+            },
+            'button_down_event': {
+                'meets': ['button_down_recognizer'],
+                'reports': 'matches',
+                'shouldEndInputHandler': True
+            }
+        }
+        if animations:
+            self.set_light(targets=targets, animations=animations)
+        return self
+
+    def set_light(self, targets=[], trigger='none', delay=0, animations=[]):
+        """Sends a command to modify the behavior of connected Echo Buttons."""
+        directive = {}
+        directive['type'] = 'GadgetController.SetLight'
+        directive['version'] = 1
+        directive['targetGadgets'] = targets
+        if trigger not in ['buttonDown', 'buttonUp', 'none']:
+            trigger = None
+        if delay < 0 or delay > 65535:
+            delay = 0
+        directive['parameters'] = {
+            'triggerEvent': trigger,
+            'triggerEventTimeMs': delay,
+            'animations': animations
+        }
+        self._response['directives'].append(directive)
+        return self
+
+
+class animation(dict):
+    """Returns a dictionary of animation parameters to be passed to the GadgetController.SetLight directive.
+
+    Multiple animation steps can be added in a sequence by calling the class methods below.
+    """
+
+    def __init__(self, repeat=1, lights=['1'], sequence=[]):
+        attributes = {'repeat': repeat, 'targetLights': lights, 'sequence': sequence}
+        super(animation, self).__init__(attributes)
+        if not sequence:
+            self['sequence'] = []
+
+    def on(self, duration=1, color='FFFFFF'):
+        self['sequence'].append(animation_step(duration=duration, color=color))
+        return self
+
+    def off(self, duration=1):
+        self['sequence'].append(animation_step(duration=duration, color='000000'))
+        return self
+
+    def fade_in(self, duration=3000, color='FFFFFF', repeat=1):
+        for i in range(repeat):
+            self['sequence'].append(animation_step(duration=1, color='000000', blend=True))
+            self['sequence'].append(animation_step(duration=duration, color=color, blend=True))
+        return self
+
+    def fade_out(self, duration=3000, color='FFFFFF', repeat=1):
+        for i in range(repeat):
+            self['sequence'].append(animation_step(duration=1, color=color, blend=True))
+            self['sequence'].append(animation_step(duration=duration, color='000000', blend=True))
+        return self
+
+    def crossfade(self, duration=2000, colors=['0000FF', 'FF0000'], repeat=1):
+        for i in range(repeat):
+            for color in colors:
+                self['sequence'].append(animation_step(duration=duration, color=color, blend=True))
+        return self
+
+    def breathe(self, duration=1000, color='FFFFFF', repeat=1):
+        for i in range(repeat):
+            self['sequence'].append(animation_step(duration=1, color='000000', blend=True))
+            self['sequence'].append(animation_step(duration=duration, color=color, blend=True))
+            self['sequence'].append(animation_step(duration=int(duration * 0.3), color='000000', blend=True))
+        return self
+
+    def blink(self, duration=500, color='FFFFFF', repeat=1):
+        for i in range(repeat):
+            self['sequence'].append(animation_step(duration=duration, color=color))
+            self['sequence'].append(animation_step(duration=duration, color='000000'))
+        return self
+
+    def flip(self, duration=500, colors=['0000FF', 'FF0000'], repeat=1):
+        for i in range(repeat):
+            for color in colors:
+                self['sequence'].append(animation_step(duration=duration, color=color))
+        return self
+
+    def pulse(self, duration=500, color='FFFFFF', repeat=1):
+        for i in range(repeat):
+            self['sequence'].append(animation_step(duration=duration, color=color, blend=True))
+            self['sequence'].append(animation_step(duration=duration*2, color='000000', blend=True))
+        return self
+
+
+class animation_step(dict):
+    """Returns a single animation step, which can be chained in a sequence."""
+
+    def __init__(self, duration=500, color='FFFFFF', blend=False):
+        attributes = {'durationMs': duration, 'color': color, 'blend': blend}
+        super(animation_step, self).__init__(attributes)
 
 
 def _copyattr(src, dest, attr, convert=None):
