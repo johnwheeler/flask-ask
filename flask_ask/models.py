@@ -2,9 +2,10 @@ import inspect
 from flask import json
 from xml.etree import ElementTree
 import aniso8601
-from .core import session, context, current_stream, stream_cache, dbgdump
+from .core import session, context, current_stream, stream_cache, dbgdump, request
 from .cache import push_stream
 import uuid
+import requests
 
 
 class _Field(dict):
