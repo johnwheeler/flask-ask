@@ -11,7 +11,7 @@ from flask import Flask, json, render_template
 from flask_ask import Ask, request, session, question, statement
 
 
-ENDPOINT = "http://tidesandcurrents.noaa.gov/api/datagetter"
+ENDPOINT = "https://tidesandcurrents.noaa.gov/api/datagetter"
 SESSION_CITY = "city"
 SESSION_DATE = "date"
 
