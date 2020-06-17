@@ -1,8 +1,7 @@
 Building Responses
 ==================
 
-📼 A `Building Responses with Flask-Ask video <https://alexatutorial.com/2>`_ is available on
-`AlexaTutorial.com <https://alexatutorial.com>`_.
+📼 Here is a video demo on `Building Responses with Flask-Ask video <https://youtu.be/mObuAlfxnl8>`_ .
 
 The two primary constructs in Flask-Ask for creating responses are ``statement`` and ``question``.
 

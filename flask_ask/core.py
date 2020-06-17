@@ -2,8 +2,8 @@ import os
 import sys
 import yaml
 import inspect
+import io
 from datetime import datetime
-from io import StringIO
 from functools import wraps, partial
 
 import aniso8601
@@ -134,6 +134,8 @@ class Ask(object):
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
 
+        self.app = app
+        
         app.ask = self
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
@@ -293,6 +295,37 @@ class Ask(object):
         def wrapper(*args, **kw):
             self._flask_view_func(*args, **kw)
         return f
+
+
+    def on_purchase_completed(self, mapping={'payload': 'payload','name':'name','status':'status','token':'token'}, convert={}, default={}):
+        """Decorator routes an Connections.Response  to the wrapped function.
+
+        Request is sent when Alexa completes the purchase flow. 
+        See https://developer.amazon.com/docs/in-skill-purchase/add-isps-to-a-skill.html#handle-results 
+
+
+        The wrapped view function may accept parameters from the  Request.
+        In addition to locale, requestId, timestamp, and type
+        
+
+        @ask.on_purchase_completed( mapping={'payload': 'payload','name':'name','status':'status','token':'token'})
+        def completed(payload, name, status, token):
+            logger.info(payload)
+            logger.info(name)
+            logger.info(status)
+            logger.info(token)
+            
+        """
+        def decorator(f):
+            self._intent_view_funcs['Connections.Response'] = f
+            self._intent_mappings['Connections.Response'] = mapping
+            self._intent_converts['Connections.Response'] = convert
+            self._intent_defaults['Connections.Response'] = default
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                self._flask_view_func(*args, **kwargs)
+            return f
+        return decorator
 
 
     def on_playback_started(self, mapping={'offset': 'offsetInMilliseconds'}, convert={}, default={}):
@@ -610,7 +643,13 @@ class Ask(object):
         body = json.dumps(event)
         environ['CONTENT_TYPE'] = 'application/json'
         environ['CONTENT_LENGTH'] = len(body)
-        environ['wsgi.input'] = StringIO(body)
+        
+        PY3 = sys.version_info[0] == 3
+        
+        if PY3:
+            environ['wsgi.input'] = io.StringIO(body)
+        else:
+            environ['wsgi.input'] = io.BytesIO(body)
 
         # Start response is a required callback that must be passed when
         # the application is invoked. It is used to set HTTP status and
@@ -771,6 +810,8 @@ class Ask(object):
             result = self._map_player_request_to_func(self.request.type)()
             # routes to on_playback funcs
             # user can also access state of content.AudioPlayer with current_stream
+        elif 'Connections.Response' in request_type:
+            result = self._map_purchase_request_to_func(self.request.type)()
 
         if result is not None:
             if isinstance(result, models._Response):
@@ -787,7 +828,12 @@ class Ask(object):
         else:
             raise NotImplementedError('Intent "{}" not found and no default intent specified.'.format(intent.name))
 
-        argspec = inspect.getargspec(view_func)
+        PY3 = sys.version_info[0] == 3
+        if PY3:
+            argspec = inspect.getfullargspec(view_func)
+        else:
+            argspec = inspect.getargspec(view_func)
+            
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(intent.name, arg_names)
 
@@ -804,6 +850,37 @@ class Ask(object):
 
         return partial(view_func, *arg_values)
 
+    def _map_purchase_request_to_func(self, purchase_request_type):
+        """Provides appropriate parameters to the on_purchase functions."""
+        
+        if purchase_request_type in self._intent_view_funcs:
+            view_func = self._intent_view_funcs[purchase_request_type]
+        else:
+            raise NotImplementedError('Request type "{}" not found and no default view specified.'.format(purchase_request_type)) 
+
+        argspec = inspect.getargspec(view_func)
+        arg_names = argspec.args
+        arg_values = self._map_params_to_view_args(purchase_request_type, arg_names)
+
+        print('_map_purchase_request_to_func', arg_names, arg_values, view_func, purchase_request_type)
+        return partial(view_func, *arg_values)
+
+    def _get_slot_value(self, slot_object):
+        slot_name = slot_object.name
+        slot_value = getattr(slot_object, 'value', None)
+        resolutions = getattr(slot_object, 'resolutions', None)
+
+        if resolutions is not None:
+            resolutions_per_authority = getattr(resolutions, 'resolutionsPerAuthority', None)
+            if resolutions_per_authority is not None and len(resolutions_per_authority) > 0:
+                values = resolutions_per_authority[0].get('values', None)
+                if values is not None and len(values) > 0:
+                    value = values[0].get('value', None)
+                    if value is not None:
+                        slot_value = value.get('name', slot_value)
+
+        return slot_value
+
     def _map_params_to_view_args(self, view_name, arg_names):
 
         arg_values = []
@@ -819,7 +896,7 @@ class Ask(object):
             if intent.slots is not None:
                 for slot_key in intent.slots.keys():
                     slot_object = getattr(intent.slots, slot_key)
-                    request_data[slot_object.name] = getattr(slot_object, 'value', None)
+                    request_data[slot_object.name] = self._get_slot_value(slot_object=slot_object)
 
         else:
             for param_name in self.request:
