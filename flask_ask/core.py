@@ -802,7 +802,7 @@ class Ask(object):
                 result = self._session_ended_view_func()
             else:
                 result = "{}", 200
-        elif request_type == 'IntentRequest' and self._intent_view_funcs:
+        elif request_type == 'IntentRequest' and ( self._intent_view_funcs or self._default_intent_view_func is not None ):
             result = self._map_intent_to_view_func(self.request.intent)()
         elif request_type == 'Display.ElementSelected' and self._display_element_selected_func:
             result = self._display_element_selected_func()
