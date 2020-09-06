@@ -1,5 +1,5 @@
 -r requirements.txt
 mock==2.0.0
-requests==2.13.0
+requests==2.20.0
 tox==2.7.0
 
