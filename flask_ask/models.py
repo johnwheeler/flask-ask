@@ -201,6 +201,38 @@ class question(_Response):
         return self
 
 
+class setup_payment(_Response):
+
+    def __init__(self, setupPayload=None):
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+                'type': 'Connections.SendRequest',
+                'name': 'Setup',
+                'payload': {
+                    'SetupAmazonPay': setupPayload
+                },
+                'token': 'correlationToken'
+            }]
+        }
+
+
+class charge_payment(_Response):
+    
+    def __init__(self, chargePayload=None):
+        self._response = {
+            'shouldEndSession': True,
+            'directives': [{
+                'type': 'Connections.SendRequest',
+                'name': 'Charge',
+                'payload': {
+                    'ChargeAmazonPay': chargePayload
+                },
+                'token': 'correlationToken'
+            }]
+        }
+
+
 class buy(_Response):
 
     def __init__(self, productId=None):
