@@ -11,7 +11,7 @@ Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that make
 * `Level Up with our Alexa Skills Kit Video Tutorial <https://alexatutorial.com/>`_
 * `Chat on Gitter.im <https://gitter.im/johnwheeler/flask-ask/>`_
 
-The Basics
+The Basics of the Project
 ===============
 
 A Flask-Ask application looks like this:
