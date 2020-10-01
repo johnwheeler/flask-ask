@@ -2,7 +2,7 @@
 .. image:: http://flask-ask.readthedocs.io/en/latest/_images/logo-full.png
 
 ===================================
-Program the Amazon Echo with Python
+Program the Amazon Echo with Python. Very good Project
 ===================================
 
 Flask-Ask is a `Flask extension <http://flask.pocoo.org/extensions/>`_ that makes building Alexa skills for the Amazon Echo easier and much more fun.
