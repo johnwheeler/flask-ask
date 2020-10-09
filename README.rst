@@ -63,7 +63,7 @@ Flask-Ask handles the boilerplate, so you can focus on writing clean code. Flask
 * Has decorators to map Alexa requests and intent slots to view functions
 * Helps construct ask and tell responses, reprompts and cards
 * Makes session management easy
-* Allows for the separation of code and speech through Jinja templates
+* Allow us the separation of code and speech through Jinja templates
 * Verifies Alexa request signatures
 
 Installation
