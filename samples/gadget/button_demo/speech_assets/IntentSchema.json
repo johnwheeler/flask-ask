@@ -1,0 +1,91 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "gadget test",
+            "intents": [
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "RollCallIntent",
+                    "slots": [],
+                    "samples": [
+                        "start the roll call intent",
+                        "start roll call intent",
+                        "test the roll call intent",
+                        "test roll call intent",
+                        "roll call intent",
+                        "test the roll call",
+                        "start the roll call",
+                        "test roll call",
+                        "start roll call",
+                        "roll call"
+                    ]
+                },
+                {
+                    "name": "AMAZON.YesIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NoIntent",
+                    "samples": []
+                },
+                {
+                    "name": "StartRound",
+                    "slots": [],
+                    "samples": [
+                        "test start the round",
+                        "test buzzing in",
+                        "test buzz in",
+                        "test start a round",
+                        "test start round",
+                        "start another round",
+                        "start the round now",
+                        "start a round",
+                        "start the round",
+                        "start round"
+                    ]
+                },
+                {
+                    "name": "SetButtonColor",
+                    "slots": [
+                        {
+                            "name": "button",
+                            "type": "AMAZON.NUMBER"
+                        },
+                        {
+                            "name": "color",
+                            "type": "AMAZON.Color"
+                        }
+                    ],
+                    "samples": [
+                        "make player {button} {color}",
+                        "make button {button} {color}",
+                        "change player {button} to {color}",
+                        "set player {button} to {color}",
+                        "change button {button} to {color}",
+                        "set button {button} to {color}"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}
