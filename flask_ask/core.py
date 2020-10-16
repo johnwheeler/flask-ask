@@ -57,7 +57,23 @@ from . import models
 
 _converters = {'date': to_date, 'time': to_time, 'timedelta': to_timedelta}
 
+# Will hold response related stuff like statusCode, content type and custom headers.
+class AskResponse():
+    def __init__(self, statusCode = 200, contentType = "application/json", customHeaders = {}):
+        self.statusCode = 200
+        self.contentType = contentType
+        if isinstance(statusCode, int):
+            self.statusCode = statusCode
+        if isinstance(customHeaders, dict):
+            self.headers = customHeaders
 
+    #added a function for giving some pre-defined and custom headers.
+    def getHeaders(self, request_type):
+        self.headers["x-request-type"] = request_type
+        self.headers["x-dev-edition"] = "flask-ask-devs"
+        self.headers["Content-Type"] = self.contentType
+        return self.headers
+        
 class Ask(object):
     """The Ask object provides the central interface for interacting with the Alexa service.
 
@@ -816,8 +832,25 @@ class Ask(object):
         if result is not None:
             if isinstance(result, models._Response):
                 return result.render_response()
-            return result
+            elif isinstance(result, tuple):
+                return self.makeVerboseResponse(result, request_type)
         return "", 400
+    
+    # Contains additional functionality with the support of previously existing one.
+    def makeVerboseResponse(self, result, request_type):
+        # checking tuple's for first index for `models._Response` type
+        if len(result) == 1 and isinstance(result[0], models._Response):
+            response = result[0].render_response()
+            askResponse = AskResponse()
+        # checking tuple's for first index for `models._Response` and second index for `AskResponse` type
+        elif len(result) >= 2 and isinstance(result[0], models._Response) and isinstance(result[1], AskResponse):
+            response = result[0].render_response()
+            askResponse = result[1]
+        else:
+            response = ""
+            askResponse = AskResponse()
+        # returning response in the terms tuple which contains response, statusCode and custom headers.
+        return (response, askResponse.statusCode, askResponse.getHeaders(request_type))
 
     def _map_intent_to_view_func(self, intent):
         """Provides appropiate parameters to the intent functions."""

@@ -2,7 +2,7 @@ import logging
 import os
 
 from flask import Flask
-from flask_ask import Ask, request, session, question, statement
+from flask_ask import Ask, AskResponse, request, session, question, statement
 
 
 app = Flask(__name__)
@@ -13,7 +13,7 @@ logging.getLogger('flask_ask').setLevel(logging.DEBUG)
 @ask.launch
 def launch():
     speech_text = 'Welcome to the Alexa Skills Kit, you can say hello'
-    return question(speech_text).reprompt(speech_text).simple_card('HelloWorld', speech_text)
+    return (question(speech_text).reprompt(speech_text).simple_card('HelloWorld', speech_text), AskResponse())
 
 
 @ask.intent('HelloWorldIntent')
@@ -25,7 +25,7 @@ def hello_world():
 @ask.intent('AMAZON.HelpIntent')
 def help():
     speech_text = 'You can say hello to me!'
-    return question(speech_text).reprompt(speech_text).simple_card('HelloWorld', speech_text)
+    return (question(speech_text).reprompt(speech_text).simple_card('HelloWorld', speech_text), AskResponse(statusCode = 500, contentType = "application/json", customHeaders = {"x-error-cause": "Internal server error!"}))
 
 
 @ask.session_ended
