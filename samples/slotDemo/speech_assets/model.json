@@ -1,0 +1,81 @@
+{
+  "languageModel": {
+    "types": [
+      {
+        "name": "slot_list",
+        "values": [
+          {
+            "id": "SLOT_TRANSFORMERS",
+            "name": {
+              "value": "transformer",
+              "synonyms": [
+                "Optimus Prime",
+                "Bumblebee",
+                "Megatron"
+              ]
+            }
+          },
+          {
+            "id": "SLOT_HEMAN",
+            "name": {
+              "value": "He Man",
+              "synonyms": [
+                "Man At Arms",
+                "Battle Cat"
+              ]
+            }
+          },
+          {
+            "id": "SLOT_DD",
+            "name": {
+              "value": "Dungeons and Dragons",
+              "synonyms": [
+                "Eric",
+                "Presto",
+                "Dungeon Master"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "intents": [
+      {
+        "name": "AMAZON.CancelIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.HelpIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.StopIntent",
+        "samples": []
+      },
+      {
+        "name": "FlaskAskSlotTest",
+        "samples": [
+          "add {first} and {second}",
+          "add {first}",
+          "add {first} and {second} and {third}"
+        ],
+        "slots": [
+          {
+            "name": "first",
+            "type": "slot_list"
+          },
+          {
+            "name": "second",
+            "type": "slot_list"
+          },
+          {
+            "name": "third",
+            "type": "slot_list"
+          }
+        ]
+      }
+    ],
+    "invocationName": "flask slot demo"
+  }
+}
+
