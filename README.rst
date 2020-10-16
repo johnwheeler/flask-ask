@@ -55,6 +55,21 @@ above:
 
 Templates are stored in a file called `templates.yaml` located in the application root. Checkout the `Tidepooler example <https://github.com/johnwheeler/flask-ask/tree/master/samples/tidepooler>`_ to see why it makes sense to extract speech out of the code and into templates as the number of spoken phrases grow.
 
+Multi-Language Skills:
+---------------------
+
+If you write a multi-language skill, you can set many localizations of the messages 
+adding the locale as suffix to the message in templates UAML file, for example :
+
+.. code-block:: yaml
+
+    hello_en_US: Beautiful appartement {{ firstname }} ! 
+    hello_en_UK: Beautiful flat {{firstname}}  !
+    hello_fr: Bel appartement  {{ firstname }} !
+    hello: Beautiful appartement or flat {{firstname}} !
+
+Notice that if the right localization is not found, the unlocalized version is used.
+
 Features
 ===============
 
