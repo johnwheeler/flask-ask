@@ -105,7 +105,7 @@ Alternatively, you can use AWS Lambda directly without the need for an AWS API G
 Development
 ===============
 
-If you'd like to work from the Flask-Ask source, clone the project and run::
+If you do like to work from the Flask-Ask source, clone the project and run::
 
   pip install -r requirements-dev.txt
 
@@ -134,7 +134,7 @@ Have a Google Home? Checkout `Flask-Assistant <https://github.com/treethought/fl
 Thank You
 ===============
 
-Thanks for checking this library out! I hope you find it useful.
+Thank You Guys  for checking this library out! I hope you find it useful.
 
 Of course, there's always room for improvement.
 Feel free to `open an issue <https://github.com/johnwheeler/flask-ask/issues>`_ so we can make Flask-Ask better.
