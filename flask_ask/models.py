@@ -1,11 +1,12 @@
 import inspect
 from flask import json
-from xml.etree import ElementTree
 import aniso8601
 from .core import session, context, current_stream, stream_cache, dbgdump
 from .cache import push_stream
 import uuid
+import re
 
+SPEAK_TAG_REGEX = re.compile("^<speak>.*<\/speak>")
 
 class _Field(dict):
     """Container to represent Alexa Request Data.
@@ -451,10 +452,7 @@ def _copyattr(src, dest, attr, convert=None):
 
 
 def _output_speech(speech):
-    try:
-        xmldoc = ElementTree.fromstring(speech)
-        if xmldoc.tag == 'speak':
-            return {'type': 'SSML', 'ssml': speech}
-    except (UnicodeEncodeError, ElementTree.ParseError) as e:
-        pass
-    return {'type': 'PlainText', 'text': speech}
+    if SPEAK_TAG_REGEX.match(speech):
+        return {"type": "SSML", "ssml": speech}
+        
+    return {"type": "PlainText", "text": speech}
