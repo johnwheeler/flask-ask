@@ -211,6 +211,26 @@ class Ask(object):
             self._flask_view_func(*args, **kw)
         return f
 
+    def session_resumed(self, f):
+        """Decorator routes Alexa SessionResumedRequest to the wrapped view function to end the skill.
+
+        @ask.session_resumed
+        def session_resumed():
+            return "{}", 200
+
+        The wrapped function is registered as the session_resumed view function
+        and renders the response for requests to resumed sessions (from mobile devices)
+
+        Arguments:
+            f {function} -- session_ended view function
+        """
+        self._session_resumed_view_func = f
+
+        @wraps(f)
+        def wrapper(*args, **kw):
+            self._flask_view_func(*args, **kw)
+        return f
+
     def session_ended(self, f):
         """Decorator routes Alexa SessionEndedRequest to the wrapped view function to end the skill.
 
@@ -800,6 +820,11 @@ class Ask(object):
         elif request_type == 'SessionEndedRequest':
             if self._session_ended_view_func:
                 result = self._session_ended_view_func()
+            else:
+                result = "{}", 200
+        elif request_type == 'SessionResumedRequest':
+            if self._session_resumed_view_func:
+                result = self._session_resumed_view_func()
             else:
                 result = "{}", 200
         elif request_type == 'IntentRequest' and self._intent_view_funcs:
