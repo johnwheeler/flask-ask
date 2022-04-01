@@ -16,7 +16,7 @@ from . import verifier, logger
 from .convert import to_date, to_time, to_timedelta
 from .cache import top_stream, set_stream
 import collections
-
+import re
 
 def find_ask():
     """
@@ -130,6 +130,21 @@ class Ask(object):
             Add tabs and linebreaks to the Alexa request and response printed to the debug log.
             This improves readability when printing to the console, but breaks formatting when logging to CloudWatch.
             Default: False
+            
+        `ASK_INTERACTION_MODEL_FILE`:
+
+            When this path is set, a JSON interaction model compatible with ASK JSON Editor
+            When None : no interaction model is generated.
+            Default: None
+            
+        `ASK_IM_INVOCATION_NAME`:
+
+            When this name is set, it is used as invocation name in generated interaction model,
+            when None invocation name is a placeholder that needs to be filled by user.
+            Default: None
+        
+            
+        
         """
         if self._route is None:
             raise TypeError("route is a required argument when app is not None")
@@ -140,7 +155,9 @@ class Ask(object):
 
         app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
         app.jinja_loader = ChoiceLoader([app.jinja_loader, YamlLoader(app, path)])
-
+        
+        self._resolve_im_path(app)
+        
     def init_blueprint(self, blueprint, path='templates.yaml'):
         """Initialize a Flask Blueprint, similar to init_app, but without the access
         to the application config.
@@ -260,10 +277,12 @@ class Ask(object):
             self._intent_mappings[intent_name] = mapping
             self._intent_converts[intent_name] = convert
             self._intent_defaults[intent_name] = default
-
+            
             @wraps(f)
             def wrapper(*args, **kw):
                 self._flask_view_func(*args, **kw)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -358,6 +377,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -389,6 +410,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -427,6 +450,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -482,6 +507,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -519,6 +546,8 @@ class Ask(object):
             @wraps(f)
             def wrapper(*args, **kwargs):
                 self._flask_view_func(*args, **kwargs)
+            
+            self.sync_interaction_model()
             return f
         return decorator
 
@@ -681,8 +710,135 @@ class Ask(object):
             # is implemented on the result object.
             if hasattr(result, 'close'):
                 result.close()
+        
+    def _resolve_im_path(self, app):
+        self.invocation_name = app.config.get("ASK_IM_INVOCATION_NAME","Set ASK_IM_INVOCATION_NAME or define one here")
 
+        self.impath = app.config.get("ASK_INTERACTION_MODEL_FILE", None)
+        if not self.impath and ('--interaction-model-file' in sys.argv):
+            idx = sys.argv.index('--interaction-model-file')
+            self.impath = 'interactionModel.json' if (len(sys.argv) == idx+1) else sys.argv[idx+1]
+        if not self.impath:
+            return
+        logger.info("Interaction model JSON will be synchronized : %s" % self.impath)
+        try:
+            self._old_im = json.load(open(self.impath,"r",encoding="utf-8"))
+        except:
+            self._old_im = {}
+                
+    def sync_interaction_model(self):
+        """ 
+            Generates a JSON representation of the Skill Interaction Model 
+            JSON, this is not 100% complete model but is a starting point,
+            it can be copy/pasted in ASK Console JSON Editor as a starting point
+        """
+        if not self.impath: return
+        try:
+            out = open(self.impath, 'w', encoding='utf-8')
+            #TODO: support types
+            json.dump({
+                "interactionModel": {
+                    "languageModel": {
+                        "invocationName": self.invocation_name,
+                        "intents":list(self._gen_im_intents()),
+                         "types": []
+                     }
+                 }
+             }, out, indent=4)
+            out.close()
+            logger.debug("Synced interaction model to : %s" % self.impath) 
+        except:
+            logger.warn("Failed synching interaction model to : %s" % self.impath, exc_info=True)
+        
+         
+    @staticmethod
+    def _gen_im_identifier_to_words(identifier):
+        """ Split camelcase, remove non alphas, and remove eventual trailing "Intent"  """
+        matches = re.finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
+        return ' '.join(m.group(0) for m in matches if m.group(0).lower() != 'intent')
+    
+    def _get_old_im_intent(self,view_name):
+        i = self._old_im.get("interactionModel",{})
+        i = i.get("languageModel",{})
+        for intent in i.get("intents",[]):
+            if view_name == intent.get("name",None):
+                return intent
+    
+    def _gen_im_intents(self):
+        for view_name in self._intent_view_funcs.keys():
+            slots = list(self._gen_im_slots(view_name))
+            intent = { 
+                    "name": view_name,
+                    "slots": slots
+                  }
+            
+            old_int = self._get_old_im_intent(view_name)
+            if old_int:
+                if set(json.dumps(o, sort_keys=True) for o in old_int.get("slots",[])) != set(json.dumps(o, sort_keys=True) for o in intent.get("slots",[])):
+                    logger.warn("Slots of intent %s changed between old and new " 
+                        +"interaction model (May be you want to review your "
+                        +"samples ?)", view_name)
+                intent["samples"] = old_int.get("samples",[])
+                yield  intent
+                continue
+            
+            intent_in_words = self._gen_im_identifier_to_words(view_name)
+            
+            slot_samples = []
+            
+            if len(slots) > 0:
+                slot_samples.append(' '.join(
+                "{%s}"%slot["name"] for slot in slots))
+                    
+                slot_samples.append(' '.join(
+                    "%s {%s}"%(self._gen_im_identifier_to_words(slot["name"]), 
+                            slot["name"]) for slot in slots))
+                
+                slot_samples.append( ' and '.join(
+                    "%s {%s}"%(self._gen_im_identifier_to_words(slot["name"]), 
+                        slot["name"]) for slot in slots))
+                
+                slot_samples.extend(list("with "+sample for sample in slot_samples))
+            else:
+                slot_samples = [""]
+                
+            intent["samples"] = []
+            
+            for slot_sample in slot_samples:
+                intent["samples"].extend(pattern % (intent_in_words, slot_sample) for pattern in 
+                        ["I want to %s %s", "My answer is %s %s", "invoke %s %s", "do %s %s","%s %s"])
+            yield intent
+            #TODO: utterrances should be made customizable (in af ile ?)
+            
 
+    def _gen_im_slots(self, view_name):
+        view_func = self._intent_view_funcs.get(view_name)
+        argspec = inspect.getargspec(view_func)
+        arg_names = argspec.args
+        
+        convert = self._intent_converts.get(view_name)
+        default = self._intent_defaults.get(view_name)
+        mapping = self._intent_mappings.get(view_name)
+
+        for arg_name in arg_names:
+            yield {
+                "name": mapping.get(arg_name, arg_name),
+                "type": self._gen_im_infer_slot_type(convert[arg_name])
+            }
+    
+    def _gen_im_infer_slot_type(self, shorthand_or_function):
+        if shorthand_or_function in ('date',to_date):
+            return "AMAZON.DATE"
+        elif shorthand_or_function in ('time',to_time):
+            return "AMAZON.TIME"
+        elif shorthand_or_function in ('timedelta',to_timedelta):
+            return "AMAZON.DURATION"
+        elif shorthand_or_function in (int, float):
+            return "AMAZON.NUMBER"
+        #TODO: support for list types 
+        #TODO: support for custom types
+        return "UnknowType"
+        
     def _get_user(self):
         if self.context:
             return self.context.get('System', {}).get('user', {}).get('userId')
@@ -767,7 +923,7 @@ class Ask(object):
         ask_payload = self._alexa_request(verify=self.ask_verify_requests)
         dbgdump(ask_payload)
         request_body = models._Field(ask_payload)
-
+        
         self.request = request_body.request
         self.version = request_body.version
         self.context = getattr(request_body, 'context', models._Field())
@@ -928,16 +1084,17 @@ class Ask(object):
 
 
 class YamlLoader(BaseLoader):
-
+    
     def __init__(self, app, path):
         self.path = app.root_path + os.path.sep + path
         self.mapping = {}
         self._reload_mapping()
-
+    
+        
     def _reload_mapping(self):
         if os.path.isfile(self.path):
             self.last_mtime = os.path.getmtime(self.path)
-            with open(self.path) as f:
+            with open(self.path, encoding="utf-8") as f:
                 self.mapping = yaml.safe_load(f.read())
 
     def get_source(self, environment, template):
@@ -945,7 +1102,19 @@ class YamlLoader(BaseLoader):
             return None, None, None
         if self.last_mtime != os.path.getmtime(self.path):
             self._reload_mapping()
-        if template in self.mapping:
+        
+        locale = getattr(_app_ctx_stack.top, '_ask_request').locale
+        source = None
+        for sfx in (locale.replace('-','_'), locale.split('-',1)[0]):
+            key = template+"_"+sfx
+            if key in self.mapping:
+                source = self.mapping[key]
+                break
+        if not source:
+            logger.warn("No localized template found for locale %r and template %r, falling back to default.", locale, template)
             source = self.mapping[template]
+        
+        if source:
             return source, None, lambda: source == self.mapping.get(template)
+            
         raise TemplateNotFound(template)
