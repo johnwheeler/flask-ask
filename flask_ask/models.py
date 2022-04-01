@@ -352,22 +352,32 @@ class audio(_Response):
             self._response = {}
         self._response['directives'] = []
 
-    def play(self, stream_url, offset=0, opaque_token=None):
+    def play(self, stream_url, offset=0, opaque_token=None, title=None, subtitle=None, art=None, bgImg=None):
         """Sends a Play Directive to begin playback and replace current and enqueued streams."""
 
         self._response['shouldEndSession'] = True
         directive = self._play_directive('REPLACE_ALL')
-        directive['audioItem'] = self._audio_item(stream_url=stream_url, offset=offset, opaque_token=opaque_token)
+        directive['audioItem'] = self._audio_item(stream_url=stream_url, 
+                                                  offset=offset, 
+                                                  opaque_token=opaque_token,
+                                                  title=title,
+                                                  subtitle=subtitle,
+                                                  art=art,
+                                                  bgImg=bgImg)
         self._response['directives'].append(directive)
         return self
 
-    def enqueue(self, stream_url, offset=0, opaque_token=None):
+    def enqueue(self, stream_url, offset=0, opaque_token=None, title=None, subtitle=None, art=None, bgImg=None):
         """Adds stream to the queue. Does not impact the currently playing stream."""
         directive = self._play_directive('ENQUEUE')
         audio_item = self._audio_item(stream_url=stream_url,
                                       offset=offset,
                                       push_buffer=False,
-                                      opaque_token=opaque_token)
+                                      opaque_token=opaque_token
+                                      title=title,
+                                      subtitle=subtitle,
+                                      art=art,
+                                      bgImg=bgImg)
         audio_item['stream']['expectedPreviousToken'] = current_stream.token
 
         directive['audioItem'] = audio_item
@@ -394,10 +404,11 @@ class audio(_Response):
         directive['type'] = 'AudioPlayer.Play'
         directive['playBehavior'] = behavior
         return directive
-
-    def _audio_item(self, stream_url=None, offset=0, push_buffer=True, opaque_token=None):
+    
+    def _audio_item(self,  stream_url=None, offset=0, push_buffer=True, opaque_token=None,
+                        title=None, subtitle=None, art=None, bgImg=None):
         """Builds an AudioPlayer Directive's audioItem and updates current_stream"""
-        audio_item = {'stream': {}}
+        audio_item = {'stream': {}, 'metadata' : {}}
         stream = audio_item['stream']
 
         # existing stream
@@ -415,6 +426,13 @@ class audio(_Response):
 
         if push_buffer:  # prevents enqueued streams from becoming current_stream
             push_stream(stream_cache, context['System']['user']['userId'], stream)
+
+        metadata = audio_item['metadata']
+        metadata['title'] = title
+        metadata['subtitle'] = subtitle
+        metadata['art'] = {'sources' : [{'url' : art}]}
+        metadata['backgroundImage'] = {'sources' : [{'url' : art }]}
+        
         return audio_item
 
     def stop(self):
