@@ -26,5 +26,8 @@ from .models import (
     confirm_intent,
     buy,
     upsell,
-    refund
+    refund,
+    gadget,
+    animation,
+    animation_step
 )
