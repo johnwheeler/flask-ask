@@ -852,7 +852,6 @@ class Ask(object):
 
     def _map_purchase_request_to_func(self, purchase_request_type):
         """Provides appropriate parameters to the on_purchase functions."""
-        
         if purchase_request_type in self._intent_view_funcs:
             view_func = self._intent_view_funcs[purchase_request_type]
         else:
@@ -862,7 +861,7 @@ class Ask(object):
         arg_names = argspec.args
         arg_values = self._map_params_to_view_args(purchase_request_type, arg_names)
 
-        print('_map_purchase_request_to_func', arg_names, arg_values, view_func, purchase_request_type)
+        #print('_map_purchase_request_to_func', arg_names, arg_values, view_func, purchase_request_type)
         return partial(view_func, *arg_values)
 
     def _get_slot_value(self, slot_object):
